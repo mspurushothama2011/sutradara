@@ -1,0 +1,31 @@
+schema: spec-driven
+
+# Project context for Sutradara OpenSpec workflows
+context: |
+  Project: Sutradara — Luxury Handloom Saree E-Commerce Platform
+  Architecture: Monorepo (frontend/, backend/, shared/types/, docs/)
+  Frontend: Next.js 15 (App Router), React 19, TypeScript, React Three Fiber (Three.js 240-frame scroll engine), Vanilla CSS design tokens.
+  Backend: Node.js, Express, TypeScript, Prisma ORM, PostgreSQL (Supabase).
+  Edge & Security: Cloudflare Reverse Proxy, WAF, unmetered DDoS shield, Bot Fight Mode, TLS 1.3 Full Strict.
+  Security Rules: Zero-Client Price Trust (server-side DB lookup), HMAC-SHA256 Razorpay webhook verification, HttpOnly secure JWT cookies, Granular Capability RBAC.
+  Core Modules:
+    1. Product Catalog & 1-of-1 Heirloom Badging
+    2. Floor Quick-Stock Warehouse Adjuster
+    3. Marketing Suite (Coupons, Flash Deals, Banners, Festive Tags)
+    4. High-Assurance Delivery Tracking & Secure Delivery OTP
+    5. Staff Attendance & Salary Computation Formula
+    6. Daily Staff Work Summaries
+    7. Team Noticeboard & Order Chat
+    8. Immutable Security Audit Trail
+  Documentation Reference: Check docs/ for in-depth technical blueprints.
+
+# Per-artifact rules
+rules:
+  proposal:
+    - Keep proposals focused on specific modular capabilities.
+    - Always reference shared types in shared/types/index.ts.
+  specs:
+    - Specify both User Requirements and Verification Scenarios using Gherkin (Given/When/Then).
+    - Detail RBAC capability requirements for every endpoint and action.
+  tasks:
+    - Group tasks by Backend (Database/Prisma, API Routes, Middleware) and Frontend (Components, Portal Shell, Storefront).

@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sutradara — Handloom Saree E-Commerce Platform
 
-## Getting Started
+A production-grade, modular monorepo for the **Sutradara** luxury handloom saree platform.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 📁 Repository Structure
+
+```
+sutradara/
+├── frontend/             # Next.js 15 App Router + React Three Fiber (Storefront & Portal)
+├── backend/              # Node.js + Express + TypeScript + Prisma ORM (API Engine)
+├── shared/               # Shared TypeScript types & interfaces
+└── docs/                 # Complete Architectural & Operational Documentation Hub
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📚 Master Documentation Suite
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+All system details, security configurations, and blueprints are organized in [`docs/`](./docs/):
 
-## Learn More
+1. **[`ARCHITECTURE_MASTER.md`](./docs/ARCHITECTURE_MASTER.md)** — High-level architecture, system topology, and tech stack rationale.
+2. **[`CLOUDFLARE_AND_INFRASTRUCTURE.md`](./docs/CLOUDFLARE_AND_INFRASTRUCTURE.md)** — Cloudflare WAF, DNS, SSL/TLS, DDoS, and edge caching setup.
+3. **[`SECURITY_AND_COMPLIANCE.md`](./docs/SECURITY_AND_COMPLIANCE.md)** — JWT HttpOnly cookies, capability RBAC, zero-client price trust, and OWASP Top 10 hardening.
+4. **[`BUSINESS_MODULES_SPEC.md`](./docs/BUSINESS_MODULES_SPEC.md)** — Complete specification for all 8 business and staff modules.
+5. **[`ENVIRONMENT_AND_SECRETS.md`](./docs/ENVIRONMENT_AND_SECRETS.md)** — Full catalog of environment variables and secret management rules.
+6. **[`IMPLEMENTATION_ROADMAP.md`](./docs/IMPLEMENTATION_ROADMAP.md)** — Step-by-step milestone execution plan.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🚀 Quick Start
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 1. Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+# Running on http://localhost:3000
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 2. Backend
+```bash
+cd backend
+npm install
+npm run dev
+# Running on http://localhost:4000
+```
