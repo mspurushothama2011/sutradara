@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { apiRequest } from '@/lib/api';
 import { Product } from '../../../../../shared/types/index';
 
@@ -9,6 +9,8 @@ export default function FloorQuickStockPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const fetchProducts = async () => {
     try {
@@ -26,8 +28,34 @@ export default function FloorQuickStockPage() {
     fetchProducts();
   }, [search]);
 
+  // Hardware USB/Bluetooth Barcode Scanner Keystroke Listener
+  useEffect(() => {
+    let barcodeBuffer = '';
+    let lastKeyTime = Date.now();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Barcode scanners type very rapidly (< 50ms per key) and finish with 'Enter'
+      const currentTime = Date.now();
+      if (currentTime - lastKeyTime > 100) {
+        barcodeBuffer = '';
+      }
+      lastKeyTime = currentTime;
+
+      if (e.key === 'Enter' && barcodeBuffer.length > 2) {
+        setSearch(barcodeBuffer.trim());
+        setFeedbackMessage(`📷 Barcode Scanned: "${barcodeBuffer.trim()}"`);
+        setTimeout(() => setFeedbackMessage(null), 3000);
+        barcodeBuffer = '';
+      } else if (e.key.length === 1) {
+        barcodeBuffer += e.key;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleStockUpdate = async (productId: string, newStock: number, name: string) => {
-    // Optimistic UI update
     setProducts((prev) =>
       prev.map((p) => (p.id === productId ? { ...p, stock: Math.max(0, newStock) } : p))
     );
@@ -45,6 +73,16 @@ export default function FloorQuickStockPage() {
     }
   };
 
+  const simulateCameraScan = (sku: string) => {
+    setIsCameraActive(true);
+    setTimeout(() => {
+      setSearch(sku);
+      setIsCameraActive(false);
+      setFeedbackMessage(`📷 Camera Scanned SKU: "${sku}"`);
+      setTimeout(() => setFeedbackMessage(null), 3000);
+    }, 800);
+  };
+
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
       {/* Floor Mode Header */}
@@ -58,18 +96,52 @@ export default function FloorQuickStockPage() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
         }}
       >
         <div>
           <span style={{ fontSize: '0.75rem', color: 'var(--gold)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-            ⚡ FLOOR & WAREHOUSE MODE
+            ⚡ FLOOR &amp; WAREHOUSE SCANNER MODE
           </span>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: '#fff', marginTop: '4px' }}>
             Quick-Stock Adjuster
           </h1>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '2px' }}>
-            One-tap live inventory updates during physical packing, floor sales, or intake
+            Ready for Bluetooth/USB barcode scanners and mobile camera scanning
           </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => simulateCameraScan('BAN-KAT-001')}
+            style={{
+              padding: '10px 16px',
+              background: isCameraActive ? 'rgba(74, 222, 128, 0.3)' : 'rgba(201, 168, 76, 0.2)',
+              border: '1px solid var(--gold)',
+              borderRadius: '8px',
+              color: 'var(--gold)',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {isCameraActive ? 'Scanning...' : '📸 Scan Banarasi SKU'}
+          </button>
+          <button
+            onClick={() => simulateCameraScan('KAN-KOR-002')}
+            style={{
+              padding: '10px 16px',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: '8px',
+              color: '#fff',
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+            }}
+          >
+            📸 Scan Kanjivaram SKU
+          </button>
         </div>
       </div>
 
@@ -92,16 +164,19 @@ export default function FloorQuickStockPage() {
       )}
 
       {/* Fast Search Input */}
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: '24px', position: 'relative' }}>
         <input
+          ref={searchInputRef}
           type="text"
-          placeholder="🔍 Scan or type SKU / Saree Name..."
+          placeholder="🔍 Scan SKU barcode or type saree name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           autoFocus
+          suppressHydrationWarning
           style={{
             width: '100%',
             padding: '16px 20px',
+            paddingRight: '48px',
             background: 'var(--bg-deep)',
             border: '2px solid rgba(201, 168, 76, 0.4)',
             borderRadius: '10px',
@@ -111,6 +186,24 @@ export default function FloorQuickStockPage() {
             boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
           }}
         />
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            style={{
+              position: 'absolute',
+              right: '16px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-dim)',
+              fontSize: '1.2rem',
+              cursor: 'pointer',
+            }}
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       {/* Saree Fast Touch Cards */}
@@ -136,7 +229,6 @@ export default function FloorQuickStockPage() {
                   gap: '20px',
                 }}
               >
-                {/* Saree Info */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
                   <img
                     src={p.images?.[0] || '/frames/ezgif-frame-240.jpg'}
@@ -161,9 +253,7 @@ export default function FloorQuickStockPage() {
                   </div>
                 </div>
 
-                {/* Live Stock Counter & Buttons */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  {/* Stock Counter Badge */}
                   <div
                     style={{
                       textAlign: 'center',
@@ -182,7 +272,6 @@ export default function FloorQuickStockPage() {
                     </strong>
                   </div>
 
-                  {/* Decrement Button */}
                   <button
                     onClick={() => handleStockUpdate(p.id, p.stock - 1, p.name)}
                     disabled={p.stock <= 0}
@@ -202,7 +291,6 @@ export default function FloorQuickStockPage() {
                     -
                   </button>
 
-                  {/* Increment Button */}
                   <button
                     onClick={() => handleStockUpdate(p.id, p.stock + 1, p.name)}
                     style={{
@@ -220,7 +308,6 @@ export default function FloorQuickStockPage() {
                     +
                   </button>
 
-                  {/* Instant 1-Tap Out of Stock Toggle */}
                   {p.stock > 0 ? (
                     <button
                       onClick={() => handleStockUpdate(p.id, 0, p.name)}

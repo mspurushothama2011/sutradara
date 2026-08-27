@@ -1,14 +1,19 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import authRoutes from './routes/auth.routes';
-import productsRoutes from './routes/products.routes';
-import marketingRoutes from './routes/marketing.routes';
-import staffRoutes from './routes/staff.routes';
-import ordersRoutes from './routes/orders.routes';
-import auditRoutes from './routes/audit.routes';
+
+// Customer Domain Routes
+import customerAuthRoutes from './routes/customer/auth.routes';
+import customerOrdersRoutes from './routes/customer/orders.routes';
+
+// Portal Domain Routes (Staff & Admin)
+import portalAuthRoutes from './routes/auth.routes';
+import portalProductsRoutes from './routes/products.routes';
+import portalMarketingRoutes from './routes/marketing.routes';
+import portalStaffRoutes from './routes/staff.routes';
+import portalOrdersRoutes from './routes/orders.routes';
+import portalAuditRoutes from './routes/audit.routes';
 
 dotenv.config();
 
@@ -32,31 +37,34 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
-// Anti-brute force rate limiter on auth routes
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // 20 requests per IP per window
-  message: { error: 'Too many login attempts. Please try again after 15 minutes.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
-    service: 'Sutradara API Backend',
+    service: 'Sutradara API Backend (Customer & Portal Domains)',
     timestamp: new Date().toISOString(),
   });
 });
 
-// Mount Routes
-app.use('/api/v1/auth', authLimiter, authRoutes);
-app.use('/api/v1/products', productsRoutes);
-app.use('/api/v1/marketing', marketingRoutes);
-app.use('/api/v1/staff', staffRoutes);
-app.use('/api/v1/orders', ordersRoutes);
-app.use('/api/v1/audit', auditRoutes);
+// 🛍️ Customer Domain Endpoints
+app.use('/api/v1/customer/auth', customerAuthRoutes);
+app.use('/api/v1/customer/orders', customerOrdersRoutes);
+
+// 🏛️ Staff / Admin Portal Domain Endpoints (Protected by RBAC)
+app.use('/api/v1/portal/auth', portalAuthRoutes);
+app.use('/api/v1/portal/products', portalProductsRoutes);
+app.use('/api/v1/portal/marketing', portalMarketingRoutes);
+app.use('/api/v1/portal/staff', portalStaffRoutes);
+app.use('/api/v1/portal/orders', portalOrdersRoutes);
+app.use('/api/v1/portal/audit', portalAuditRoutes);
+
+// Compatibility fallback for existing portal routes
+app.use('/api/v1/auth', portalAuthRoutes);
+app.use('/api/v1/products', portalProductsRoutes);
+app.use('/api/v1/marketing', portalMarketingRoutes);
+app.use('/api/v1/staff', portalStaffRoutes);
+app.use('/api/v1/orders', portalOrdersRoutes);
+app.use('/api/v1/audit', portalAuditRoutes);
 
 // Global 404 handler
 app.use((req: Request, res: Response) => {
