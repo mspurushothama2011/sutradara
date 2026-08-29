@@ -36,12 +36,7 @@ const CLUSTERS_PREVIEW = [
 export default function Home() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
-      {/* Deal of the Day Banner */}
-      <div style={{ position: 'relative', zIndex: 120 }}>
-        <DealCountdownBanner />
-      </div>
-
-      {/* Floating Luxury Navbar */}
+      {/* Unified Luxury Navbar with Deal Countdown */}
       <LandingNavbar />
 
       {/* Grand Luxury Hero Section */}
