@@ -19,7 +19,7 @@ const overlays: OverlayData[] = [
   {
     id: 'ov-intro',
     className: 'ov-intro',
-    kicker: 'SUTRADARA',
+    kicker: 'SUTRAಧಾರ',
     headline: 'From the Loom<br/>to Your Legacy',
     body: 'Scroll to witness centuries of handloom craft unfold.',
     start: 0.00,

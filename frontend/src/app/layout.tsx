@@ -17,9 +17,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Sutradara — Curators of Authentic Indian Handloom Sarees",
+  title: "Sutraಧಾರ — Curators of Authentic Indian Handloom Sarees",
   description:
-    "Sutradara curates certified authentic Banarasi, Kanjivaram, Chanderi, and Paithani handlooms directly from India's master weavers.",
+    "Sutraಧಾರ curates certified authentic Banarasi, Kanjivaram, Chanderi, and Paithani handlooms directly from India's master weavers.",
 };
 
 export default function RootLayout({

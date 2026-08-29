@@ -50,7 +50,7 @@ export default function CollectionsPage() {
             CURATED EDITS
           </span>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.2rem, 4vw, 3.4rem)', color: '#fff', marginTop: '8px' }}>
-            Sutradara Collections
+            Sutraಧಾರ Collections
           </h1>
           <p style={{ maxWidth: '600px', margin: '12px auto 0', color: 'var(--text-dim)', fontSize: '0.95rem' }}>
             Handpicked themes, rare bridal drapes, and single-piece unrepeatable heirlooms curated for discerning collectors.

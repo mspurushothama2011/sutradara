@@ -22,7 +22,7 @@ export default function PrivacyPolicyPage() {
               1. Information We Collect
             </h2>
             <p>
-              When you browse Sutradara or acquire a handloom saree, we collect your name, email address, contact phone number, delivery address, and device identification cookies (<code>_sutradara_did</code>) to secure transactions and prevent malicious bot interference.
+              When you browse Sutraಧಾರ or acquire a handloom saree, we collect your name, email address, contact phone number, delivery address, and device identification cookies (<code>_sutradara_did</code>) to secure transactions and prevent malicious bot interference.
             </p>
           </section>
 
@@ -31,16 +31,16 @@ export default function PrivacyPolicyPage() {
               2. Zero Data Brokering Guarantee
             </h2>
             <p>
-              Sutradara does not sell, rent, or lease patron contact records, order histories, or shopping behavior to any third-party marketing networks or data brokers.
+              Sutraಧಾರ does not sell, rent, or lease patron contact records, order histories, or shopping behavior to any third-party marketing networks or data brokers.
             </p>
           </section>
 
           <section>
             <h2 style={{ color: 'var(--gold)', fontSize: '1.2rem', fontFamily: 'var(--font-display)', marginBottom: '8px' }}>
-              3. Payment Security & Encryption
+              3. Payment Security &amp; Encryption
             </h2>
             <p>
-              All payment transactions are encrypted using TLS 1.3 and processed directly via PCI-DSS Level 1 compliant gateway partners (Razorpay). Sutradara does not store your credit card numbers, CVVs, or netbanking passwords on our servers.
+              All payment transactions are encrypted using TLS 1.3 and processed directly via PCI-DSS Level 1 compliant gateway partners (Razorpay). Sutraಧಾರ does not store your credit card numbers, CVVs, or netbanking passwords on our servers.
             </p>
           </section>
 

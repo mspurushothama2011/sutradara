@@ -37,6 +37,22 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
+// Root welcoming endpoint on port 4000
+app.get('/', (req: Request, res: Response) => {
+  res.json({
+    service: 'Sutradara Handloom Core API',
+    status: 'ONLINE ⚡',
+    frontendWebsiteUrl: 'http://localhost:3000',
+    documentation: 'Open http://localhost:3000 in your browser to view the storefront and portal.',
+    apiEndpoints: {
+      health: 'http://localhost:4000/api/health',
+      customerCatalog: 'http://localhost:4000/api/v1/products',
+      customerOrders: 'http://localhost:4000/api/v1/customer/orders',
+      portalAuth: 'http://localhost:4000/api/v1/portal/auth/login',
+    },
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({

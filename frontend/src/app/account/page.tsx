@@ -81,7 +81,7 @@ export default function CustomerAccountPage() {
               Namaste, {user?.name || 'Patron'}
             </h1>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-              {user?.email} • Verified Sutradara Patron
+              {user?.email} • Verified Sutraಧಾರ Patron
             </p>
           </div>
 
@@ -208,7 +208,7 @@ export default function CustomerAccountPage() {
 
           <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '32px' }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--gold)', marginBottom: '16px' }}>
-              Sutradara Patron Privileges
+              Sutraಧಾರ Patron Privileges
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
               <div style={{ display: 'flex', gap: '12px' }}>

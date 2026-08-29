@@ -63,7 +63,7 @@ export default function StorefrontCatalogPage() {
       >
         <Link href="/" style={{ textDecoration: 'none' }}>
           <span style={{ fontSize: '0.72rem', letterSpacing: '0.3em', color: 'var(--gold)', display: 'block' }}>
-            SUTRADARA
+            SUTRAಧಾರ
           </span>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: '#fff' }}>
             The Handloom Sanctuary

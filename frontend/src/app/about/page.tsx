@@ -14,7 +14,7 @@ export default function AboutPage() {
             Guardians of the Loom
           </h1>
           <p style={{ maxWidth: '640px', margin: '16px auto 0', color: 'var(--text-cream)', fontSize: '1.05rem', lineHeight: 1.7 }}>
-            We only curate — never mass-produce. Sutradara bridges India&apos;s generational master weavers directly with discerning patrons across the world.
+            We only curate — never mass-produce. Sutraಧಾರ bridges India&apos;s generational master weavers directly with discerning patrons across the world.
           </p>
         </div>
 
@@ -27,7 +27,7 @@ export default function AboutPage() {
               In traditional textile trading, a handloom saree passes through four to six intermediaries before reaching a luxury boutique — driving retail prices up by 300% while leaving the master weaving family with a fraction of the value.
             </p>
             <p style={{ marginTop: '14px' }}>
-              Sutradara was founded on a singular conviction: <strong>Direct Curatorial Provenance</strong>. We work directly with master craftspeople in Varanasi, Kanchipuram, Yeola, and Chanderi. Every saree is acquired at fair, dignified prices that honor months of intricate handloom labor.
+              Sutraಧಾರ was founded on a singular conviction: <strong>Direct Curatorial Provenance</strong>. We work directly with master craftspeople in Varanasi, Kanchipuram, Yeola, and Chanderi. Every saree is acquired at fair, dignified prices that honor months of intricate handloom labor.
             </p>
           </section>
 

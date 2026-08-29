@@ -75,7 +75,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       >
         {/* Brand Header */}
         <div style={{ marginBottom: '32px', paddingLeft: '8px' }}>
-          <span style={{ fontSize: '0.7rem', color: 'var(--gold)', letterSpacing: '0.25em', display: 'block' }}>SUTRADARA</span>
+          <span style={{ fontSize: '0.7rem', color: 'var(--gold)', letterSpacing: '0.25em', display: 'block' }}>SUTRAಧಾರ</span>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: '#fff', marginTop: '4px' }}>Unified Portal</h2>
         </div>
 

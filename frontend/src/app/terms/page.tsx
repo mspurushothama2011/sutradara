@@ -22,7 +22,7 @@ export default function TermsPage() {
               1. Nature of Handloom & Artisanal Variations
             </h2>
             <p>
-              Every saree curated by Sutradara is genuinely handwoven by master artisans on traditional pit-looms. Minor irregularities in weave density, zari motif spacing, or color graduation are inherent hallmarks of authentic human craftsmanship — not manufacturing defects.
+              Every saree curated by Sutraಧಾರ is genuinely handwoven by master artisans on traditional pit-looms. Minor irregularities in weave density, zari motif spacing, or color graduation are inherent hallmarks of authentic human craftsmanship — not manufacturing defects.
             </p>
           </section>
 

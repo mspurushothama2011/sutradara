@@ -78,7 +78,7 @@ export default function ProductDetailPage() {
         </Link>
         <Link href="/" style={{ textDecoration: 'none', textAlign: 'center' }}>
           <span style={{ fontSize: '0.72rem', letterSpacing: '0.3em', color: 'var(--gold)', display: 'block' }}>
-            SUTRADARA
+            SUTRAಧಾರ
           </span>
         </Link>
         <Link href="/portal/login" style={{ color: 'var(--text-dim)', fontSize: '0.85rem', textDecoration: 'none' }}>

@@ -68,7 +68,7 @@ export default function OrderTrackingPage() {
       >
         <Link href="/" style={{ textDecoration: 'none' }}>
           <span style={{ fontSize: '0.72rem', letterSpacing: '0.3em', color: 'var(--gold)', display: 'block' }}>
-            SUTRADARA
+            SUTRAಧಾರ
           </span>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: '#fff' }}>
             High-Assurance Logistics

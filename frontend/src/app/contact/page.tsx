@@ -60,10 +60,10 @@ export default function ContactPage() {
 
               <div>
                 <span style={{ color: 'var(--text-dim)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                  Private Showroom & Vault
+                  Private Showroom &amp; Vault
                 </span>
                 <p style={{ fontSize: '0.95rem', color: '#fff', marginTop: '2px', lineHeight: 1.5 }}>
-                  Sutradara Heritage Pavilions<br />
+                  Sutraಧಾರ Heritage Pavilions<br />
                   Dr. E. Moses Road, Worli<br />
                   Mumbai, Maharashtra 400018
                 </p>

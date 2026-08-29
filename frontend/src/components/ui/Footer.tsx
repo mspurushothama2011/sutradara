@@ -24,7 +24,7 @@ export default function Footer() {
           {/* Column 1: Brand & Philosophy */}
           <div>
             <span style={{ fontSize: '0.75rem', letterSpacing: '0.3em', color: 'var(--gold)', fontWeight: 600 }}>
-              SUTRADARA
+              SUTRAಧಾರ
             </span>
             <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: '#fff', margin: '6px 0 12px' }}>
               The Handloom Sanctuary
@@ -145,7 +145,7 @@ export default function Footer() {
             fontSize: '0.78rem',
           }}
         >
-          <p>&copy; {new Date().getFullYear()} Sutradara Silks Pvt. Ltd. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Sutraಧಾರ Silks Pvt. Ltd. All rights reserved.</p>
           <div style={{ display: 'flex', gap: '20px' }}>
             <Link href="/portal/login" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>
               Staff &amp; Admin Workspace ↗

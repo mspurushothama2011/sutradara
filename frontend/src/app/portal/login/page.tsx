@@ -76,8 +76,8 @@ export default function PortalLoginPage() {
       >
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--gold)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
-            SUTRADARA
+          <span style={{ fontSize: '0.75rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase' }}>
+            SUTRAಧಾರ
           </span>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: '#fff', marginTop: '6px' }}>
             Unified Portal Login

@@ -14,7 +14,7 @@ export default function AuthenticityPage() {
             The Authenticity Guarantee
           </h1>
           <p style={{ maxWidth: '640px', margin: '14px auto 0', color: 'var(--text-cream)', fontSize: '1rem', lineHeight: 1.7 }}>
-            Every saree curated under the Sutradara insignia undergoes laboratory and physical verification before entering our vault.
+            Every saree curated under the Sutraಧಾರ insignia undergoes laboratory and physical verification before entering our vault.
           </p>
         </div>
 
@@ -31,7 +31,7 @@ export default function AuthenticityPage() {
               The Silk Mark is an apex quality assurance label issued by the Central Silk Board, Ministry of Textiles, Government of India. It certifies that the fabric is 100% natural pure silk without synthetic adulteration (polyester or viscose).
             </p>
             <p style={{ marginTop: '12px' }}>
-              Every Sutradara saree arrives with an affixed tamper-evident Silk Mark hologram containing a verifiable registration tag matching our Master Vault registry.
+              Every Sutraಧಾರ saree arrives with an affixed tamper-evident Silk Mark hologram containing a verifiable registration tag matching our Master Vault registry.
             </p>
           </div>
 

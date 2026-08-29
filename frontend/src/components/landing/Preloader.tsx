@@ -10,7 +10,7 @@ export default function Preloader({ progress, isLoaded }: PreloaderProps) {
     <div className={`preloader ${isLoaded ? 'hidden' : ''}`}>
       <div className="preloader-inner">
         <p className="preloader-brand" style={{ fontFamily: 'var(--font-display)' }}>
-          SUTRADARA
+          SUTRAಧಾರ
         </p>
         <div className="preloader-bar-track">
           <div
