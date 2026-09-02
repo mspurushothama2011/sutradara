@@ -285,7 +285,7 @@ High-assurance order records with integrated milestone history.
 | `awbNumber` | `VARCHAR(100)` | **UNIQUE**, NULLABLE| — | Air Waybill / Tracking number |
 | `trackingUrl` | `VARCHAR(500)` | NULLABLE | — | Courier tracking link |
 | `deliveryOtp` | `VARCHAR(6)` | NULLABLE | — | **4-digit secure delivery OTP** given to driver |
-| `inspectionVideoUrl`|`VARCHAR(500)`| NULLABLE | — | 20s pre-dispatch inspection clip recorded by staff |
+| `inspectionVideoUrl`|`VARCHAR(500)`| NULLABLE | — | **INTERNAL STAFF/ADMIN ONLY EVIDENCE RECORD** (20s pre-dispatch inspection clip recorded by warehouse staff before sealing. **Strictly NOT available to customers**; used exclusively for courier insurance claims & fraud dispute defense) |
 | `isNdrFlagged` | `BOOLEAN` | NOT NULL | `false` | Flagged if Non-Delivery Report was filed |
 | `ndrReason` | `TEXT` | NULLABLE | — | Delivery failure / rescheduling note |
 | `razorpayOrderId`|`VARCHAR(100)` | **UNIQUE**, NULLABLE| — | Payment gateway order ID |
@@ -490,8 +490,15 @@ CREATE INDEX idx_attendance_staff_date ON "Attendance"("staffId", "date");
 1. **Zero-Client-Price Trust:** Product prices and discounts submitted from client browsers are strictly disregarded. The backend recalculates `totalAmount` directly from `Product.sellingPrice` at checkout.
 2. **1-of-1 Double-Spend Protection:** Single-piece heirlooms (`isHeirloom1of1 = true`) receive an atomic 10-minute pessimistic hold to prevent duplicate checkouts.
 3. **Wholesale Margin Privacy (Physical Isolation):** Because `costPrice` lives in `ProductProcurement`, queries on `Product` cannot leak wholesale prices into client browsers.
-4. **Multi-Factor Rate Limiting:** All customer auth and OTP routes are rate-limited via composite keys `(targetEmail + _sutradara_did cookie + browser fingerprint)`.
-5. **Immutable Audit Trails:** `AuditLog` rows cannot be updated or deleted via API; they capture exact JSON deltas (`oldValues` $\rightarrow$ `newValues`).
+4. **Warehouse QC Video Isolation (Customer Exclusion):** `Order.inspectionVideoUrl` is strictly an internal warehouse evidence asset. It is automatically scrubbed from all customer-facing endpoints (`/api/v1/customer/orders/*`) and is **never accessible to public patrons**. It is exclusively viewable by authenticated staff in the `/portal` for courier dispute resolution and fraudulent return protection.
+5. **Multi-Factor Rate Limiting:** All customer auth and OTP routes are rate-limited via composite keys `(targetEmail + _sutradara_did cookie + browser fingerprint)`.
+6. **Immutable Audit Trails:** `AuditLog` rows cannot be updated or deleted via API; they capture exact JSON deltas (`oldValues` $\rightarrow$ `newValues`).
+
+### 📸 Media & Asset Storage Policy
+* **`Category.image` (Optional):** Cluster banner URL; if omitted, client UI falls back to default craft pattern.
+* **`Product.images` (Mandatory - Minimum 1, Supports Multiple):** Stored as `TEXT[]` string array in PostgreSQL pointing to Cloudflare R2 / S3 storage. A saree must have at least 1 image to be published, and can have 4 to 10 photos covering front drape, pallu macro, border detail, and Silk Mark tags.
+* **`Product.videoUrl` (Optional):** Saree showcase reel or loom weaving video URL.
+* **`Order.inspectionVideoUrl` (Internal-Only Evidence):** Null at checkout; mandatory for warehouse staff before dispatch/AWB generation; strictly restricted to portal staff/admin.
 
 ---
 
