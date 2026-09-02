@@ -327,18 +327,23 @@ Line items linking products to an order with the exact price captured at purchas
 ---
 
 ### Table 9: `Address`
-Customer shipping address book with 6-digit Indian PIN code validation.
+Customer shipping address book with multi-recipient support (gifting, family, office, wedding venues) and 6-digit Indian PIN code validation.
 
 | Column | Type | Constraints | Default | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `id` | `VARCHAR(36)` | **PK**, UUID | `uuid()` | Address identifier |
-| `customerId` | `VARCHAR(36)` | **FK**, NOT NULL | — | Reference to `Customer.id` |
-| `street` | `VARCHAR(250)` | NOT NULL | — | Street address, building, floor |
+| `customerId` | `VARCHAR(36)` | **FK**, NOT NULL | — | Reference to `Customer.id` (`onDelete: Cascade`) |
+| `recipientName` | `VARCHAR(100)` | NOT NULL | — | **Recipient full name** (supports ordering for someone else / gifting, e.g. *"Sunita Verma (Mother)"*) |
+| `recipientPhone`| `VARCHAR(20)` | NOT NULL | — | **Recipient mobile number** (called by courier agent for delivery and receives/confirms the 4-digit OTP) |
+| `label` | `VARCHAR(50)` | NULLABLE | — | User-defined label (e.g. `"Home"`, `"Office"`, `"Mother's Place"`, `"Wedding Venue"`) |
+| `street` | `VARCHAR(250)` | NOT NULL | — | House/Flat number, building, street |
+| `landmark` | `VARCHAR(150)` | NULLABLE | — | Nearby landmark (e.g. *"Opposite City Center Mall"*) |
 | `city` | `VARCHAR(100)` | NOT NULL | — | City / Town |
 | `state` | `VARCHAR(100)` | NOT NULL | — | State / Territory |
 | `pincode` | `VARCHAR(6)` | NOT NULL | — | Validated 6-digit Indian PIN code (`/^[1-9][0-9]{5}$/`) |
 | `country` | `VARCHAR(50)` | NOT NULL | `"India"` | Country name |
 | `isDefault` | `BOOLEAN` | NOT NULL | `false` | Default shipping address flag |
+| `createdAt` | `TIMESTAMP` | NOT NULL | `now()` | Address creation date |
 
 ---
 
@@ -545,15 +550,22 @@ model Customer {
 }
 
 model Address {
-  id         String    @id @default(uuid())
-  customerId String
-  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  street     String
-  city       String
-  state      String
-  pincode    String
-  country    String    @default("India")
-  isDefault  Boolean   @default(false)
+  id             String    @id @default(uuid())
+  customerId     String
+  customer       Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  recipientName  String    // Recipient name (e.g. "Sunita Verma" or "Bride / Friend")
+  recipientPhone String    // Recipient direct phone for courier delivery & OTP
+  label          String?   // "Home", "Office", "Mother's Place", "Wedding Venue"
+  
+  street         String
+  landmark       String?
+  city           String
+  state          String
+  pincode        String    // 6-digit Indian PIN code (/^[1-9][0-9]{5}$/)
+  country        String    @default("India")
+  isDefault      Boolean   @default(false)
+  createdAt      DateTime  @default(now())
 }
 
 // 🏷️ CATEGORY & WEAVE SPECIALIZATION HIERARCHY
