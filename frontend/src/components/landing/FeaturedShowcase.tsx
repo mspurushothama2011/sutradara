@@ -1,44 +1,66 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { apiRequest } from '@/lib/api';
+import { Product } from '../../../../shared/types/index';
 
-const FEATURED_SAREES = [
+const FALLBACK_SAREES = [
   {
     id: 'prod-001',
     name: 'Varanasi Royal Kadhwa Pure Katan Silk',
     slug: 'varanasi-royal-kadhwa-pure-katan-silk-saree',
-    region: 'Varanasi',
+    craftRegion: 'Varanasi',
     fabric: 'Pure Katan Silk',
-    zari: 'Pure Gold Zari',
-    price: 38500,
-    isHeirloom: true,
-    image: '/frames/ezgif-frame-240.jpg',
+    zariType: 'Pure Gold Zari',
+    sellingPrice: 38500,
+    isHeirloom1of1: true,
+    images: ['/frames/ezgif-frame-240.jpg'],
   },
   {
     id: 'prod-002',
     name: 'Kanchipuram Temple Border Korvai Silk',
     slug: 'kanchipuram-temple-border-korvai-silk-saree',
-    region: 'Kanchipuram',
+    craftRegion: 'Kanchipuram',
     fabric: 'Kanjivaram Silk',
-    zari: 'Tested Gold Zari',
-    price: 42000,
-    isHeirloom: false,
-    image: '/frames/ezgif-frame-180.jpg',
+    zariType: 'Tested Gold Zari',
+    sellingPrice: 42000,
+    isHeirloom1of1: false,
+    images: ['/frames/ezgif-frame-180.jpg'],
   },
   {
     id: 'prod-003',
     name: 'Yeola Muniya Border Tapestry Paithani',
     slug: 'yeola-muniya-border-pure-paithani-silk-saree',
-    region: 'Yeola',
+    craftRegion: 'Yeola',
     fabric: 'Paithani Silk',
-    zari: 'Antique Copper Zari',
-    price: 34500,
-    isHeirloom: true,
-    image: '/frames/ezgif-frame-150.jpg',
+    zariType: 'Antique Copper Zari',
+    sellingPrice: 34500,
+    isHeirloom1of1: true,
+    images: ['/frames/ezgif-frame-150.jpg'],
   },
 ];
 
 export default function FeaturedShowcase() {
+  const [sarees, setSarees] = useState<any[]>(FALLBACK_SAREES);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchFeatured() {
+      try {
+        const res = await apiRequest('/products?isFeatured=true');
+        if (res && res.products && res.products.length > 0) {
+          setSarees(res.products.slice(0, 3));
+        }
+      } catch (err) {
+        console.error('Failed to load featured sarees from DB:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchFeatured();
+  }, []);
+
   return (
     <section
       style={{
@@ -87,7 +109,7 @@ export default function FeaturedShowcase() {
           Every thread is Silk Mark verified and preserved for eternity.
         </p>
 
-        {/* 3 Featured Saree Cards */}
+        {/* 3 Featured Saree Cards from Database */}
         <div
           style={{
             display: 'grid',
@@ -97,7 +119,7 @@ export default function FeaturedShowcase() {
             textAlign: 'left',
           }}
         >
-          {FEATURED_SAREES.map((saree) => (
+          {sarees.map((saree) => (
             <Link
               key={saree.id}
               href={`/product/${saree.slug}`}
@@ -115,11 +137,11 @@ export default function FeaturedShowcase() {
             >
               <div style={{ position: 'relative', height: '380px', background: '#0a0602', overflow: 'hidden' }}>
                 <img
-                  src={saree.image}
+                  src={saree.images?.[0] || '/frames/ezgif-frame-240.jpg'}
                   alt={saree.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
-                {saree.isHeirloom && (
+                {saree.isHeirloom1of1 && (
                   <span
                     style={{
                       position: 'absolute',
@@ -157,17 +179,17 @@ export default function FeaturedShowcase() {
               <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
                   <span style={{ fontSize: '0.75rem', color: 'var(--gold)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                    {saree.region} • {saree.fabric}
+                    {saree.craftRegion || saree.region} • {saree.fabric}
                   </span>
                   <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: '#fff', margin: '8px 0 4px' }}>
                     {saree.name}
                   </h3>
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)' }}>{saree.zari}</p>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)' }}>{saree.zariType || saree.zari}</p>
                 </div>
 
                 <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <span style={{ fontSize: '1.3rem', color: '#fff', fontWeight: 600 }}>
-                    ₹{saree.price.toLocaleString('en-IN')}
+                    ₹{Number(saree.sellingPrice || saree.price).toLocaleString('en-IN')}
                   </span>
                   <span style={{ fontSize: '0.8rem', color: 'var(--gold)', fontWeight: 500 }}>
                     View Heirloom →
@@ -178,57 +200,22 @@ export default function FeaturedShowcase() {
           ))}
         </div>
 
-        {/* Catchy Grand Entrance CTA Banner */}
-        <div
-          style={{
-            background: 'radial-gradient(ellipse at center, rgba(201, 168, 76, 0.25) 0%, rgba(26, 20, 14, 0.9) 100%)',
-            border: '2px solid var(--gold)',
-            borderRadius: '16px',
-            padding: '56px 32px',
-            boxShadow: '0 32px 80px rgba(0, 0, 0, 0.8)',
-            maxWidth: '960px',
-            margin: '0 auto',
-          }}
-        >
-          <span style={{ fontSize: '0.8rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase' }}>
-            2026 MASTER CURATION
-          </span>
-          <h3
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)',
-              color: '#fff',
-              marginTop: '10px',
-              marginBottom: '16px',
-            }}
-          >
-            Ready to Discover Your Heirloom?
-          </h3>
-          <p style={{ fontSize: '0.95rem', color: '#e0d8cc', maxWidth: '580px', margin: '0 auto 32px', lineHeight: 1.6 }}>
-            Browse authentic handwoven Banarasi, Kanjivaram, Paithani, and Chanderi sarees with live stock availability and insured delivery.
-          </p>
-
+        {/* Action Button to Full Catalog */}
+        <div>
           <Link
             href="/catalog"
+            className="gold-btn"
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '18px 40px',
-              background: 'var(--gold)',
-              color: '#110c08',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontSize: '1rem',
-              fontWeight: 700,
-              letterSpacing: '0.12em',
+              padding: '16px 40px',
+              fontSize: '0.95rem',
+              letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              boxShadow: '0 12px 32px rgba(201, 168, 76, 0.4)',
-              transition: 'all 0.3s ease',
+              textDecoration: 'none',
+              borderRadius: '4px',
+              display: 'inline-block',
             }}
           >
-            <span>Explore All Curated Sarees</span>
-            <span style={{ fontSize: '1.2rem' }}>→</span>
+            Explore Complete Treasury ({sarees.length > 3 ? '5+' : 'All'} Sarees) →
           </Link>
         </div>
       </div>

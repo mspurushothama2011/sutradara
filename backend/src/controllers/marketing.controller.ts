@@ -104,45 +104,81 @@ export async function validateCoupon(req: Request, res: Response) {
     return res.status(400).json({ error: 'Code and cart total are required.' });
   }
 
-  const coupon = MEMORY_COUPONS.find((c) => c.code.toUpperCase() === code.toUpperCase().trim() && c.isActive);
-
-  if (!coupon) {
-    return res.status(404).json({ error: 'Invalid or inactive coupon code.' });
-  }
-
-  if (new Date(coupon.validUntil) < new Date()) {
-    return res.status(400).json({ error: 'Coupon has expired.' });
-  }
-
-  if (coupon.minOrderValue && cartTotal < coupon.minOrderValue) {
-    return res.status(400).json({
-      error: `Minimum order value of ₹${coupon.minOrderValue.toLocaleString('en-IN')} required for this coupon.`,
+  try {
+    const coupon = await prisma.coupon.findUnique({
+      where: { code: code.toUpperCase().trim() },
     });
-  }
 
-  let discountAmount = 0;
-  if (coupon.discountType === 'PERCENTAGE') {
-    discountAmount = (cartTotal * coupon.discountValue) / 100;
-    if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
-      discountAmount = coupon.maxDiscount;
+    if (!coupon || !coupon.isActive) {
+      return res.status(404).json({ error: 'Invalid or inactive coupon code.' });
     }
-  } else {
-    discountAmount = coupon.discountValue;
+
+    if (new Date(coupon.validUntil) < new Date()) {
+      return res.status(400).json({ error: 'Coupon has expired.' });
+    }
+
+    if (coupon.minOrderValue && cartTotal < coupon.minOrderValue) {
+      return res.status(400).json({
+        error: `Minimum order value of ₹${coupon.minOrderValue.toLocaleString('en-IN')} required for this coupon.`,
+      });
+    }
+
+    let discountAmount = 0;
+    if (coupon.discountType === 'PERCENTAGE') {
+      discountAmount = (cartTotal * coupon.discountValue) / 100;
+      if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+        discountAmount = coupon.maxDiscount;
+      }
+    } else {
+      discountAmount = coupon.discountValue;
+    }
+
+    const finalTotal = Math.max(0, cartTotal - discountAmount);
+
+    return res.json({
+      valid: true,
+      code: coupon.code,
+      discountType: coupon.discountType,
+      discountAmount,
+      finalTotal,
+    });
+  } catch (error) {
+    console.error('Error validating coupon in DB:', error);
+    return res.status(500).json({ error: 'Database error validating coupon' });
   }
-
-  const finalTotal = Math.max(0, cartTotal - discountAmount);
-
-  return res.json({
-    valid: true,
-    code: coupon.code,
-    discountType: coupon.discountType,
-    discountAmount,
-    finalTotal,
-  });
 }
 
 export async function getActiveDeal(req: Request, res: Response) {
-  return res.json({ deal: ACTIVE_DEAL });
+  try {
+    const dealProduct = await prisma.product.findFirst({
+      where: { isDealOfDay: true, stock: { gt: 0 } },
+    });
+
+    if (dealProduct) {
+      const origPrice = dealProduct.comparePrice || Math.round(dealProduct.sellingPrice * 1.15);
+      const discountPct = Math.round(((origPrice - dealProduct.sellingPrice) / origPrice) * 100);
+
+      return res.json({
+        deal: {
+          id: dealProduct.id,
+          productId: dealProduct.id,
+          productName: dealProduct.name,
+          slug: dealProduct.slug,
+          originalPrice: origPrice,
+          dealPrice: dealProduct.sellingPrice,
+          discountPercent: discountPct,
+          expiresAt: dealProduct.dealExpiresAt?.toISOString() || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          bannerText: `✨ Deal of the Day: ${dealProduct.name} at ${discountPct}% Privilege`,
+          isActive: true,
+        },
+      });
+    }
+
+    return res.json({ deal: ACTIVE_DEAL });
+  } catch (err) {
+    console.error('Error fetching deal of the day from DB:', err);
+    return res.json({ deal: ACTIVE_DEAL });
+  }
 }
 
 export async function updateActiveDeal(req: AuthRequest, res: Response) {

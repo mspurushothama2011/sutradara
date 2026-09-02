@@ -14,6 +14,7 @@ import portalMarketingRoutes from './routes/marketing.routes';
 import portalStaffRoutes from './routes/staff.routes';
 import portalOrdersRoutes from './routes/orders.routes';
 import portalAuditRoutes from './routes/audit.routes';
+import categoriesRoutes from './routes/categories.routes';
 
 dotenv.config();
 
@@ -65,6 +66,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 // 🛍️ Customer Domain Endpoints
 app.use('/api/v1/customer/auth', customerAuthRoutes);
 app.use('/api/v1/customer/orders', customerOrdersRoutes);
+app.use('/api/v1/categories', categoriesRoutes);
 
 // 🏛️ Staff / Admin Portal Domain Endpoints (Protected by RBAC)
 app.use('/api/v1/portal/auth', portalAuthRoutes);
