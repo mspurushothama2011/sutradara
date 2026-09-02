@@ -1,4 +1,4 @@
-// Prisma Schema for Sutradara Luxury Handloom Saree Platform
+// Prisma Schema for Sutraಧಾರ Luxury Handloom Saree Platform
 
 datasource db {
   provider = "postgresql"
@@ -11,6 +11,11 @@ generator client {
 
 enum Role {
   CUSTOMER
+  STAFF
+  ADMIN
+}
+
+enum StaffRole {
   STAFF
   ADMIN
 }
@@ -38,6 +43,190 @@ enum DiscountType {
   FLAT
 }
 
+// 🛍️ STOREFRONT DOMAIN: Customers & Multi-Recipient Address Book
+model Customer {
+  id         String    @id @default(uuid())
+  email      String    @unique
+  phone      String?
+  name       String?
+  isVerified Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  orders     Order[]
+  addresses  Address[]
+}
+
+model Address {
+  id             String    @id @default(uuid())
+  customerId     String?
+  customer       Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 🎁 Gifting & Recipient Details
+  recipientName  String?   // Recipient name (e.g. "Sunita Verma" or "Ananya Sen (Bride)")
+  recipientPhone String?   // Called by courier agent for delivery & 4-digit drop OTP
+  label          String?   // "Home", "Office", "Mother's Place", "Wedding Venue"
+  
+  // 📍 Location Details
+  street         String
+  landmark       String?   // Nearby landmark
+  city           String
+  state          String
+  pincode        String    // 6-digit Indian PIN code (/^[1-9][0-9]{5}$/)
+  country        String    @default("India")
+  isDefault      Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+}
+
+// 🏷️ CATEGORY & WEAVE SPECIALIZATION HIERARCHY
+model Category {
+  id            String        @id @default(uuid())
+  name          String        @unique
+  slug          String        @unique
+  description   String?
+  region        String
+  image         String?
+  createdAt     DateTime      @default(now())
+
+  subCategories SubCategory[] // Max 3 enforced via API
+  products      Product[]
+}
+
+model SubCategory {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  products    Product[]
+  createdAt   DateTime  @default(now())
+}
+
+// 👗 PRODUCT CATALOG & WHOLESALE PROCUREMENT VAULT
+model Product {
+  id              String              @id @default(uuid())
+  sku             String              @unique
+  name            String
+  slug            String              @unique
+  description     String
+  
+  categoryId      String?
+  category        Category?           @relation(fields: [categoryId], references: [id])
+  subCategoryId   String?
+  subCategory     SubCategory?        @relation(fields: [subCategoryId], references: [id])
+
+  sellingPrice    Float
+  comparePrice    Float?
+  costPrice       Float?              // Restricted to finance:view
+  stock           Int                 @default(1)
+  isHeirloom1of1  Boolean             @default(false)
+  
+  fabric          String
+  zariType        String
+  craftRegion     String
+  weaveStyle      String?
+  silkMarkNumber  String?
+  videoUrl        String?
+  
+  isFeatured      Boolean             @default(false)
+  isDealOfDay     Boolean             @default(false)
+  dealExpiresAt   DateTime?
+  tags            String[]            @default([])
+  images          String[]
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  procurement     ProductProcurement?
+  orderItems      OrderItem[]
+}
+
+model ProductProcurement {
+  id               String   @id @default(uuid())
+  productId        String   @unique
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  costPrice        Float
+  weaverGuildName  String
+  weaverContact    String?
+  procurementDate  DateTime @db.Date
+  invoiceRef       String?
+  notes            String?
+  createdAt        DateTime @default(now())
+}
+
+// 📦 HIGH-ASSURANCE CHECKOUT & ORDER LOGISTICS
+model Order {
+  id                 String          @id @default(uuid())
+  orderNumber        String          @unique
+  userId             String?
+  user               User?           @relation(fields: [userId], references: [id])
+  customerId         String?
+  customer           Customer?       @relation(fields: [customerId], references: [id])
+  status             OrderStatus     @default(PENDING)
+  totalAmount        Float
+  shippingAddress    Json
+  trackingHistory    Json?           @default("[]") // JSONB timeline array
+  
+  courierPartner     String?
+  awbNumber          String?         @unique
+  trackingUrl        String?
+  deliveryOtp        String?
+  inspectionVideoUrl String?         // Internal warehouse evidence clip
+  isNdrFlagged       Boolean         @default(false)
+  ndrReason          String?
+  
+  razorpayOrderId    String?         @unique
+  razorpayPaymentId  String?
+  
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  items              OrderItem[]
+  trackingEvents     TrackingEvent[]
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  price      Float
+  quantity   Int      @default(1)
+}
+
+model TrackingEvent {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    String
+  location  String?
+  message   String
+  timestamp DateTime @default(now())
+}
+
+model Coupon {
+  id            String       @id @default(uuid())
+  code          String       @unique
+  discountType  DiscountType @default(PERCENTAGE)
+  discountValue Float
+  minOrderValue Float?
+  maxDiscount   Float?
+  usageLimit    Int?
+  usedCount     Int          @default(0)
+  validFrom     DateTime
+  validUntil    DateTime
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+}
+
+// 🏛️ STAFF, ADMIN & WORKSPACE DOMAIN
 model User {
   id                String       @id @default(uuid())
   email             String       @unique
@@ -56,102 +245,10 @@ model User {
   auditLogs         AuditLog[]
 }
 
-model Product {
-  id              String      @id @default(uuid())
-  sku             String      @unique
-  name            String
-  slug            String      @unique
-  description     String
-  sellingPrice    Float
-  comparePrice    Float?
-  costPrice       Float?      // Restricted to finance:view
-  stock           Int         @default(1)
-  isHeirloom1of1  Boolean     @default(false)
-  fabric          String      // Pure Katan Silk, Georgette, Organza, Tussar, Chanderi, Paithani
-  zariType        String      // Pure Gold Zari, Tested Zari, Antique Copper, Silver Zari
-  craftRegion     String      // Varanasi, Kanchipuram, Chanderi, Yeola
-  weaveStyle      String?     // Kadhwa, Cutwork, Jamdani, Tanchoi
-  silkMarkNumber  String?
-  videoUrl        String?
-  isFeatured      Boolean     @default(false)
-  isDealOfDay     Boolean     @default(false)
-  dealExpiresAt   DateTime?
-  tags            String[]    @default([]) // e.g. ["Diwali", "Bridal", "New Arrival"]
-  images          String[]
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-
-  orderItems      OrderItem[]
-}
-
-model Order {
-  id                 String          @id @default(uuid())
-  orderNumber        String          @unique // e.g. "SUT-2026-1001"
-  userId             String
-  user               User            @relation(fields: [userId], references: [id])
-  status             OrderStatus     @default(PENDING)
-  totalAmount        Float
-  shippingAddress    Json
-  
-  // Logistics & Security
-  courierPartner     String?
-  awbNumber          String?         @unique
-  trackingUrl        String?
-  deliveryOtp        String?         // 4-digit secure drop code
-  inspectionVideoUrl String?         // 20s pre-dispatch verification clip
-  isNdrFlagged       Boolean         @default(false)
-  ndrReason          String?
-  
-  // Payment References
-  razorpayOrderId    String?         @unique
-  razorpayPaymentId  String?
-  
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
-
-  items              OrderItem[]
-  trackingEvents     TrackingEvent[]
-}
-
-model OrderItem {
-  id          String   @id @default(uuid())
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId   String
-  product     Product  @relation(fields: [productId], references: [id])
-  price       Float
-  quantity    Int      @default(1)
-}
-
-model TrackingEvent {
-  id          String   @id @default(uuid())
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  status      String   // "PICKED_UP", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED"
-  location    String?
-  message     String
-  timestamp   DateTime @default(now())
-}
-
-model Coupon {
-  id            String       @id @default(uuid())
-  code          String       @unique
-  discountType  DiscountType @default(PERCENTAGE)
-  discountValue Float
-  minOrderValue Float?
-  maxDiscount   Float?
-  usageLimit    Int?
-  usedCount     Int          @default(0)
-  validFrom     DateTime
-  validUntil    DateTime
-  isActive      Boolean      @default(true)
-  createdAt     DateTime     @default(now())
-}
-
 model Attendance {
   id        String           @id @default(uuid())
   userId    String
-  user      User             @relation(fields: [userId], references: [id])
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   date      DateTime         @db.Date
   clockIn   DateTime
   clockOut  DateTime?
@@ -163,7 +260,7 @@ model Attendance {
 model WorkLog {
   id             String   @id @default(uuid())
   userId         String
-  user           User     @relation(fields: [userId], references: [id])
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   date           DateTime @default(now())
   tasksSummary   String
   itemsProcessed Int?     @default(0)
@@ -182,23 +279,11 @@ model AuditLog {
   id         String   @id @default(uuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id])
-  action     String   // "PRODUCT_PRICE_UPDATE", "STOCK_OVERRIDE", "ROLE_CHANGE"
-  entityType String   // "PRODUCT", "ORDER", "USER", "COUPON"
+  action     String
+  entityType String
   entityId   String
   oldValues  Json?
   newValues  Json?
   ipAddress  String?
   createdAt  DateTime @default(now())
-}
-
-model Address {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  street    String
-  city      String
-  state     String
-  pincode   String
-  country   String   @default("India")
-  isDefault Boolean  @default(false)
 }
