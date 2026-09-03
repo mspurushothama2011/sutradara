@@ -109,12 +109,19 @@ export async function login(req: Request, res: Response) {
     const accessToken = signAccessToken(tokenPayload);
     const refreshToken = signRefreshToken(tokenPayload);
 
-    // Set secure httpOnly cookie for refresh token
+    // Set secure httpOnly cookie for refresh token & access token
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.cookie('_sutradara_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
     return res.json({
@@ -126,6 +133,7 @@ export async function login(req: Request, res: Response) {
         name: user.name,
         role: user.role,
         capabilities,
+        customPermissions: capabilities,
       },
     });
   } catch (error) {

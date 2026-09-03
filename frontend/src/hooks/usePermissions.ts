@@ -33,16 +33,23 @@ export function usePermissions() {
     }
   }, []);
 
+  const getUserCaps = (): string[] => {
+    if (!user) return [];
+    if (user.role === 'ADMIN') return ALL_CAPABILITIES;
+    return user.customPermissions || (user as any).capabilities || [];
+  };
+
   const hasCapability = (capability: Capability): boolean => {
     if (!user) return false;
     if (user.role === 'ADMIN') return true;
-    return (user.customPermissions || []).includes(capability);
+    return getUserCaps().includes(capability);
   };
 
   const hasAnyCapability = (capabilities: Capability[]): boolean => {
     if (!user) return false;
     if (user.role === 'ADMIN') return true;
-    return capabilities.some((cap) => (user.customPermissions || []).includes(cap));
+    const userCaps = getUserCaps();
+    return capabilities.some((cap) => userCaps.includes(cap));
   };
 
   return {
@@ -50,7 +57,7 @@ export function usePermissions() {
     isLoading,
     isAdmin: user?.role === 'ADMIN',
     isStaff: user?.role === 'STAFF',
-    capabilities: user?.role === 'ADMIN' ? ALL_CAPABILITIES : user?.customPermissions || [],
+    capabilities: user?.role === 'ADMIN' ? ALL_CAPABILITIES : getUserCaps(),
     hasCapability,
     hasAnyCapability,
   };

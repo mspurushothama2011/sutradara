@@ -1,23 +1,37 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { apiRequest } from '@/lib/api';
 import { Product } from '../../../../shared/types/index';
 import DealCountdownBanner from '@/components/storefront/DealCountdownBanner';
 
 const CRAFT_REGIONS = ['All Clusters', 'Varanasi', 'Kanchipuram', 'Yeola', 'Chanderi'];
-const ZARI_TYPES = ['All Zari', 'Pure Gold Zari', 'Tested Zari', 'Antique Copper', 'Silver Zari'];
+const ZARI_TYPES = ['All Zari', 'Pure Gold Zari', 'Tested Gold Zari', 'Antique Copper Zari', 'Silver Zari'];
 
-export default function StorefrontCatalogPage() {
+function CatalogContent() {
+  const searchParams = useSearchParams();
+  const initialRegion = searchParams?.get('craftRegion') || searchParams?.get('region') || 'All Clusters';
+  const initialZari = searchParams?.get('zariType') || 'All Zari';
+  const initialHeirloom = searchParams?.get('isHeirloom1of1') === 'true';
+
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Filters
-  const [selectedCluster, setSelectedCluster] = useState('All Clusters');
-  const [selectedZari, setSelectedZari] = useState('All Zari');
-  const [onlyHeirloom, setOnlyHeirloom] = useState(false);
+  const [selectedCluster, setSelectedCluster] = useState(initialRegion);
+  const [selectedZari, setSelectedZari] = useState(initialZari);
+  const [onlyHeirloom, setOnlyHeirloom] = useState(initialHeirloom);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Sync if URL search params change
+  useEffect(() => {
+    const r = searchParams?.get('craftRegion') || searchParams?.get('region');
+    if (r && CRAFT_REGIONS.includes(r)) {
+      setSelectedCluster(r);
+    }
+  }, [searchParams]);
 
   const fetchCatalog = async () => {
     try {
@@ -74,7 +88,13 @@ export default function StorefrontCatalogPage() {
           <Link href="/catalog" style={{ color: 'var(--gold)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 500 }}>
             Curated Sarees
           </Link>
-          <Link href="/portal/login" style={{ color: 'var(--text-dim)', fontSize: '0.85rem', textDecoration: 'none' }}>
+          <Link href="/categories" style={{ color: 'var(--text-dim)', fontSize: '0.85rem', textDecoration: 'none' }}>
+            Craft Clusters
+          </Link>
+          <Link href="/account" style={{ color: 'var(--text-dim)', fontSize: '0.85rem', textDecoration: 'none' }}>
+            Account
+          </Link>
+          <Link href="/portal/login" style={{ color: 'var(--gold)', fontSize: '0.82rem', textDecoration: 'none', border: '1px solid rgba(201,168,76,0.3)', padding: '4px 10px', borderRadius: '4px' }}>
             Staff Portal ↗
           </Link>
         </div>
@@ -141,49 +161,53 @@ export default function StorefrontCatalogPage() {
             }}
           />
 
-          {/* Facet Selectors */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
-            {/* Cluster Selector */}
+          {/* Select Dropdowns */}
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Cluster Filter */}
             <select
               value={selectedCluster}
               onChange={(e) => setSelectedCluster(e.target.value)}
               style={{
-                padding: '10px 14px',
-                background: 'rgba(10, 6, 2, 0.8)',
+                padding: '10px 16px',
+                background: 'rgba(10, 6, 2, 0.6)',
                 border: '1px solid rgba(201, 168, 76, 0.3)',
                 borderRadius: '6px',
                 color: 'var(--gold)',
                 fontSize: '0.85rem',
+                cursor: 'pointer',
+                outline: 'none',
               }}
             >
               {CRAFT_REGIONS.map((r) => (
-                <option key={r} value={r}>
+                <option key={r} value={r} style={{ background: '#1a140e', color: '#fff' }}>
                   {r}
                 </option>
               ))}
             </select>
 
-            {/* Zari Selector */}
+            {/* Zari Type Filter */}
             <select
               value={selectedZari}
               onChange={(e) => setSelectedZari(e.target.value)}
               style={{
-                padding: '10px 14px',
-                background: 'rgba(10, 6, 2, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
+                padding: '10px 16px',
+                background: 'rgba(10, 6, 2, 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
                 borderRadius: '6px',
                 color: '#fff',
                 fontSize: '0.85rem',
+                cursor: 'pointer',
+                outline: 'none',
               }}
             >
               {ZARI_TYPES.map((z) => (
-                <option key={z} value={z}>
+                <option key={z} value={z} style={{ background: '#1a140e', color: '#fff' }}>
                   {z}
                 </option>
               ))}
             </select>
 
-            {/* 1-of-1 Heirloom Checkbox */}
+            {/* Heirloom Toggle */}
             <label
               style={{
                 display: 'flex',
@@ -281,7 +305,7 @@ export default function StorefrontCatalogPage() {
                           letterSpacing: '0.05em',
                         }}
                       >
-                        👑 1-of-1 HEIRLOOM
+                        👑 1-OF-1 HEIRLOOM
                       </span>
                     )}
 
@@ -300,11 +324,11 @@ export default function StorefrontCatalogPage() {
                           border: '1px solid rgba(74, 222, 128, 0.4)',
                         }}
                       >
-                        ✓ Silk Mark Certified
+                        ✓ Silk Mark
                       </span>
                     )}
 
-                    {/* Sold Out Overlay */}
+                    {/* Stock status overlay */}
                     {isSoldOut && (
                       <div
                         style={{
@@ -318,56 +342,82 @@ export default function StorefrontCatalogPage() {
                       >
                         <span
                           style={{
-                            padding: '6px 16px',
                             background: '#ef4444',
                             color: '#fff',
-                            fontSize: '0.8rem',
+                            fontSize: '0.75rem',
                             fontWeight: 700,
                             letterSpacing: '0.1em',
+                            padding: '6px 14px',
                             borderRadius: '4px',
-                            textTransform: 'uppercase',
                           }}
                         >
-                          Sold Out
+                          ACQUIRED
                         </span>
                       </div>
                     )}
                   </div>
 
-                  {/* Saree Metadata */}
+                  {/* Body Content */}
                   <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        {p.craftRegion} • {p.fabric}
-                      </span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>
+                          {p.craftRegion}
+                        </span>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                          {p.fabric}
+                        </span>
+                      </div>
+
                       <h3
                         style={{
                           fontFamily: 'var(--font-display)',
-                          fontSize: '1.15rem',
+                          fontSize: '1.05rem',
                           color: '#fff',
-                          marginTop: '6px',
                           lineHeight: 1.4,
+                          margin: '4px 0 8px',
+                          fontWeight: 400,
                         }}
                       >
                         {p.name}
                       </h3>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginBottom: '16px' }}>
                         {p.zariType} {p.weaveStyle ? `• ${p.weaveStyle}` : ''}
                       </p>
                     </div>
 
-                    <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    {/* Price and Action */}
+                    <div
+                      style={{
+                        paddingTop: '12px',
+                        borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'baseline',
+                      }}
+                    >
                       <div>
-                        <span style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 600 }}>
+                        <span style={{ fontSize: '1.15rem', fontWeight: 600, color: '#fff' }}>
                           ₹{p.sellingPrice.toLocaleString('en-IN')}
                         </span>
                         {p.comparePrice && (
-                          <span style={{ fontSize: '0.82rem', color: 'var(--text-dim)', textDecoration: 'line-through', marginLeft: '8px' }}>
+                          <span
+                            style={{
+                              fontSize: '0.8rem',
+                              color: 'var(--text-dim)',
+                              textDecoration: 'line-through',
+                              marginLeft: '8px',
+                            }}
+                          >
                             ₹{p.comparePrice.toLocaleString('en-IN')}
                           </span>
                         )}
                       </div>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--gold)' }}>View Details →</span>
+
+                      <span style={{ fontSize: '0.78rem', color: 'var(--gold)', fontWeight: 500 }}>
+                        {p.isHeirloom1of1 ? 'View Heirloom →' : 'Details →'}
+                      </span>
                     </div>
                   </div>
                 </Link>
@@ -377,5 +427,13 @@ export default function StorefrontCatalogPage() {
         )}
       </section>
     </div>
+  );
+}
+
+export default function StorefrontCatalogPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: 'var(--bg)' }} />}>
+      <CatalogContent />
+    </Suspense>
   );
 }

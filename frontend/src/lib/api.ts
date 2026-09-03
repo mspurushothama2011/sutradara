@@ -5,7 +5,10 @@ interface RequestOptions extends RequestInit {
 }
 
 export async function apiRequest<T = any>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('sutradara_token') : null;
+  const token =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('sutradara_token') || localStorage.getItem('accessToken')
+      : null;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -24,13 +27,15 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestOpti
 
   if (options.data) {
     config.body = JSON.stringify(options.data);
+  } else if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
+    config.body = JSON.stringify(options.body);
   }
 
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   const response = await fetch(url, config);
 
   // Handle 401 Unauthorized (attempt token refresh)
-  if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh')) {
+  if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh') && !endpoint.includes('/customer/auth/')) {
     try {
       const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: 'POST',
@@ -54,7 +59,6 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestOpti
       if (typeof window !== 'undefined') {
         localStorage.removeItem('sutradara_token');
         localStorage.removeItem('sutradara_user');
-        window.location.href = '/portal/login';
       }
     }
   }
