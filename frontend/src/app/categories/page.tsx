@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { apiRequest } from '@/lib/api';
+import LandingNavbar from '@/components/landing/LandingNavbar';
 
 interface SubCategory {
   id: string;
@@ -58,21 +59,9 @@ const FALLBACK_CLUSTERS = [
       { id: '9', name: 'Pure Tapestry Zari Weave', slug: 'pure-tapestry-zari-weave' },
     ],
   },
-  {
-    id: 'chanderi',
-    name: 'Chanderi Heritage',
-    region: 'Chanderi',
-    image: '/frames/ezgif-frame-120.jpg',
-    description: 'Featherlight tissue silks and sheer organza drapes woven with delicate gold meenakari butis.',
-    subCategories: [
-      { id: '10', name: 'Featherlight Tissue & Organza', slug: 'featherlight-tissue-organza' },
-      { id: '11', name: 'Gold & Silver Meenakari Butis', slug: 'gold-silver-meenakari-butis' },
-      { id: '12', name: 'Classic Chanderi Katan Silk', slug: 'classic-chanderi-katan-silk' },
-    ],
-  },
 ];
 
-export default function CategoriesPage() {
+export default function CraftCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>(FALLBACK_CLUSTERS);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -93,15 +82,18 @@ export default function CategoriesPage() {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff', padding: '60px 24px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+      {/* Universal Storefront Navigation */}
+      <LandingNavbar />
+
+      <div style={{ paddingTop: '120px', paddingBottom: '80px', paddingLeft: '24px', paddingRight: '24px', maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '56px' }}>
           <span style={{ fontSize: '0.8rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase' }}>
             GEOGRAPHICAL PROVENANCE
           </span>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.2rem, 4vw, 3.4rem)', color: '#fff', marginTop: '8px' }}>
-            The Four Master Weaving Clusters
+            Master Weaving Clusters
           </h1>
           <p style={{ maxWidth: '640px', margin: '12px auto 0', color: 'var(--text-dim)', fontSize: '0.95rem' }}>
             Explore certified authentic handloom sarees directly categorized by India&apos;s most venerated artisanal craft centers.
@@ -118,15 +110,14 @@ export default function CategoriesPage() {
                 textDecoration: 'none',
                 background: 'var(--bg-deep)',
                 border: '1px solid rgba(201, 168, 76, 0.2)',
-                borderRadius: '16px',
+                borderRadius: '12px',
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'transform 0.3s ease, border-color 0.3s ease',
-                boxShadow: '0 16px 36px rgba(0,0,0,0.5)',
+                transition: 'all 0.3s ease',
               }}
             >
-              <div style={{ position: 'relative', height: '260px', overflow: 'hidden' }}>
+              <div style={{ position: 'relative', height: '240px', overflow: 'hidden' }}>
                 <img
                   src={cluster.image || '/frames/ezgif-frame-240.jpg'}
                   alt={cluster.name}
@@ -136,43 +127,68 @@ export default function CategoriesPage() {
                   style={{
                     position: 'absolute',
                     top: '16px',
-                    right: '16px',
-                    padding: '4px 10px',
-                    background: 'rgba(0,0,0,0.8)',
-                    backdropFilter: 'blur(6px)',
+                    left: '16px',
+                    padding: '4px 12px',
+                    background: 'rgba(26, 20, 14, 0.85)',
+                    backdropFilter: 'blur(8px)',
                     border: '1px solid var(--gold)',
                     color: 'var(--gold)',
                     fontSize: '0.75rem',
+                    fontWeight: 600,
                     borderRadius: '4px',
+                    letterSpacing: '0.05em',
                   }}
                 >
-                  {cluster.subCategories?.length || 3} Weave Specializations
+                  {cluster.region} CLUSTER
                 </span>
               </div>
 
-              <div style={{ padding: '28px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--gold)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-                    {cluster.region}
-                  </span>
-                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: '#fff', margin: '6px 0 12px' }}>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: '#fff' }}>
                     {cluster.name}
-                  </h2>
-                  <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+                  </h3>
+                  <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginTop: '8px', lineHeight: 1.5 }}>
                     {cluster.description}
                   </p>
+
+                  {/* SubCategory Pills (Enforced Max 3) */}
+                  {cluster.subCategories && cluster.subCategories.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '16px' }}>
+                      {cluster.subCategories.slice(0, 3).map((sub) => (
+                        <span
+                          key={sub.id}
+                          style={{
+                            fontSize: '0.72rem',
+                            padding: '3px 8px',
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '4px',
+                            color: '#e0d8cc',
+                          }}
+                        >
+                          {sub.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {cluster.subCategories?.map((sub) => (
-                      <span key={sub.id} style={{ fontSize: '0.72rem', background: 'rgba(255,255,255,0.05)', padding: '3px 8px', borderRadius: '4px', color: 'var(--text-dim)' }}>
-                        {sub.name}
-                      </span>
-                    ))}
-                  </div>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--gold)', fontWeight: 600 }}>
-                    Explore →
+                <div
+                  style={{
+                    marginTop: '20px',
+                    paddingTop: '16px',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>
+                    Explore Cluster Weaves →
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                    Silk Mark Certified
                   </span>
                 </div>
               </div>

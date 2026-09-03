@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import LandingNavbar from '@/components/landing/LandingNavbar';
 
 const COLLECTIONS = [
   {
@@ -43,8 +44,11 @@ const COLLECTIONS = [
 
 export default function CollectionsPage() {
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff', padding: '60px 24px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+      {/* Universal Storefront Navigation */}
+      <LandingNavbar />
+
+      <div style={{ paddingTop: '120px', paddingBottom: '80px', paddingLeft: '24px', paddingRight: '24px', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '56px' }}>
           <span style={{ fontSize: '0.8rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase' }}>
             CURATED EDITS
@@ -61,19 +65,19 @@ export default function CollectionsPage() {
           {COLLECTIONS.map((col) => (
             <Link
               key={col.slug}
-              href={`/collections/${col.slug}`}
+              href={`/catalog?collection=${col.slug}`}
               style={{
                 textDecoration: 'none',
                 background: 'var(--bg-deep)',
                 border: '1px solid rgba(201, 168, 76, 0.2)',
-                borderRadius: '16px',
+                borderRadius: '12px',
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
-                boxShadow: '0 16px 36px rgba(0,0,0,0.5)',
+                transition: 'all 0.3s ease',
               }}
             >
-              <div style={{ position: 'relative', height: '280px', overflow: 'hidden' }}>
+              <div style={{ position: 'relative', height: '260px', overflow: 'hidden' }}>
                 <img
                   src={col.image}
                   alt={col.name}
@@ -84,50 +88,48 @@ export default function CollectionsPage() {
                     position: 'absolute',
                     top: '16px',
                     left: '16px',
-                    padding: '4px 10px',
-                    background: 'rgba(0,0,0,0.85)',
-                    backdropFilter: 'blur(6px)',
+                    padding: '4px 12px',
+                    background: 'rgba(26, 20, 14, 0.85)',
+                    backdropFilter: 'blur(8px)',
                     border: '1px solid var(--gold)',
                     color: 'var(--gold)',
-                    fontSize: '0.72rem',
+                    fontSize: '0.75rem',
                     fontWeight: 600,
                     borderRadius: '4px',
                   }}
                 >
                   {col.badge}
                 </span>
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '16px',
-                    right: '16px',
-                    padding: '4px 8px',
-                    background: 'rgba(0,0,0,0.7)',
-                    color: '#fff',
-                    fontSize: '0.75rem',
-                    borderRadius: '4px',
-                  }}
-                >
-                  {col.count} Curations
-                </span>
               </div>
 
-              <div style={{ padding: '28px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--gold)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                     {col.tagline}
                   </span>
-                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: '#fff', margin: '6px 0 10px' }}>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: '#fff', marginTop: '6px' }}>
                     {col.name}
-                  </h2>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+                  </h3>
+                  <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginTop: '8px', lineHeight: 1.5 }}>
                     {col.description}
                   </p>
                 </div>
 
-                <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'flex-end' }}>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--gold)', fontWeight: 600 }}>
+                <div
+                  style={{
+                    marginTop: '20px',
+                    paddingTop: '16px',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span style={{ fontSize: '0.82rem', color: 'var(--gold)' }}>
                     View Collection →
+                  </span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+                    {col.count} Weaves Available
                   </span>
                 </div>
               </div>

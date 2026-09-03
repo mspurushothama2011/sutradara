@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { apiRequest } from '@/lib/api';
 import { Order } from '../../../../../shared/types/index';
+import LandingNavbar from '@/components/landing/LandingNavbar';
 
 export default function CustomerOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -26,8 +27,11 @@ export default function CustomerOrdersPage() {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff', padding: '60px 24px' }}>
-      <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+      {/* Universal Storefront Navigation */}
+      <LandingNavbar />
+
+      <div style={{ paddingTop: '120px', paddingBottom: '80px', paddingLeft: '24px', paddingRight: '24px', maxWidth: '1080px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '1px solid rgba(201, 168, 76, 0.2)', paddingBottom: '24px', marginBottom: '32px' }}>
           <div>
             <span style={{ fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase' }}>
@@ -58,94 +62,76 @@ export default function CustomerOrdersPage() {
                 color: '#110c08',
                 borderRadius: '6px',
                 textDecoration: 'none',
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: '0.85rem',
               }}
             >
-              Explore Saree Catalog →
+              Explore Master Weaves →
             </Link>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {orders.map((order) => (
+            {orders.map((ord) => (
               <div
-                key={order.id}
+                key={ord.id}
                 style={{
                   background: 'var(--bg-deep)',
                   border: '1px solid rgba(201, 168, 76, 0.2)',
                   borderRadius: '12px',
                   padding: '24px',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '16px',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '16px', marginBottom: '16px' }}>
-                  <div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--gold)', fontFamily: 'monospace' }}>
-                      {order.orderNumber}
-                    </span>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>
-                      Acquired on {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </p>
-                  </div>
-
-                  <div style={{ textAlign: 'right' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <strong style={{ color: 'var(--gold)', fontSize: '1rem', fontFamily: 'monospace' }}>
+                      {ord.orderNumber}
+                    </strong>
                     <span
                       style={{
-                        padding: '4px 10px',
+                        fontSize: '0.72rem',
+                        padding: '3px 8px',
+                        background: 'rgba(74, 222, 128, 0.15)',
+                        color: '#4ade80',
                         borderRadius: '4px',
-                        fontSize: '0.75rem',
                         fontWeight: 600,
-                        background: order.status === 'SHIPPED' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(201, 168, 76, 0.15)',
-                        border: `1px solid ${order.status === 'SHIPPED' ? '#4ade80' : 'var(--gold)'}`,
-                        color: order.status === 'SHIPPED' ? '#4ade80' : 'var(--gold)',
                       }}
                     >
-                      {order.status}
+                      {ord.status}
                     </span>
                   </div>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)' }}>
+                    Placed on: {new Date(ord.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                    Items: {ord.items?.length || 1} Piece(s) • Total: <strong style={{ color: '#fff' }}>₹{ord.totalAmount?.toLocaleString('en-IN')}</strong>
+                  </p>
                 </div>
 
-                {/* Items */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {order.items.map((item) => (
-                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <img
-                        src={item.image || '/frames/ezgif-frame-240.jpg'}
-                        alt={item.productName || 'Saree'}
-                        style={{ width: '64px', height: '64px', borderRadius: '6px', objectFit: 'cover' }}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <p style={{ fontWeight: 600, color: '#fff', fontSize: '0.95rem' }}>{item.productName}</p>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Qty: {item.quantity} • ₹{item.price.toLocaleString('en-IN')}</p>
-                      </div>
-                      <span style={{ fontSize: '1rem', fontWeight: 600, color: '#fff' }}>
-                        ₹{(item.price * item.quantity).toLocaleString('en-IN')}
-                      </span>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  {ord.deliveryOtp && (
+                    <div style={{ padding: '6px 12px', background: 'rgba(201, 168, 76, 0.1)', border: '1px dashed var(--gold)', borderRadius: '6px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)', display: 'block' }}>Drop OTP</span>
+                      <strong style={{ fontSize: '0.9rem', color: 'var(--gold)', letterSpacing: '0.15em' }}>{ord.deliveryOtp}</strong>
                     </div>
-                  ))}
-                </div>
-
-                {/* Footer with tracking button */}
-                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-dim)' }}>
-                    Total Amount: <strong style={{ color: '#fff', fontSize: '1.1rem' }}>₹{order.totalAmount.toLocaleString('en-IN')}</strong>
-                  </div>
-
+                  )}
                   <Link
-                    href={`/track/${order.orderNumber || order.id}`}
+                    href={`/track/${ord.orderNumber}`}
                     style={{
-                      padding: '8px 18px',
+                      padding: '10px 18px',
                       background: 'var(--gold)',
                       color: '#110c08',
                       borderRadius: '6px',
                       textDecoration: 'none',
+                      fontWeight: 600,
                       fontSize: '0.82rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.05em',
-                      textTransform: 'uppercase',
                     }}
                   >
-                    Track Delivery & OTP →
+                    Track Live Delivery 🚚
                   </Link>
                 </div>
               </div>

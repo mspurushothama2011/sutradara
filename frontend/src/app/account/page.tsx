@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiRequest } from '@/lib/api';
 import { User, ShippingAddress } from '../../../../shared/types/index';
+import LandingNavbar from '@/components/landing/LandingNavbar';
 
 export default function CustomerAccountPage() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export default function CustomerAccountPage() {
     try {
       const res = await apiRequest('/customer/auth/address', {
         method: 'POST',
-        body: JSON.stringify({ street, city, state, pincode, phone }),
+        data: { street, city, state, pincode, phone },
       });
       setAddresses(res.addresses || []);
       setIsAddingAddress(false);
@@ -69,8 +70,11 @@ export default function CustomerAccountPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff', padding: '60px 24px' }}>
-      <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+      {/* Universal Storefront Navigation */}
+      <LandingNavbar />
+
+      <div style={{ paddingTop: '120px', paddingBottom: '80px', paddingLeft: '24px', paddingRight: '24px', maxWidth: '1080px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '1px solid rgba(201, 168, 76, 0.2)', paddingBottom: '24px', marginBottom: '40px' }}>
           <div>
@@ -78,7 +82,7 @@ export default function CustomerAccountPage() {
               CUSTOMER SANCTUARY
             </span>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', color: '#fff', marginTop: '4px' }}>
-              Namaste, {user?.name || 'Patron'}
+              Namaste, {user?.name || user?.email?.split('@')[0] || 'Patron'}
             </h1>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '4px' }}>
               {user?.email} • Verified Sutraಧಾರ Patron
