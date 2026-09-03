@@ -27,8 +27,9 @@ export default function PortalLoginPage() {
 
       localStorage.setItem('sutradara_token', data.accessToken);
       localStorage.setItem('sutradara_user', JSON.stringify(data.user));
+      window.dispatchEvent(new Event('auth-change'));
 
-      router.push('/portal/dashboard');
+      window.location.href = '/portal/dashboard';
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {

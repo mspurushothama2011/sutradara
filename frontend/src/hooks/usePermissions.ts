@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { Capability, User } from '../../../shared/types/index';
 
 const ALL_CAPABILITIES: Capability[] = [
@@ -19,19 +20,36 @@ const ALL_CAPABILITIES: Capability[] = [
 export function usePermissions() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const pathname = usePathname();
 
-  useEffect(() => {
+  const syncUser = useCallback(() => {
     try {
       const storedUser = localStorage.getItem('sutradara_user');
       if (storedUser) {
         setUser(JSON.parse(storedUser));
+      } else {
+        setUser(null);
       }
     } catch (e) {
       console.warn('Failed to parse stored user:', e);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    syncUser();
+
+    const handleAuthChange = () => syncUser();
+    window.addEventListener('storage', handleAuthChange);
+    window.addEventListener('auth-change', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
+  }, [syncUser, pathname]);
 
   const getUserCaps = (): string[] => {
     if (!user) return [];
@@ -60,5 +78,6 @@ export function usePermissions() {
     capabilities: user?.role === 'ADMIN' ? ALL_CAPABILITIES : getUserCaps(),
     hasCapability,
     hasAnyCapability,
+    refreshUser: syncUser,
   };
 }

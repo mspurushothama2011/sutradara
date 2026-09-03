@@ -52,7 +52,8 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   const handleLogout = () => {
     localStorage.removeItem('sutradara_token');
     localStorage.removeItem('sutradara_user');
-    router.push('/portal/login');
+    window.dispatchEvent(new Event('auth-change'));
+    window.location.href = '/portal/login';
   };
 
   const allowedNavItems = NAV_ITEMS.filter((item) => {
