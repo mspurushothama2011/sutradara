@@ -7,7 +7,17 @@ import { apiRequest } from '@/lib/api';
 import { Product } from '../../../../shared/types/index';
 import DealCountdownBanner from '@/components/storefront/DealCountdownBanner';
 
-const CRAFT_REGIONS = ['All Clusters', 'Varanasi', 'Kanchipuram', 'Yeola', 'Chanderi'];
+const CRAFT_REGIONS = [
+  'All Clusters',
+  'Varanasi',
+  'Kanchipuram',
+  'Yeola',
+  'Chanderi',
+  'Patan',
+  'Bishnupur',
+  'Mysore',
+  'Bhagalpur',
+];
 const ZARI_TYPES = ['All Zari', 'Pure Gold Zari', 'Tested Gold Zari', 'Antique Copper Zari', 'Silver Zari'];
 
 function CatalogContent() {
