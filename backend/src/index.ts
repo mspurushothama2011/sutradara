@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
+import { openApiSpec } from './docs/openapi';
 
 // Customer Domain Routes
 import customerAuthRoutes from './routes/customer/auth.routes';
@@ -38,16 +40,23 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
+// 📖 Interactive Visual API Dashboard (Swagger UI)
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
+
 // Root welcoming endpoint on port 4000
 app.get('/', (req: Request, res: Response) => {
   res.json({
-    service: 'Sutradara Handloom Core API',
+    service: 'Sutraಧಾರ Royal Handloom Core API',
     status: 'ONLINE ⚡',
+    interactiveDocs: 'http://localhost:4000/docs',
     frontendWebsiteUrl: 'http://localhost:3000',
-    documentation: 'Open http://localhost:3000 in your browser to view the storefront and portal.',
+    documentation: 'Open http://localhost:4000/docs to explore and test all APIs interactively.',
     apiEndpoints: {
+      interactiveDocs: 'http://localhost:4000/docs',
       health: 'http://localhost:4000/api/health',
       customerCatalog: 'http://localhost:4000/api/v1/products',
+      categories: 'http://localhost:4000/api/v1/categories',
       customerOrders: 'http://localhost:4000/api/v1/customer/orders',
       portalAuth: 'http://localhost:4000/api/v1/portal/auth/login',
     },
@@ -90,5 +99,6 @@ app.use((req: Request, res: Response) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`⚡ Sutradara API server running on http://localhost:${PORT}`);
+  console.log(`⚡ Sutraಧಾರ API server running on http://localhost:${PORT}`);
+  console.log(`📖 Visual Interactive API Docs available at http://localhost:${PORT}/docs`);
 });
