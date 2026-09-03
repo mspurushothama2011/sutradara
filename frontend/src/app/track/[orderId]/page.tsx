@@ -252,11 +252,11 @@ export default function OrderTrackingPage() {
                   />
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: idx === order.trackingEvents!.length - 1 ? '#4ade80' : '#fff' }}>
-                        {evt.status.replace(/_/g, ' ')}
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: idx === 0 ? '#4ade80' : '#fff' }}>
+                        {String(evt.status || '').replace(/_/g, ' ')}
                       </span>
                       <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
-                        {new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(evt.timestamp).toLocaleDateString()}
+                        {evt.timestamp ? `${new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${new Date(evt.timestamp).toLocaleDateString()}` : 'Just Now'}
                       </span>
                     </div>
                     {evt.location && (
