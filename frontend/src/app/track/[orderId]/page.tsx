@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiRequest } from '@/lib/api';
 import { Order } from '../../../../../shared/types/index';
+import LandingNavbar from '@/components/landing/LandingNavbar';
 
 export default function OrderTrackingPage() {
   const params = useParams();
+  const router = useRouter();
   const orderId = params?.orderId as string;
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,47 +41,83 @@ export default function OrderTrackingPage() {
 
   if (!order) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff', textAlign: 'center', padding: '120px 24px' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem' }}>Order Not Found</h1>
-        <p style={{ color: 'var(--text-dim)', marginTop: '8px' }}>Please verify your Order Reference ID or AWB Tracking Number.</p>
-        <Link href="/" style={{ display: 'inline-block', marginTop: '20px', padding: '12px 24px', background: 'var(--gold)', color: '#110c08', borderRadius: '6px', textDecoration: 'none', fontWeight: 600 }}>
-          ← Return to Home
-        </Link>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+        <LandingNavbar />
+        <div style={{ paddingTop: '140px', textAlign: 'center', paddingLeft: '24px', paddingRight: '24px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem' }}>Order Not Found</h1>
+          <p style={{ color: 'var(--text-dim)', marginTop: '8px' }}>Please verify your Order Reference ID or AWB Tracking Number.</p>
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '24px' }}>
+            <button
+              onClick={() => router.back()}
+              style={{ padding: '12px 24px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', borderRadius: '6px', cursor: 'pointer' }}
+            >
+              ← Go Back
+            </button>
+            <Link href="/catalog" style={{ padding: '12px 24px', background: 'var(--gold)', color: '#110c08', borderRadius: '6px', textDecoration: 'none', fontWeight: 600 }}>
+              Browse Curated Catalog →
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
-      {/* Top Navbar */}
-      <header
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
-          background: 'rgba(17, 12, 8, 0.92)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(201, 168, 76, 0.15)',
-          padding: '16px 32px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <Link href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontSize: '0.72rem', letterSpacing: '0.3em', color: 'var(--gold)', display: 'block' }}>
-            SUTRAಧಾರ
-          </span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: '#fff' }}>
-            High-Assurance Logistics
-          </span>
-        </Link>
-        <span style={{ fontSize: '0.82rem', fontFamily: 'monospace', color: 'var(--gold)' }}>
-          Order: {order.orderNumber}
-        </span>
-      </header>
+      {/* Universal Storefront Navigation */}
+      <LandingNavbar />
 
-      <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 24px 80px' }}>
+      <main style={{ maxWidth: '1080px', margin: '0 auto', paddingTop: '120px', paddingBottom: '80px', paddingLeft: '24px', paddingRight: '24px' }}>
+        {/* Navigation & Breadcrumbs Bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              onClick={() => router.back()}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(201, 168, 76, 0.3)',
+                borderRadius: '6px',
+                color: 'var(--gold)',
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                fontWeight: 600,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              ← Back
+            </button>
+            <Link
+              href="/catalog"
+              style={{
+                color: 'var(--text-dim)',
+                textDecoration: 'none',
+                fontSize: '0.82rem',
+              }}
+            >
+              Curated Catalog
+            </Link>
+            <span style={{ color: 'var(--text-dim)', fontSize: '0.82rem' }}>/</span>
+            <Link
+              href="/account/orders"
+              style={{
+                color: 'var(--text-dim)',
+                textDecoration: 'none',
+                fontSize: '0.82rem',
+              }}
+            >
+              My Acquisitions
+            </Link>
+          </div>
+
+          <span style={{ fontSize: '0.82rem', fontFamily: 'monospace', color: 'var(--gold)', background: 'rgba(201, 168, 76, 0.1)', padding: '4px 10px', borderRadius: '4px', border: '1px solid rgba(201, 168, 76, 0.2)' }}>
+            Ref: {order.orderNumber}
+          </span>
+        </div>
+
         {/* Top Status Banner */}
         <div
           style={{
@@ -91,6 +129,8 @@ export default function OrderTrackingPage() {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '20px',
           }}
         >
           <div>
@@ -98,10 +138,10 @@ export default function OrderTrackingPage() {
               CURRENT SHIPMENT STATUS
             </span>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: '#fff', marginTop: '4px' }}>
-              {order.status === 'SHIPPED' ? '🚚 Out for Delivery' : order.status}
+              {order.status === 'SHIPPED' ? '🚚 In Transit with Bluedart Air' : order.status === 'PAID' ? '✓ Order Confirmed & Vault Allocation' : order.status}
             </h1>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-              Courier: <strong style={{ color: '#fff' }}>{order.courierPartner || 'Bluedart Express'}</strong> • AWB:{' '}
+              Courier Partner: <strong style={{ color: '#fff' }}>{order.courierPartner || 'Bluedart Apex Air'}</strong> • AWB:{' '}
               <strong style={{ color: 'var(--gold)', fontFamily: 'monospace' }}>{order.awbNumber || 'BD-778902144IN'}</strong>
             </p>
           </div>
@@ -131,7 +171,7 @@ export default function OrderTrackingPage() {
         </div>
 
         {/* 2-Column: Left = Video QC & Items, Right = Timeline */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: '32px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px', alignItems: 'start' }}>
           {/* Left Column: Saree & Pre-Shipment Inspection Video */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* Pre-Shipment 20s Inspection Video Card */}
@@ -200,19 +240,36 @@ export default function OrderTrackingPage() {
             {/* Saree Item Card */}
             <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '20px' }}>
               <h3 style={{ fontSize: '0.88rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>
-                Acquired Items ({order.items?.length})
+                Acquired Pieces ({order.items?.length || 1})
               </h3>
-              {order.items?.map((item) => (
+              {order.items?.map((item: any) => (
                 <div key={item.id} style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                  <img src={item.image || '/frames/ezgif-frame-240.jpg'} alt={item.productName} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
+                  <img
+                    src={item.image || item.product?.images?.[0] || '/frames/ezgif-frame-240.jpg'}
+                    alt={item.productName || item.product?.name}
+                    style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}
+                  />
                   <div>
-                    <h4 style={{ fontSize: '0.92rem', color: '#fff' }}>{item.productName}</h4>
+                    <h4 style={{ fontSize: '0.92rem', color: '#fff' }}>{item.productName || item.product?.name}</h4>
                     <p style={{ fontSize: '0.82rem', color: 'var(--gold)', marginTop: '4px', fontWeight: 600 }}>
                       ₹{item.price.toLocaleString('en-IN')} (Qty: {item.quantity})
                     </p>
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Delivery Recipient Box */}
+            <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '20px' }}>
+              <h3 style={{ fontSize: '0.88rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+                Delivery Destination
+              </h3>
+              <p style={{ fontSize: '0.88rem', color: '#fff', fontWeight: 600 }}>
+                {(order.shippingAddress as any)?.recipientName || (order.shippingAddress as any)?.fullName || 'Valued Patron'}
+              </p>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+                {(order.shippingAddress as any)?.street}, {(order.shippingAddress as any)?.city}, {(order.shippingAddress as any)?.state} - <strong>{(order.shippingAddress as any)?.pincode}</strong>
+              </p>
             </div>
           </div>
 
@@ -235,7 +292,7 @@ export default function OrderTrackingPage() {
                 }}
               />
 
-              {((order.trackingEvents || (order as any).trackingHistory || []) as any[]).map((evt: any, idx: number, arr: any[]) => (
+              {((order.trackingEvents || (order as any).trackingHistory || []) as any[]).map((evt: any, idx: number) => (
                 <div key={evt.id || idx} style={{ position: 'relative' }}>
                   {/* Timeline Dot */}
                   <div
@@ -273,47 +330,40 @@ export default function OrderTrackingPage() {
             </div>
           </div>
         </div>
-      </main>
 
-      {/* Video QC Modal */}
-      {showVideoModal && (
-        <div
-          onClick={() => setShowVideoModal(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.85)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '24px',
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
+        {/* Bottom Quick Return Links */}
+        <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
+          <Link
+            href="/catalog"
             style={{
-              width: '100%',
-              maxWidth: '720px',
-              background: 'var(--bg-deep)',
-              border: '1px solid rgba(201, 168, 76, 0.4)',
-              borderRadius: '12px',
-              padding: '24px',
+              padding: '12px 24px',
+              background: 'var(--gold)',
+              color: '#110c08',
+              borderRadius: '6px',
+              textDecoration: 'none',
+              fontWeight: 700,
+              fontSize: '0.88rem',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ color: 'var(--gold)', fontSize: '1.1rem' }}>Pre-Shipment 20s Inspection Clip</h3>
-              <button onClick={() => setShowVideoModal(false)} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
-            </div>
-            <div style={{ aspectRatio: '16/9', background: '#000', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gold)', flexDirection: 'column', gap: '8px' }}>
-              <span style={{ fontSize: '2rem' }}>📹</span>
-              <p style={{ fontSize: '0.85rem' }}>High-Definition 20s Weave Integrity Inspection Video</p>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Verified & Tagged with Silk Mark by Master Curator</span>
-            </div>
-          </div>
+            Explore More Master Weaves →
+          </Link>
+          <Link
+            href="/account/orders"
+            style={{
+              padding: '12px 24px',
+              background: 'transparent',
+              border: '1px solid rgba(201, 168, 76, 0.3)',
+              color: 'var(--gold)',
+              borderRadius: '6px',
+              textDecoration: 'none',
+              fontWeight: 600,
+              fontSize: '0.88rem',
+            }}
+          >
+            View All My Orders
+          </Link>
         </div>
-      )}
+      </main>
     </div>
   );
 }
