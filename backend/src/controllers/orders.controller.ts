@@ -2,183 +2,321 @@ import { Request, Response } from 'express';
 import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { Order } from '../../../shared/types/index';
 
 const prisma = new PrismaClient();
 
-// In-memory demo orders & tracking
-let MEMORY_ORDERS: Order[] = [
-  {
-    id: 'ord-001',
-    orderNumber: 'SUT-2026-1001',
-    userId: 'demo-customer-id',
-    status: 'SHIPPED',
-    totalAmount: 38500,
+/**
+ * Public: Create Order (Bypassed Instant Payment & Direct Vault Allocation)
+ */
+export async function createOrder(req: AuthRequest, res: Response) {
+  const { items, shippingAddress, couponCode } = req.body as {
+    items: { productId: string; quantity: number }[];
     shippingAddress: {
-      fullName: 'Aarav Singhania',
-      street: '42 Marine Drive, Nariman Point',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      pincode: '400021',
-      country: 'India',
-      phone: '+919820012345',
-    },
-    items: [
-      {
-        id: 'item-001',
-        productId: 'prod-001',
-        productName: 'Varanasi Royal Kadhwa Pure Katan Silk Saree',
-        price: 38500,
-        quantity: 1,
-        image: '/frames/ezgif-frame-240.jpg',
-      },
-    ],
-    courierPartner: 'Bluedart Apex Air',
-    awbNumber: 'BD-778902144IN',
-    trackingUrl: 'https://www.bluedart.com/tracking?awb=BD-778902144IN',
-    deliveryOtp: '7492', // 4-digit secure drop code
-    inspectionVideoUrl: 'https://assets.sutradara.in/videos/ban-kat-001-inspection-20s.mp4',
-    isNdrFlagged: false,
-    trackingEvents: [
-      {
-        id: 'evt-1',
-        status: 'QC_INSPECTED',
-        location: 'Sutradara Varanasi Master Vault',
-        message: 'Pre-shipment 20s high-definition video inspection recorded and verified by Master Curator.',
-        timestamp: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'evt-2',
-        status: 'PICKED_UP',
-        location: 'Varanasi Logistics Hub',
-        message: 'Air package sealed in tamper-proof luxury heritage trunk and handed over to Bluedart Express.',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'evt-3',
-        status: 'IN_TRANSIT',
-        location: 'Mumbai Air Cargo Gateway',
-        message: 'Arrived at destination hub. Sorted for secured white-glove van dispatch.',
-        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'evt-4',
-        status: 'OUT_FOR_DELIVERY',
-        location: 'South Mumbai Delivery Center',
-        message: 'Out for delivery with delivery agent Sunil V. Please share the 4-digit OTP 7492 upon inspection.',
-        timestamp: new Date().toISOString(),
-      },
-    ],
-    createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-  },
-];
-
-export async function createOrder(req: Request, res: Response) {
-  const { items, shippingAddress, couponCode } = req.body;
-
-  if (!items || !Array.isArray(items) || items.length === 0 || !shippingAddress) {
-    return res.status(400).json({ error: 'Cart items and shipping address are required.' });
-  }
-
-  // Zero-Client Price Trust: Calculate total from server
-  let calculatedTotal = 0;
-  const verifiedItems: any[] = [];
-
-  for (const item of items) {
-    // In production: await prisma.product.findUnique({ where: { id: item.productId } })
-    const unitPrice = item.price || 38500;
-    const qty = item.quantity || 1;
-    calculatedTotal += unitPrice * qty;
-    verifiedItems.push({
-      id: `item-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-      productId: item.productId,
-      productName: item.productName || 'Handloom Silk Saree',
-      price: unitPrice,
-      quantity: qty,
-      image: item.image || '/frames/ezgif-frame-240.jpg',
-    });
-  }
-
-  // Generate 4-digit Secure Delivery OTP
-  const deliveryOtp = Math.floor(1000 + Math.random() * 9000).toString();
-  const orderNumber = `SUT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-  const newOrder: Order = {
-    id: `ord-${Date.now()}`,
-    orderNumber,
-    userId: 'demo-customer-id',
-    status: 'PROCESSING',
-    totalAmount: calculatedTotal,
-    shippingAddress,
-    items: verifiedItems,
-    deliveryOtp,
-    isNdrFlagged: false,
-    trackingEvents: [
-      {
-        id: `evt-${Date.now()}`,
-        status: 'PROCESSING',
-        location: 'Sutradara Vault',
-        message: 'Order received. Saree scheduled for 20-second pre-shipment video verification.',
-        timestamp: new Date().toISOString(),
-      },
-    ],
-    createdAt: new Date().toISOString(),
+      recipientName?: string;
+      recipientPhone?: string;
+      street: string;
+      landmark?: string;
+      city: string;
+      state: string;
+      pincode: string;
+      country?: string;
+    };
+    couponCode?: string;
   };
 
-  MEMORY_ORDERS.unshift(newOrder);
+  if (!items || items.length === 0) {
+    return res.status(400).json({ error: 'Order must contain at least one saree.' });
+  }
 
-  return res.status(201).json({
-    message: 'Order created successfully',
-    orderNumber: newOrder.orderNumber,
-    order: newOrder,
-    // Razorpay mock credentials for local testing
-    razorpay: {
-      orderId: `order_mock_${Date.now()}`,
-      amount: calculatedTotal * 100,
-      currency: 'INR',
-      key: process.env.RAZORPAY_KEY_ID || 'rzp_test_sutradara_mock_key',
-    },
-  });
+  if (!shippingAddress || !shippingAddress.street || !shippingAddress.pincode) {
+    return res.status(400).json({ error: 'Valid delivery address with 6-digit PIN code is required.' });
+  }
+
+  try {
+    // 1. Resolve Customer ID
+    let customer = await prisma.customer.findFirst({
+      where: req.user?.userId
+        ? { id: req.user.userId }
+        : { email: 'guest@sutradara.in' },
+    });
+
+    if (!customer) {
+      customer = await prisma.customer.upsert({
+        where: { email: req.user?.email || 'guest@sutradara.in' },
+        update: {},
+        create: {
+          email: req.user?.email || 'guest@sutradara.in',
+          name: shippingAddress.recipientName || 'Valued Patron',
+          phone: shippingAddress.recipientPhone || '+91 98765 43210',
+          isVerified: true,
+        },
+      });
+    }
+
+    // 2. Fetch Products
+    const productIds = items.map((i) => i.productId);
+    const dbProducts = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+    });
+
+    let subtotal = 0;
+    const orderLineItems: { productId: string; price: number; quantity: number }[] = [];
+
+    for (const item of items) {
+      const p = dbProducts.find((prod) => prod.id === item.productId);
+      if (!p) {
+        return res.status(404).json({ error: `Saree "${item.productId}" is no longer available.` });
+      }
+      subtotal += p.sellingPrice * item.quantity;
+      orderLineItems.push({
+        productId: p.id,
+        price: p.sellingPrice,
+        quantity: item.quantity,
+      });
+    }
+
+    // 3. Apply Discount
+    let discountAmount = 0;
+    if (couponCode) {
+      const coupon = await prisma.coupon.findUnique({
+        where: { code: couponCode.toUpperCase().trim() },
+      });
+      if (coupon && coupon.isActive) {
+        if (coupon.discountType === 'PERCENTAGE') {
+          discountAmount = (subtotal * coupon.discountValue) / 100;
+        } else {
+          discountAmount = coupon.discountValue;
+        }
+      }
+    }
+
+    const finalTotal = Math.max(0, subtotal - discountAmount);
+    const orderNumber = `SUT-${new Date().getFullYear()}-${crypto.randomInt(1000, 9999)}`;
+    const deliveryOtp = crypto.randomInt(1000, 9999).toString();
+
+    // 4. Initial Logistics Milestone (Bypassed Shiprocket Simulation)
+    const initialMilestones = [
+      {
+        id: `evt-${Date.now()}`,
+        status: 'PAID',
+        location: 'Varanasi Master Loom Vault',
+        message: 'Order placed & payment verified. Saree piece allocated in luxury tamper-proof trunk.',
+        timestamp: new Date().toISOString(),
+      },
+    ];
+
+    const createdOrder = await prisma.order.create({
+      data: {
+        orderNumber,
+        customerId: customer.id,
+        status: 'PAID',
+        totalAmount: finalTotal,
+        shippingAddress: shippingAddress as any,
+        deliveryOtp,
+        trackingHistory: initialMilestones as any,
+        courierPartner: 'Bluedart Apex Air',
+        awbNumber: `BD-${crypto.randomInt(10000000, 99999999)}IN`,
+        items: {
+          create: orderLineItems,
+        },
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Order created successfully with simulated instant payment.',
+      order: createdOrder,
+      trackingUrl: `/track/${createdOrder.orderNumber}`,
+    });
+  } catch (error) {
+    console.error('Failed to create order in DB:', error);
+    return res.status(500).json({ error: 'Database failed to create order.' });
+  }
 }
 
+/**
+ * Staff / Admin: List All Orders from PostgreSQL
+ */
+export async function listAllOrders(req: AuthRequest, res: Response) {
+  try {
+    const orders = await prisma.order.findMany({
+      include: {
+        customer: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            phone: true,
+          },
+        },
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                sku: true,
+                images: true,
+                craftRegion: true,
+                fabric: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ orders });
+  } catch (error) {
+    console.error('Failed to list orders from DB:', error);
+    return res.status(500).json({ error: 'Database failed to list orders.' });
+  }
+}
+
+/**
+ * Public Live Delivery Tracking by Order Number or ID
+ */
 export async function getOrderTracking(req: Request, res: Response) {
   const { orderId } = req.params;
 
-  const order = MEMORY_ORDERS.find(
-    (o) => o.orderNumber.toUpperCase() === orderId.toUpperCase() || o.id === orderId || o.awbNumber === orderId
-  );
+  try {
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [
+          { orderNumber: orderId },
+          { id: orderId },
+          { awbNumber: orderId },
+        ],
+      },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                sku: true,
+                craftRegion: true,
+                fabric: true,
+                images: true,
+                silkMarkNumber: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
-  if (!order) {
-    return res.status(404).json({ error: 'Order not found for tracking.' });
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found in tracking records.' });
+    }
+
+    // Scrub confidential internal inspectionVideoUrl from customer view
+    const { inspectionVideoUrl, ...publicOrder } = order as any;
+
+    return res.json({ order: publicOrder });
+  } catch (error) {
+    console.error('Failed to get tracking:', error);
+    return res.status(500).json({ error: 'Database tracking lookup failed.' });
   }
-
-  return res.json({ order });
 }
 
-export async function listAllOrders(req: AuthRequest, res: Response) {
-  return res.json({ orders: MEMORY_ORDERS });
-}
-
+/**
+ * Staff / Admin: Update Order Dispatch & Logistics Milestone (Simulated Shiprocket & Bluedart Air)
+ */
 export async function updateDispatch(req: AuthRequest, res: Response) {
   const { orderId } = req.params;
   const { courierPartner, awbNumber, inspectionVideoUrl, status, isNdrFlagged, ndrReason } = req.body;
 
-  const order = MEMORY_ORDERS.find((o) => o.id === orderId || o.orderNumber === orderId);
-  if (!order) {
-    return res.status(404).json({ error: 'Order not found.' });
-  }
+  try {
+    const existing = await prisma.order.findFirst({
+      where: {
+        OR: [
+          { id: orderId },
+          { orderNumber: orderId },
+        ],
+      },
+    });
 
-  if (courierPartner) order.courierPartner = courierPartner;
-  if (awbNumber) {
-    order.awbNumber = awbNumber;
-    order.trackingUrl = `https://www.bluedart.com/tracking?awb=${awbNumber}`;
-  }
-  if (inspectionVideoUrl) order.inspectionVideoUrl = inspectionVideoUrl;
-  if (status) order.status = status;
-  if (typeof isNdrFlagged === 'boolean') {
-    order.isNdrFlagged = isNdrFlagged;
-    order.ndrReason = ndrReason;
-  }
+    if (!existing) {
+      return res.status(404).json({ error: 'Order not found.' });
+    }
 
-  return res.json({ message: 'Order dispatch updated', order });
+    // Prepare simulated courier details
+    const generatedAwb = awbNumber || existing.awbNumber || `BD-${crypto.randomInt(10000000, 99999999)}IN`;
+    const selectedCourier = courierPartner || existing.courierPartner || 'Bluedart Apex Air';
+    const trackingUrl = `https://www.bluedart.com/tracking?awb=${generatedAwb}`;
+
+    // Append new tracking event to history
+    const currentEvents = (Array.isArray(existing.trackingHistory) ? existing.trackingHistory : []) as any[];
+
+    if (status && status !== existing.status) {
+      let milestoneMessage = `Order status transitioned to ${status}`;
+      let location = 'Master Handloom Vault';
+
+      if (status === 'QC_INSPECTED') {
+        milestoneMessage = 'Pre-shipment 20s ultra-high-definition video inspection recorded and verified by Master Curator.';
+        location = 'Varanasi Master Vault';
+      } else if (status === 'DISPATCHED' || status === 'SHIPPED') {
+        milestoneMessage = `Air package sealed in tamper-proof luxury heritage trunk and handed over to ${selectedCourier} (AWB: ${generatedAwb}).`;
+        location = 'National Logistics Hub';
+      } else if (status === 'IN_TRANSIT') {
+        milestoneMessage = 'Arrived at destination gateway hub. Sorted for secured white-glove van dispatch.';
+        location = 'Metro Air Gateway';
+      } else if (status === 'OUT_FOR_DELIVERY') {
+        milestoneMessage = `Out for delivery with delivery specialist. Please share the 4-digit drop code (${existing.deliveryOtp}) upon physical inspection.`;
+        location = 'Local Delivery Center';
+      } else if (status === 'DELIVERED') {
+        milestoneMessage = 'Handloom heirloom securely delivered and 4-digit OTP authenticated.';
+        location = 'Patron Residence';
+      }
+
+      currentEvents.unshift({
+        id: `evt-${Date.now()}`,
+        status,
+        location,
+        message: milestoneMessage,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    const updated = await prisma.order.update({
+      where: { id: existing.id },
+      data: {
+        status: status || existing.status,
+        courierPartner: selectedCourier,
+        awbNumber: generatedAwb,
+        trackingUrl,
+        inspectionVideoUrl: inspectionVideoUrl || existing.inspectionVideoUrl,
+        isNdrFlagged: typeof isNdrFlagged === 'boolean' ? isNdrFlagged : existing.isNdrFlagged,
+        ndrReason: ndrReason !== undefined ? ndrReason : existing.ndrReason,
+        trackingHistory: currentEvents as any,
+      },
+      include: {
+        customer: true,
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    return res.json({
+      success: true,
+      message: 'Order dispatch and simulated logistics updated successfully.',
+      order: updated,
+    });
+  } catch (error) {
+    console.error('Failed to update dispatch in DB:', error);
+    return res.status(500).json({ error: 'Database failed to update dispatch.' });
+  }
 }

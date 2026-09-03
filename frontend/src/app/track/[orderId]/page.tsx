@@ -235,7 +235,7 @@ export default function OrderTrackingPage() {
                 }}
               />
 
-              {order.trackingEvents?.map((evt, idx) => (
+              {((order.trackingEvents || (order as any).trackingHistory || []) as any[]).map((evt: any, idx: number, arr: any[]) => (
                 <div key={evt.id || idx} style={{ position: 'relative' }}>
                   {/* Timeline Dot */}
                   <div
@@ -246,7 +246,7 @@ export default function OrderTrackingPage() {
                       width: '14px',
                       height: '14px',
                       borderRadius: '50%',
-                      background: idx === order.trackingEvents!.length - 1 ? '#22c55e' : 'var(--gold)',
+                      background: idx === 0 ? '#22c55e' : 'var(--gold)',
                       border: '3px solid var(--bg-deep)',
                     }}
                   />
