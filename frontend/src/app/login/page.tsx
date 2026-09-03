@@ -267,13 +267,6 @@ export default function CustomerLoginPage() {
             </button>
           </form>
         )}
-
-        <div style={{ marginTop: '32px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.08)', textAlign: 'center', fontSize: '0.82rem', color: 'var(--text-dim)' }}>
-          Are you a Sutraಧಾರ staff member or administrator?{' '}
-          <Link href="/portal/login" style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 600 }}>
-            Staff Portal ↗
-          </Link>
-        </div>
       </div>
     </div>
   );

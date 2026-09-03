@@ -136,22 +136,6 @@ export default function LandingNavbar() {
               <span>Sign In</span>
             </Link>
           )}
-
-          <Link
-            href="/portal/login"
-            style={{
-              padding: '6px 14px',
-              background: 'transparent',
-              border: '1px solid rgba(201, 168, 76, 0.3)',
-              borderRadius: '4px',
-              color: 'var(--gold)',
-              textDecoration: 'none',
-              fontSize: '0.78rem',
-              letterSpacing: '0.05em',
-            }}
-          >
-            Staff Portal ↗
-          </Link>
         </div>
       </header>
     </div>

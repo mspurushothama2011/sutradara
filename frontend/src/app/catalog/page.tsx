@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { apiRequest } from '@/lib/api';
 import { Product } from '../../../../shared/types/index';
-import DealCountdownBanner from '@/components/storefront/DealCountdownBanner';
+import LandingNavbar from '@/components/landing/LandingNavbar';
 
 const CRAFT_REGIONS = [
   'All Clusters',
@@ -67,53 +67,13 @@ function CatalogContent() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
-      {/* Top Deal Countdown Banner */}
-      <DealCountdownBanner />
-
-      {/* Top Navbar */}
-      <header
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
-          background: 'rgba(17, 12, 8, 0.92)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(201, 168, 76, 0.15)',
-          padding: '16px 32px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <Link href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontSize: '0.72rem', letterSpacing: '0.3em', color: 'var(--gold)', display: 'block' }}>
-            SUTRAಧಾರ
-          </span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: '#fff' }}>
-            The Handloom Sanctuary
-          </span>
-        </Link>
-
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          <Link href="/catalog" style={{ color: 'var(--gold)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 500 }}>
-            Curated Sarees
-          </Link>
-          <Link href="/categories" style={{ color: 'var(--text-dim)', fontSize: '0.85rem', textDecoration: 'none' }}>
-            Craft Clusters
-          </Link>
-          <Link href="/account" style={{ color: 'var(--text-dim)', fontSize: '0.85rem', textDecoration: 'none' }}>
-            Account
-          </Link>
-          <Link href="/portal/login" style={{ color: 'var(--gold)', fontSize: '0.82rem', textDecoration: 'none', border: '1px solid rgba(201,168,76,0.3)', padding: '4px 10px', borderRadius: '4px' }}>
-            Staff Portal ↗
-          </Link>
-        </div>
-      </header>
+      {/* Universal Storefront Navigation */}
+      <LandingNavbar />
 
       {/* Catalog Hero Banner */}
       <section
         style={{
-          padding: '48px 32px 32px',
+          padding: '120px 32px 32px',
           maxWidth: '1300px',
           margin: '0 auto',
           textAlign: 'center',

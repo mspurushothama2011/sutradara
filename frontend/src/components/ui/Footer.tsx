@@ -147,9 +147,9 @@ export default function Footer() {
         >
           <p>&copy; {new Date().getFullYear()} Sutraಧಾರ Silks Pvt. Ltd. All rights reserved.</p>
           <div style={{ display: 'flex', gap: '20px' }}>
-            <Link href="/portal/login" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>
-              Staff &amp; Admin Workspace ↗
-            </Link>
+            <span style={{ color: 'var(--text-dim)' }}>
+              Direct Weaver Guild Authentication
+            </span>
           </div>
         </div>
       </div>
