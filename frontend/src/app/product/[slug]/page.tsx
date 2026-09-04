@@ -6,15 +6,18 @@ import Link from 'next/link';
 import { apiRequest } from '@/lib/api';
 import { Product } from '../../../../../shared/types/index';
 import LandingNavbar from '@/components/landing/LandingNavbar';
+import { useCart } from '@/context/CartContext';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
+  const { addToBag, totalCount } = useCart();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [activeImage, setActiveImage] = useState<string>('/frames/ezgif-frame-240.jpg');
   const [isLoading, setIsLoading] = useState(true);
+  const [bagToast, setBagToast] = useState<string | null>(null);
 
   // Checkout Modal State
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -387,8 +390,40 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Primary Action Button (Triggers Checkout Modal) */}
-            <div style={{ marginBottom: '32px' }}>
+            {/* Primary Action Buttons (Add to Bag + Direct Checkout) */}
+            <div style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {bagToast && (
+                <div
+                  style={{
+                    padding: '12px 16px',
+                    background: 'rgba(201, 168, 76, 0.15)',
+                    border: '1px solid var(--gold)',
+                    borderRadius: '8px',
+                    color: 'var(--gold)',
+                    fontSize: '0.86rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span>{bagToast}</span>
+                  <Link
+                    href="/bag"
+                    style={{
+                      color: '#110c08',
+                      background: 'var(--gold)',
+                      padding: '4px 12px',
+                      borderRadius: '4px',
+                      textDecoration: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.78rem',
+                    }}
+                  >
+                    View Bag →
+                  </Link>
+                </div>
+              )}
+
               {isSoldOut ? (
                 <button
                   disabled
@@ -409,26 +444,54 @@ export default function ProductDetailPage() {
                   Acquired / Sold Out
                 </button>
               ) : (
-                <button
-                  onClick={handleOpenCheckout}
-                  style={{
-                    width: '100%',
-                    padding: '18px',
-                    background: 'var(--gold)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    color: '#110c08',
-                    fontSize: '0.95rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    boxShadow: '0 8px 24px rgba(201, 168, 76, 0.4)',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  Acquire Piece & Proceed to Checkout →
-                </button>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '12px' }}>
+                  <button
+                    onClick={() => {
+                      addToBag(product, 1);
+                      setBagToast(`👜 Added "${product.name}" to your luxury bag!`);
+                      setTimeout(() => setBagToast(null), 5000);
+                    }}
+                    style={{
+                      padding: '16px',
+                      background: 'rgba(201, 168, 76, 0.1)',
+                      border: '1px solid var(--gold)',
+                      borderRadius: '8px',
+                      color: 'var(--gold)',
+                      fontSize: '0.92rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.06em',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <span>👜</span>
+                    <span>Add to Bag</span>
+                  </button>
+
+                  <button
+                    onClick={handleOpenCheckout}
+                    style={{
+                      padding: '16px',
+                      background: 'var(--gold)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#110c08',
+                      fontSize: '0.92rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      boxShadow: '0 8px 24px rgba(201, 168, 76, 0.4)',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    👑 Buy Now →
+                  </button>
+                </div>
               )}
             </div>
 

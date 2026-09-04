@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import DealCountdownBanner from '@/components/storefront/DealCountdownBanner';
+import { useCart } from '@/context/CartContext';
 
 export default function LandingNavbar() {
   const [customer, setCustomer] = useState<{ name?: string; email?: string } | null>(null);
+  const { totalCount } = useCart();
 
   useEffect(() => {
     try {
@@ -38,28 +40,51 @@ export default function LandingNavbar() {
         borderBottom: '1px solid rgba(201, 168, 76, 0.2)',
       }}
     >
-      {/* 1. Live Deal of the Day Banner Stacked at the Very Top */}
+      {/* Real-time Deal Countdown Ribbon */}
       <DealCountdownBanner />
 
-      {/* 2. Main Navigation Bar */}
+      {/* Main Navbar */}
       <header
         style={{
-          padding: '14px 36px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          padding: '16px 36px',
+          maxWidth: '1400px',
+          margin: '0 auto',
         }}
       >
+        {/* Brand Logo */}
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontSize: '0.72rem', letterSpacing: '0.3em', color: 'var(--gold)', display: 'block', fontWeight: 600 }}>
-            SUTRAಧಾರ
-          </span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: '#fff' }}>
-            The Handloom Sanctuary
-          </span>
+          <div>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '1.45rem',
+                letterSpacing: '0.18em',
+                color: '#fff',
+                display: 'block',
+              }}
+            >
+              SUTRA<span style={{ color: 'var(--gold)', fontWeight: 600 }}>ಧಾರ</span>
+            </span>
+            <span
+              style={{
+                fontSize: '0.62rem',
+                letterSpacing: '0.35em',
+                color: 'var(--gold)',
+                textTransform: 'uppercase',
+                display: 'block',
+                marginTop: '-2px',
+              }}
+            >
+              The Handloom Sanctuary
+            </span>
+          </div>
         </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '22px', fontSize: '0.85rem' }}>
+        {/* Navigation Links */}
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'center', fontSize: '0.86rem' }}>
           <Link
             href="/catalog"
             style={{ color: '#e0d8cc', textDecoration: 'none', letterSpacing: '0.04em' }}
@@ -79,10 +104,54 @@ export default function LandingNavbar() {
             Collections
           </Link>
           <Link
+            href="/search"
+            style={{ color: '#e0d8cc', textDecoration: 'none', letterSpacing: '0.04em' }}
+          >
+            Search
+          </Link>
+          <Link
             href="/about"
             style={{ color: '#e0d8cc', textDecoration: 'none', letterSpacing: '0.04em' }}
           >
             Our Story
+          </Link>
+
+          {/* 👜 Luxury Shopping Bag Button */}
+          <Link
+            href="/bag"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              background: totalCount > 0 ? 'rgba(201, 168, 76, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+              border: totalCount > 0 ? '1px solid var(--gold)' : '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: '20px',
+              color: totalCount > 0 ? 'var(--gold)' : '#e0d8cc',
+              textDecoration: 'none',
+              fontWeight: 600,
+              fontSize: '0.84rem',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <span>👜</span>
+            <span>Bag</span>
+            <span
+              style={{
+                background: totalCount > 0 ? 'var(--gold)' : 'rgba(255,255,255,0.2)',
+                color: totalCount > 0 ? '#110c08' : '#fff',
+                borderRadius: '50%',
+                width: '18px',
+                height: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+              }}
+            >
+              {totalCount}
+            </span>
           </Link>
 
           {/* Customer Auth State: Sign In vs Account Sanctuary */}
