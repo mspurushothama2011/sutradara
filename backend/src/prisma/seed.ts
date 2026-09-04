@@ -56,7 +56,36 @@ async function main() {
   });
   console.log(`✓ Staff User: ${staff.email}`);
 
-  // 3. Seed Craft Cluster Categories & SubCategories (Max 3 each)
+  // 3. Seed Exactly 1 Customer
+  const customer = await prisma.customer.upsert({
+    where: { email: 'customer@sutradara.in' },
+    update: {},
+    create: {
+      email: 'customer@sutradara.in',
+      name: 'Ananya Deshmukh',
+      phone: '+919820154321',
+      isVerified: true,
+      addresses: {
+        create: [
+          {
+            recipientName: 'Ananya Deshmukh',
+            recipientPhone: '+919820154321',
+            street: '14, Altamount Road, Cumballa Hill',
+            landmark: 'Near Antilia',
+            city: 'Mumbai',
+            state: 'Maharashtra',
+            pincode: '400026',
+            country: 'India',
+            label: 'Home',
+            isDefault: true,
+          },
+        ],
+      },
+    },
+  });
+  console.log(`✓ Customer: ${customer.email}`);
+
+  // 4. Seed Craft Cluster Categories & SubCategories (Max 3 each)
   const categoriesToSeed = [
     {
       name: 'Banarasi Heritage',
