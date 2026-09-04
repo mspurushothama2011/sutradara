@@ -9,7 +9,7 @@ import LandingNavbar from '@/components/landing/LandingNavbar';
 
 export default function BagPage() {
   const router = useRouter();
-  const { bagItems, updateQuantity, removeFromBag, clearBag, subtotal, totalCount } = useCart();
+  const { bagItems, setBuyNowItem, updateQuantity, removeFromBag, clearBag, subtotal, totalCount } = useCart();
 
   // Coupon state
   const [couponCode, setCouponCode] = useState('');
@@ -498,7 +498,10 @@ export default function BagPage() {
 
               {/* Checkout Trigger Button */}
               <button
-                onClick={handleStartCheckout}
+                onClick={() => {
+                  setBuyNowItem(null);
+                  router.push('/checkout');
+                }}
                 style={{
                   width: '100%',
                   padding: '18px',

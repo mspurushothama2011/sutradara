@@ -12,7 +12,7 @@ export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
-  const { addToBag, totalCount } = useCart();
+  const { addToBag, setBuyNowItem, totalCount } = useCart();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [activeImage, setActiveImage] = useState<string>('/frames/ezgif-frame-240.jpg');
@@ -473,7 +473,10 @@ export default function ProductDetailPage() {
                   </button>
 
                   <button
-                    onClick={handleOpenCheckout}
+                    onClick={() => {
+                      setBuyNowItem({ product, quantity: 1 });
+                      router.push('/checkout');
+                    }}
                     style={{
                       padding: '16px',
                       background: 'var(--gold)',

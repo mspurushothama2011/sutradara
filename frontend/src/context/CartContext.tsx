@@ -10,6 +10,8 @@ export interface BagItem {
 
 interface CartContextType {
   bagItems: BagItem[];
+  buyNowItem: BagItem | null;
+  setBuyNowItem: (item: BagItem | null) => void;
   addToBag: (product: Product, quantity?: number) => void;
   removeFromBag: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -22,6 +24,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [bagItems, setBagItems] = useState<BagItem[]>([]);
+  const [buyNowItem, setBuyNowItemState] = useState<BagItem | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Load from localStorage on mount
@@ -30,6 +33,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const stored = localStorage.getItem('sutradara_bag');
       if (stored) {
         setBagItems(JSON.parse(stored));
+      }
+      const storedBuyNow = localStorage.getItem('sutradara_buynow');
+      if (storedBuyNow) {
+        setBuyNowItemState(JSON.parse(storedBuyNow));
       }
     } catch (e) {
       console.warn('Failed to load bag from storage:', e);
@@ -48,6 +55,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       console.warn('Failed to save bag to storage:', e);
     }
   }, [bagItems, isInitialized]);
+
+  const setBuyNowItem = (item: BagItem | null) => {
+    setBuyNowItemState(item);
+    if (item) {
+      localStorage.setItem('sutradara_buynow', JSON.stringify(item));
+    } else {
+      localStorage.removeItem('sutradara_buynow');
+    }
+  };
 
   const addToBag = (product: Product, quantity = 1) => {
     setBagItems((prev) => {
@@ -85,8 +101,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearBag = () => {
     setBagItems([]);
+    setBuyNowItem(null);
     try {
       localStorage.removeItem('sutradara_bag');
+      localStorage.removeItem('sutradara_buynow');
     } catch (e) {}
   };
 
@@ -97,6 +115,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     <CartContext.Provider
       value={{
         bagItems,
+        buyNowItem,
+        setBuyNowItem,
         addToBag,
         removeFromBag,
         updateQuantity,
