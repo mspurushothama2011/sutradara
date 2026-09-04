@@ -10,7 +10,6 @@ export default function FloorQuickStockPage() {
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'LOW_STOCK' | 'SOLD_OUT' | 'IN_STOCK'>('ALL');
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-  const [isCameraActive, setIsCameraActive] = useState(false);
   const [editingStock, setEditingStock] = useState<{ [productId: string]: string }>({});
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -98,16 +97,6 @@ export default function FloorQuickStockPage() {
     }
   };
 
-  const simulateCameraScan = (sku: string) => {
-    setIsCameraActive(true);
-    setTimeout(() => {
-      setSearch(sku);
-      setIsCameraActive(false);
-      setFeedbackMessage(`📷 Camera Scanned SKU: "${sku}"`);
-      setTimeout(() => setFeedbackMessage(null), 3000);
-    }, 800);
-  };
-
   // Stock Metrics
   const soldOutCount = products.filter((p) => p.stock <= 0).length;
   const lowStockCount = products.filter((p) => p.stock > 0 && p.stock <= 2).length;
@@ -154,40 +143,8 @@ export default function FloorQuickStockPage() {
             Floor Stock &amp; Inventory Manager
           </h1>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '2px' }}>
-            Direct number typing + instant barcode / scanner integration with PostgreSQL
+            Direct number typing + instant barcode &amp; scanner integration with PostgreSQL
           </p>
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => simulateCameraScan('BAN-KAT-001')}
-            style={{
-              padding: '10px 16px',
-              background: isCameraActive ? 'rgba(74, 222, 128, 0.3)' : 'rgba(201, 168, 76, 0.2)',
-              border: '1px solid var(--gold)',
-              borderRadius: '8px',
-              color: 'var(--gold)',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            {isCameraActive ? 'Scanning...' : '📸 Scan Banarasi SKU'}
-          </button>
-          <button
-            onClick={() => simulateCameraScan('KAN-SIL-002')}
-            style={{
-              padding: '10px 16px',
-              background: 'rgba(255, 255, 255, 0.06)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              borderRadius: '8px',
-              color: '#fff',
-              fontSize: '0.82rem',
-              cursor: 'pointer',
-            }}
-          >
-            📸 Scan Kanjivaram SKU
-          </button>
         </div>
       </div>
 
