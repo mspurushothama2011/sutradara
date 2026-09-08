@@ -9,6 +9,15 @@ import { openApiSpec } from './docs/openapi';
 import customerRouter from './routes/customer';
 import adminRouter from './routes/admin';
 
+// Direct Route Handlers for Canonical & Backwards-Compatible Legacy Top-Level Endpoints
+import customerCatalogRoutes from './routes/customer/catalog.routes';
+import customerCategoriesRoutes from './routes/customer/categories.routes';
+import customerOrdersRoutes from './routes/customer/orders.routes';
+import adminAuthRoutes from './routes/admin/auth.routes';
+import adminMarketingRoutes from './routes/admin/marketing.routes';
+import adminStaffRoutes from './routes/admin/staff.routes';
+import adminAuditRoutes from './routes/admin/audit.routes';
+
 dotenv.config();
 
 const app = express();
@@ -69,13 +78,13 @@ app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/portal', adminRouter);
 
 // 🔄 Backwards-Compatible Legacy Top-Level Mounts
-app.use('/api/v1/products', customerRouter);
-app.use('/api/v1/categories', customerRouter);
-app.use('/api/v1/orders', customerRouter);
-app.use('/api/v1/auth', adminRouter);
-app.use('/api/v1/marketing', adminRouter);
-app.use('/api/v1/staff', adminRouter);
-app.use('/api/v1/audit', adminRouter);
+app.use('/api/v1/products', customerCatalogRoutes);
+app.use('/api/v1/categories', customerCategoriesRoutes);
+app.use('/api/v1/orders', customerOrdersRoutes);
+app.use('/api/v1/auth', adminAuthRoutes);
+app.use('/api/v1/marketing', adminMarketingRoutes);
+app.use('/api/v1/staff', adminStaffRoutes);
+app.use('/api/v1/audit', adminAuditRoutes);
 
 // Global 404 handler
 app.use((req: Request, res: Response) => {
