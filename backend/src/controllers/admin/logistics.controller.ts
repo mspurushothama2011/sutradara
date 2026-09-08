@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
  * Staff / Admin: 1-Click Dispatch via Shiprocket
  */
 export async function dispatchOrderViaShiprocket(req: AuthRequest, res: Response) {
-  const { orderId } = req.params;
+  const orderId = req.params.orderId || req.params.id;
 
   try {
     const order = await prisma.order.findFirst({

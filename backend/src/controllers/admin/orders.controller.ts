@@ -49,7 +49,7 @@ export async function listAllOrders(req: AuthRequest, res: Response) {
  * Public Live Delivery Tracking by Order Number or ID
  */
 export async function getOrderTracking(req: Request, res: Response) {
-  const { orderId } = req.params;
+  const orderId = req.params.orderId || req.params.id;
 
   try {
     const order = await prisma.order.findFirst({
@@ -97,7 +97,7 @@ export async function getOrderTracking(req: Request, res: Response) {
  * Staff / Admin: Update Order Dispatch & Logistics Milestone (Simulated Shiprocket & Bluedart Air)
  */
 export async function updateDispatch(req: AuthRequest, res: Response) {
-  const { orderId } = req.params;
+  const orderId = req.params.orderId || req.params.id;
   const { courierPartner, awbNumber, inspectionVideoUrl, status, isNdrFlagged, ndrReason } = req.body;
 
   try {
