@@ -186,7 +186,6 @@ export interface Order {
   courierPartner?: string;
   awbNumber?: string;
   trackingUrl?: string;
-  deliveryOtp?: string;
   inspectionVideoUrl?: string;
   isNdrFlagged: boolean;
   ndrReason?: string;

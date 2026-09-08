@@ -279,9 +279,9 @@ export default function AdminOrderTrackingPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
               <div style={{ padding: '16px', background: 'rgba(201, 168, 76, 0.08)', borderRadius: '8px', border: '1px solid rgba(201, 168, 76, 0.2)', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase' }}>4-Digit Drop OTP</span>
-                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#fff', letterSpacing: '4px', marginTop: '4px' }}>
-                  {order.deliveryOtp || '3836'}
+                <span style={{ fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase' }}>Handover Protocol</span>
+                <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff', marginTop: '6px' }}>
+                  Direct Signature
                 </div>
               </div>
 

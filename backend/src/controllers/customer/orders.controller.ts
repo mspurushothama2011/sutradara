@@ -231,9 +231,8 @@ export async function createOrder(req: AuthRequest, res: Response) {
 
       const finalTotal = Math.max(0, subtotal - discountAmount);
 
-      // 4. Generate Order Number & 4-Digit Secure Drop OTP
+      // 4. Generate Order Number
       const orderNumber = `SUT-${new Date().getFullYear()}-${crypto.randomInt(1000, 9999)}`;
-      const deliveryOtp = crypto.randomInt(1000, 9999).toString();
 
       // 5. Initial Milestone Timeline
       const initialMilestones = [
@@ -256,7 +255,6 @@ export async function createOrder(req: AuthRequest, res: Response) {
           status: 'PAID',
           totalAmount: finalTotal,
           shippingAddress: shippingAddress as any,
-          deliveryOtp,
           trackingHistory: initialMilestones as any,
           items: {
             create: orderLineItems,

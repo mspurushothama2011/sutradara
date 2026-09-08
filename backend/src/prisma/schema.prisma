@@ -184,7 +184,6 @@ model Order {
   courierPartner     String?
   awbNumber          String?         @unique
   trackingUrl        String?
-  deliveryOtp        String?
   inspectionVideoUrl String?         // Internal warehouse evidence clip
   isNdrFlagged       Boolean         @default(false)
   ndrReason          String?

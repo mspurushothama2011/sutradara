@@ -146,10 +146,10 @@ export default function TrackOrderSearchPage() {
           </div>
 
           <div style={{ background: 'var(--bg-deep)', padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <span style={{ fontSize: '1.6rem', display: 'block', marginBottom: '8px' }}>🔑</span>
-            <h3 style={{ fontSize: '0.95rem', color: '#fff', fontWeight: 600 }}>4-Digit Drop OTP</h3>
+            <span style={{ fontSize: '1.6rem', display: 'block', marginBottom: '8px' }}>✍️</span>
+            <h3 style={{ fontSize: '0.95rem', color: '#fff', fontWeight: 600 }}>White-Glove Handover</h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-              Zero contactless drop-off. The delivery agent requires your confidential OTP to complete handover.
+              Direct verified handover with courier proof of delivery and live tracking confirmation.
             </p>
           </div>
 

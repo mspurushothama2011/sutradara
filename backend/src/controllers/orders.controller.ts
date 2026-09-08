@@ -92,7 +92,6 @@ export async function createOrder(req: AuthRequest, res: Response) {
 
     const finalTotal = Math.max(0, subtotal - discountAmount);
     const orderNumber = `SUT-${new Date().getFullYear()}-${crypto.randomInt(1000, 9999)}`;
-    const deliveryOtp = crypto.randomInt(1000, 9999).toString();
 
     // 4. Initial Logistics Milestone (Bypassed Shiprocket Simulation)
     const initialMilestones = [
@@ -115,7 +114,6 @@ export async function createOrder(req: AuthRequest, res: Response) {
         status: 'PAID',
         totalAmount: finalTotal,
         shippingAddress: shippingAddress as any,
-        deliveryOtp,
         trackingHistory: initialMilestones as any,
         courierPartner: 'Bluedart Apex Air',
         awbNumber: `BD-${crypto.randomInt(10000000, 99999999)}IN`,
