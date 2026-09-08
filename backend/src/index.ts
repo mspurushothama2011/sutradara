@@ -13,10 +13,15 @@ import adminRouter from './routes/admin';
 import customerCatalogRoutes from './routes/customer/catalog.routes';
 import customerCategoriesRoutes from './routes/customer/categories.routes';
 import customerOrdersRoutes from './routes/customer/orders.routes';
+import customerAuthRoutes from './routes/customer/auth.routes';
+
 import adminAuthRoutes from './routes/admin/auth.routes';
+import adminProductsRoutes from './routes/admin/products.routes';
+import adminOrdersRoutes from './routes/admin/orders.routes';
 import adminMarketingRoutes from './routes/admin/marketing.routes';
 import adminStaffRoutes from './routes/admin/staff.routes';
 import adminAuditRoutes from './routes/admin/audit.routes';
+import adminCategoriesRoutes from './routes/admin/categories.routes';
 
 dotenv.config();
 
@@ -77,11 +82,19 @@ app.use('/api/v1/customer', customerRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/portal', adminRouter);
 
-// 🔄 Backwards-Compatible Legacy Top-Level Mounts
+// 🔄 Backwards-Compatible Unified Top-Level Mounts
 app.use('/api/v1/products', customerCatalogRoutes);
+app.use('/api/v1/products', adminProductsRoutes);
+
 app.use('/api/v1/categories', customerCategoriesRoutes);
+app.use('/api/v1/categories', adminCategoriesRoutes);
+
 app.use('/api/v1/orders', customerOrdersRoutes);
+app.use('/api/v1/orders', adminOrdersRoutes);
+
 app.use('/api/v1/auth', adminAuthRoutes);
+app.use('/api/v1/auth', customerAuthRoutes);
+
 app.use('/api/v1/marketing', adminMarketingRoutes);
 app.use('/api/v1/staff', adminStaffRoutes);
 app.use('/api/v1/audit', adminAuditRoutes);
