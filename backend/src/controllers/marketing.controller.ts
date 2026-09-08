@@ -63,6 +63,30 @@ export async function listCoupons(req: AuthRequest, res: Response) {
   }
 }
 
+export async function listPublicCoupons(req: Request, res: Response) {
+  try {
+    let coupons: any[] = [];
+    try {
+      coupons = await prisma.coupon.findMany({
+        where: {
+          isActive: true,
+          validUntil: { gte: new Date() },
+        },
+        orderBy: { minOrderValue: 'asc' },
+      });
+    } catch (e) {
+      coupons = MEMORY_COUPONS.filter((c) => c.isActive && new Date(c.validUntil) >= new Date());
+    }
+    if (coupons.length === 0) {
+      coupons = MEMORY_COUPONS.filter((c) => c.isActive && new Date(c.validUntil) >= new Date());
+    }
+    return res.json({ coupons });
+  } catch (error) {
+    console.error('Failed to fetch public coupons:', error);
+    return res.status(500).json({ error: 'Failed to fetch available coupons.' });
+  }
+}
+
 export async function createCoupon(req: AuthRequest, res: Response) {
   const { code, discountType, discountValue, minOrderValue, maxDiscount, usageLimit, validUntil } = req.body;
 

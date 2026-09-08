@@ -5,18 +5,9 @@ import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import { openApiSpec } from './docs/openapi';
 
-// Customer Domain Routes
-import customerAuthRoutes from './routes/customer/auth.routes';
-import customerOrdersRoutes from './routes/customer/orders.routes';
-
-// Portal Domain Routes (Staff & Admin)
-import portalAuthRoutes from './routes/auth.routes';
-import portalProductsRoutes from './routes/products.routes';
-import portalMarketingRoutes from './routes/marketing.routes';
-import portalStaffRoutes from './routes/staff.routes';
-import portalOrdersRoutes from './routes/orders.routes';
-import portalAuditRoutes from './routes/audit.routes';
-import categoriesRoutes from './routes/categories.routes';
+// Domain Subrouters
+import customerRouter from './routes/customer';
+import adminRouter from './routes/admin';
 
 dotenv.config();
 
@@ -53,12 +44,10 @@ app.get('/', (req: Request, res: Response) => {
     frontendWebsiteUrl: 'http://localhost:3000',
     documentation: 'Open http://localhost:4000/docs to explore and test all APIs interactively.',
     apiEndpoints: {
+      customerDomain: 'http://localhost:4000/api/v1/customer',
+      adminDomain: 'http://localhost:4000/api/v1/admin',
       interactiveDocs: 'http://localhost:4000/docs',
       health: 'http://localhost:4000/api/health',
-      customerCatalog: 'http://localhost:4000/api/v1/products',
-      categories: 'http://localhost:4000/api/v1/categories',
-      customerOrders: 'http://localhost:4000/api/v1/customer/orders',
-      portalAuth: 'http://localhost:4000/api/v1/portal/auth/login',
     },
   });
 });
@@ -67,31 +56,26 @@ app.get('/', (req: Request, res: Response) => {
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
-    service: 'Sutradara API Backend (Customer & Portal Domains)',
+    service: 'Sutradara API Backend (Customer & Admin Domains Isolated)',
     timestamp: new Date().toISOString(),
   });
 });
 
-// 🛍️ Customer Domain Endpoints
-app.use('/api/v1/customer/auth', customerAuthRoutes);
-app.use('/api/v1/customer/orders', customerOrdersRoutes);
-app.use('/api/v1/categories', categoriesRoutes);
+// 🛍️ PRIMARY CUSTOMER DOMAIN ROUTER
+app.use('/api/v1/customer', customerRouter);
 
-// 🏛️ Staff / Admin Portal Domain Endpoints (Protected by RBAC)
-app.use('/api/v1/portal/auth', portalAuthRoutes);
-app.use('/api/v1/portal/products', portalProductsRoutes);
-app.use('/api/v1/portal/marketing', portalMarketingRoutes);
-app.use('/api/v1/portal/staff', portalStaffRoutes);
-app.use('/api/v1/portal/orders', portalOrdersRoutes);
-app.use('/api/v1/portal/audit', portalAuditRoutes);
+// 🏛️ PRIMARY ADMIN / PORTAL DOMAIN ROUTER (Guarded by RBAC & Staff Auth)
+app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/portal', adminRouter);
 
-// Compatibility fallback for existing portal routes
-app.use('/api/v1/auth', portalAuthRoutes);
-app.use('/api/v1/products', portalProductsRoutes);
-app.use('/api/v1/marketing', portalMarketingRoutes);
-app.use('/api/v1/staff', portalStaffRoutes);
-app.use('/api/v1/orders', portalOrdersRoutes);
-app.use('/api/v1/audit', portalAuditRoutes);
+// 🔄 Backwards-Compatible Legacy Top-Level Mounts
+app.use('/api/v1/products', customerRouter);
+app.use('/api/v1/categories', customerRouter);
+app.use('/api/v1/orders', customerRouter);
+app.use('/api/v1/auth', adminRouter);
+app.use('/api/v1/marketing', adminRouter);
+app.use('/api/v1/staff', adminRouter);
+app.use('/api/v1/audit', adminRouter);
 
 // Global 404 handler
 app.use((req: Request, res: Response) => {
@@ -100,5 +84,7 @@ app.use((req: Request, res: Response) => {
 
 app.listen(PORT, () => {
   console.log(`⚡ Sutraಧಾರ API server running on http://localhost:${PORT}`);
+  console.log(`🛍️ Customer APIs at http://localhost:${PORT}/api/v1/customer`);
+  console.log(`🏛️ Admin APIs at http://localhost:${PORT}/api/v1/admin`);
   console.log(`📖 Visual Interactive API Docs available at http://localhost:${PORT}/docs`);
 });

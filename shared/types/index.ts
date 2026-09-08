@@ -158,11 +158,28 @@ export interface TrackingEvent {
   timestamp: string;
 }
 
+export interface Customer {
+  id: string;
+  email: string;
+  name?: string;
+  phone?: string;
+  googleId?: string;
+  isVerified: boolean;
+  deletedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface Order {
   id: string;
   orderNumber: string;
-  userId: string;
+  userId?: string;
   user?: User;
+  customerId?: string;
+  customer?: Customer;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
   status: OrderStatus;
   totalAmount: number;
   shippingAddress: ShippingAddress;
@@ -177,3 +194,20 @@ export interface Order {
   items: OrderItem[];
   createdAt: string;
 }
+
+export interface SendOtpPayload {
+  email: string;
+  turnstileToken?: string;
+}
+
+export interface VerifyOtpPayload {
+  email: string;
+  otp: string;
+  name?: string;
+  phone?: string;
+}
+
+export interface GoogleAuthPayload {
+  idToken: string;
+}
+

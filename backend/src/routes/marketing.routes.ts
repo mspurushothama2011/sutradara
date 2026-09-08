@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   listCoupons,
+  listPublicCoupons,
   createCoupon,
   validateCoupon,
   getActiveDeal,
@@ -12,6 +13,7 @@ const router = Router();
 
 // Public routes
 router.get('/deal', getActiveDeal);
+router.get('/public-coupons', listPublicCoupons);
 router.post('/validate-coupon', validateCoupon);
 
 // Protected routes (Requires marketing:manage capability)

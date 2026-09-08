@@ -109,6 +109,9 @@ export async function createOrder(req: AuthRequest, res: Response) {
       data: {
         orderNumber,
         customerId: customer.id,
+        customerName: customer.name || shippingAddress.recipientName || 'Valued Patron',
+        customerEmail: customer.email,
+        customerPhone: customer.phone || shippingAddress.recipientPhone || null,
         status: 'PAID',
         totalAmount: finalTotal,
         shippingAddress: shippingAddress as any,
@@ -272,10 +275,10 @@ export async function updateDispatch(req: AuthRequest, res: Response) {
         milestoneMessage = 'Arrived at destination gateway hub. Sorted for secured white-glove van dispatch.';
         location = 'Metro Air Gateway';
       } else if (status === 'OUT_FOR_DELIVERY') {
-        milestoneMessage = `Out for delivery with delivery specialist. Please share the 4-digit drop code (${existing.deliveryOtp}) upon physical inspection.`;
+        milestoneMessage = `Package is out for delivery with the local courier specialist to your destination address.`;
         location = 'Local Delivery Center';
       } else if (status === 'DELIVERED') {
-        milestoneMessage = 'Handloom heirloom securely delivered and 4-digit OTP authenticated.';
+        milestoneMessage = 'Handloom heirloom securely delivered to patron.';
         location = 'Patron Residence';
       }
 

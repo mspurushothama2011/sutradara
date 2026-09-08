@@ -119,132 +119,174 @@ export async function createOrder(req: AuthRequest, res: Response) {
   }
 
   try {
-    // 1. Resolve Customer ID
-    let customer = await prisma.customer.findFirst({
-      where: {
-        OR: [
-          { id: req.user.userId },
-          { email: req.user.email.toLowerCase() },
-        ],
-      },
-    });
-
-    if (!customer) {
-      customer = await prisma.customer.create({
-        data: {
-          email: req.user.email.toLowerCase(),
-          name: req.user.email.split('@')[0],
-          isVerified: true,
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Resolve Customer ID
+      let customer = await tx.customer.findFirst({
+        where: {
+          OR: [
+            { id: req.user!.userId },
+            { email: req.user!.email.toLowerCase() },
+          ],
         },
       });
-    }
 
-    // 2. Fetch Products and Recalculate Server Total
-    const productIds = items.map((i) => i.productId);
-    const dbProducts = await prisma.product.findMany({
-      where: { id: { in: productIds } },
-    });
-
-    let subtotal = 0;
-    const orderLineItems: { productId: string; price: number; quantity: number }[] = [];
-
-    for (const item of items) {
-      const p = dbProducts.find((prod) => prod.id === item.productId);
-      if (!p) {
-        return res.status(404).json({ error: `Saree "${item.productId}" is not available.` });
-      }
-      if (p.stock < item.quantity) {
-        return res.status(400).json({ error: `Insufficient stock for "${p.name}". Only ${p.stock} available.` });
+      if (!customer) {
+        customer = await tx.customer.create({
+          data: {
+            email: req.user!.email.toLowerCase(),
+            name: req.user!.email.split('@')[0],
+            isVerified: true,
+          },
+        });
       }
 
-      subtotal += p.sellingPrice * item.quantity;
-      orderLineItems.push({
-        productId: p.id,
-        price: p.sellingPrice,
-        quantity: item.quantity,
-      });
-    }
-
-    // 3. Apply Coupon if valid
-    let discountAmount = 0;
-    if (couponCode) {
-      const coupon = await prisma.coupon.findUnique({
-        where: { code: couponCode.toUpperCase().trim() },
-      });
-      if (coupon && coupon.isActive && new Date(coupon.validUntil) >= new Date()) {
-        if (!coupon.minOrderValue || subtotal >= coupon.minOrderValue) {
-          if (coupon.discountType === 'PERCENTAGE') {
-            discountAmount = (subtotal * coupon.discountValue) / 100;
-            if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
-              discountAmount = coupon.maxDiscount;
-            }
-          } else {
-            discountAmount = coupon.discountValue;
-          }
-          await prisma.coupon.update({
-            where: { id: coupon.id },
-            data: { usedCount: { increment: 1 } },
+      // Also save address to customer address book if not already existing
+      try {
+        const existingAddr = await tx.address.findFirst({
+          where: {
+            customerId: customer.id,
+            street: shippingAddress.street.trim(),
+            pincode: shippingAddress.pincode.trim(),
+          },
+        });
+        if (!existingAddr) {
+          await tx.address.create({
+            data: {
+              customerId: customer.id,
+              recipientName: shippingAddress.recipientName || customer.name || 'Valued Patron',
+              recipientPhone: shippingAddress.recipientPhone || null,
+              label: 'Delivery Address',
+              landmark: shippingAddress.landmark || null,
+              street: shippingAddress.street.trim(),
+              city: shippingAddress.city.trim(),
+              state: shippingAddress.state.trim(),
+              pincode: shippingAddress.pincode.trim(),
+              country: shippingAddress.country || 'India',
+              isDefault: false,
+            },
           });
         }
+      } catch (addrErr) {
+        console.warn('Address auto-save note:', addrErr);
       }
-    }
 
-    const finalTotal = Math.max(0, subtotal - discountAmount);
+      // 2. Fetch Products and Check Live Stock inside transaction (Race condition protection)
+      const productIds = items.map((i) => i.productId);
+      const dbProducts = await tx.product.findMany({
+        where: { id: { in: productIds } },
+      });
 
-    // 4. Generate Order Number & 4-Digit Secure Drop OTP
-    const orderNumber = `SUT-${new Date().getFullYear()}-${crypto.randomInt(1000, 9999)}`;
-    const deliveryOtp = crypto.randomInt(1000, 9999).toString();
+      let subtotal = 0;
+      const orderLineItems: { productId: string; price: number; quantity: number }[] = [];
 
-    // 5. Initial Milestone Timeline
-    const initialMilestones = [
-      {
-        status: 'PAID',
-        location: 'Varanasi Master Loom Vault',
-        message: 'Order verified and securely captured. Artisan piece queued for pre-shipment quality inspection.',
-        timestamp: new Date().toISOString(),
-      },
-    ];
+      for (const item of items) {
+        const p = dbProducts.find((prod) => prod.id === item.productId);
+        if (!p) {
+          throw new Error(`Saree "${item.productId}" is no longer available in our collection.`);
+        }
+        if (p.stock < item.quantity) {
+          throw new Error(`STOCK_UNAVAILABLE: "${p.name}" has only ${p.stock} piece(s) available. It was just acquired by another patron.`);
+        }
 
-    // 6. Create Order in PostgreSQL
-    const createdOrder = await prisma.order.create({
-      data: {
-        orderNumber,
-        customerId: customer.id,
-        status: 'PAID',
-        totalAmount: finalTotal,
-        shippingAddress: shippingAddress as any,
-        deliveryOtp,
-        trackingHistory: initialMilestones as any,
-        items: {
-          create: orderLineItems,
+        subtotal += p.sellingPrice * item.quantity;
+        orderLineItems.push({
+          productId: p.id,
+          price: p.sellingPrice,
+          quantity: item.quantity,
+        });
+
+        // Atomic Stock Decrement
+        await tx.product.update({
+          where: { id: p.id },
+          data: { stock: { decrement: item.quantity } },
+        });
+
+        // Release heirloom locks if any
+        HEIRLOOM_LOCKS.delete(p.id);
+      }
+
+      // 3. Apply Coupon if valid
+      let discountAmount = 0;
+      if (couponCode) {
+        const coupon = await tx.coupon.findUnique({
+          where: { code: couponCode.toUpperCase().trim() },
+        });
+        if (coupon && coupon.isActive && new Date(coupon.validUntil) >= new Date()) {
+          if (!coupon.minOrderValue || subtotal >= coupon.minOrderValue) {
+            if (coupon.discountType === 'PERCENTAGE') {
+              discountAmount = (subtotal * coupon.discountValue) / 100;
+              if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+                discountAmount = coupon.maxDiscount;
+              }
+            } else {
+              discountAmount = coupon.discountValue;
+            }
+            await tx.coupon.update({
+              where: { id: coupon.id },
+              data: { usedCount: { increment: 1 } },
+            });
+          }
+        }
+      }
+
+      const finalTotal = Math.max(0, subtotal - discountAmount);
+
+      // 4. Generate Order Number & 4-Digit Secure Drop OTP
+      const orderNumber = `SUT-${new Date().getFullYear()}-${crypto.randomInt(1000, 9999)}`;
+      const deliveryOtp = crypto.randomInt(1000, 9999).toString();
+
+      // 5. Initial Milestone Timeline
+      const initialMilestones = [
+        {
+          status: 'PAID',
+          location: 'Varanasi Master Loom Vault',
+          message: 'Order verified and securely captured. Artisan piece queued for pre-shipment quality inspection.',
+          timestamp: new Date().toISOString(),
         },
-      },
-      include: {
-        items: {
-          include: {
-            product: true,
+      ];
+
+      // 6. Create Order in PostgreSQL with Immutable Customer Snapshot
+      const createdOrder = await tx.order.create({
+        data: {
+          orderNumber,
+          customerId: customer.id,
+          customerName: customer.name || shippingAddress.recipientName || 'Valued Patron',
+          customerEmail: customer.email,
+          customerPhone: customer.phone || shippingAddress.recipientPhone || null,
+          status: 'PAID',
+          totalAmount: finalTotal,
+          shippingAddress: shippingAddress as any,
+          deliveryOtp,
+          trackingHistory: initialMilestones as any,
+          items: {
+            create: orderLineItems,
           },
         },
-      },
-    });
-
-    // 7. Decrement Stock in PostgreSQL
-    for (const item of items) {
-      await prisma.product.update({
-        where: { id: item.productId },
-        data: { stock: { decrement: item.quantity } },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
       });
-    }
+
+      return { createdOrder };
+    });
 
     return res.json({
       success: true,
       message: 'Your royal order has been successfully placed.',
-      order: createdOrder,
-      trackingUrl: `/track/${createdOrder.orderNumber}`,
+      order: result.createdOrder,
+      trackingUrl: `/track/${result.createdOrder.orderNumber}`,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to create order in DB:', error);
-    return res.status(500).json({ error: 'Database failed to place order.' });
+    const errMsg = error?.message || 'Database failed to place order.';
+    if (errMsg.startsWith('STOCK_UNAVAILABLE:')) {
+      return res.status(409).json({ error: errMsg.replace('STOCK_UNAVAILABLE:', '').trim(), code: 'OUT_OF_STOCK' });
+    }
+    return res.status(500).json({ error: errMsg });
   }
 }
 

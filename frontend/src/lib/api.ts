@@ -5,10 +5,16 @@ interface RequestOptions extends RequestInit {
 }
 
 export async function apiRequest<T = any>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const token =
-    typeof window !== 'undefined'
-      ? localStorage.getItem('sutradara_token') || localStorage.getItem('accessToken')
-      : null;
+  const isCustomerEndpoint = endpoint.includes('/customer/');
+  
+  let token: string | null = null;
+  if (typeof window !== 'undefined') {
+    if (isCustomerEndpoint) {
+      token = localStorage.getItem('accessToken') || localStorage.getItem('sutradara_token');
+    } else {
+      token = localStorage.getItem('sutradara_token') || localStorage.getItem('accessToken');
+    }
+  }
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -65,7 +71,12 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestOpti
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `HTTP error ${response.status}`);
+    const errorMessage = errorData.error || errorData.message || `HTTP error ${response.status}`;
+    const error: any = new Error(errorMessage);
+    error.status = response.status;
+    error.code = errorData.code;
+    error.data = errorData;
+    throw error;
   }
 
   return response.json();

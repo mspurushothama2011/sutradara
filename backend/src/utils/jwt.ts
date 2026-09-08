@@ -11,7 +11,8 @@ export interface TokenPayload {
 }
 
 export function signAccessToken(payload: TokenPayload): string {
-  return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+  const expiresIn = payload.role === 'CUSTOMER' ? '30d' : '1d';
+  return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn });
 }
 
 export function signRefreshToken(payload: TokenPayload): string {

@@ -1,0 +1,576 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { apiRequest } from '@/lib/api';
+import { User, ShippingAddress } from '@/shared/types/index';
+import LandingNavbar from '@/components/customer/landing/LandingNavbar';
+
+export default function CustomerAccountPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Address form state
+  const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [phone, setPhone] = useState('');
+
+  // 2-Step Account Deletion State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [deleteOtp, setDeleteOtp] = useState('');
+  const [deleteStep, setDeleteStep] = useState<'TYPE_DELETE' | 'ENTER_OTP'>('TYPE_DELETE');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [devDeletionOtp, setDevDeletionOtp] = useState<string | null>(null);
+
+  const loadProfile = async () => {
+    try {
+      setIsLoading(true);
+      const res = await apiRequest('/customer/auth/me');
+      setUser(res.user);
+      setAddresses(res.addresses || []);
+    } catch (e: any) {
+      // Fallback to local storage
+      const cached = localStorage.getItem('customerUser');
+      if (cached) {
+        setUser(JSON.parse(cached));
+      } else {
+        router.push('/login');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const handleSaveAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await apiRequest('/customer/auth/address', {
+        method: 'POST',
+        data: { street, city, state, pincode, phone },
+      });
+      setAddresses(res.addresses || []);
+      setIsAddingAddress(false);
+      setStreet('');
+      setCity('');
+      setState('');
+      setPincode('');
+      setPhone('');
+    } catch (e: any) {
+      alert(e.message || 'Failed to save address. Please check 6-digit PIN code.');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('customerUser');
+    router.push('/login');
+  };
+
+  // Step 1: Request Deletion OTP after typing "DELETE"
+  const handleRequestDeletionOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDeleteError(null);
+
+    if (deleteConfirmationText.trim() !== 'DELETE') {
+      setDeleteError('Please type "DELETE" in capital letters to proceed.');
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const res = await apiRequest('/customer/account/delete-request-otp', {
+        method: 'POST',
+      });
+
+      if (res.devOtp) {
+        setDevDeletionOtp(res.devOtp);
+      }
+      setDeleteStep('ENTER_OTP');
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to send account deletion OTP.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Step 2: Confirm Account Deletion with OTP
+  const handleConfirmAccountDeletion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDeleteError(null);
+
+    if (!deleteOtp || deleteOtp.trim().length < 6) {
+      setDeleteError('Please enter the 6-digit confirmation code.');
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      await apiRequest('/customer/account', {
+        method: 'DELETE',
+        data: {
+          confirmationText: 'DELETE',
+          otp: deleteOtp.trim(),
+        },
+      });
+
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('customerUser');
+      alert('Your account has been successfully deactivated and all personal identifiable data has been erased. Historical orders remain intact for GST and accounting compliance.');
+      router.push('/');
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to delete account. Please verify the code.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+      {/* Universal Storefront Navigation */}
+      <LandingNavbar />
+
+      <div style={{ paddingTop: '120px', paddingBottom: '80px', paddingLeft: '24px', paddingRight: '24px', maxWidth: '1080px', margin: '0 auto' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '1px solid rgba(201, 168, 76, 0.2)', paddingBottom: '24px', marginBottom: '40px', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase' }}>
+              CUSTOMER SANCTUARY
+            </span>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', color: '#fff', marginTop: '4px' }}>
+              Namaste, {user?.name || user?.email?.split('@')[0] || 'Patron'}
+            </h1>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+              {user?.email} • Verified Sutraಧಾರ Patron
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <Link
+              href="/account/orders"
+              style={{
+                padding: '10px 20px',
+                background: 'rgba(201, 168, 76, 0.15)',
+                border: '1px solid var(--gold)',
+                color: 'var(--gold)',
+                borderRadius: '6px',
+                textDecoration: 'none',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+              }}
+            >
+              View Order History 📦
+            </Link>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '10px 18px',
+                background: 'transparent',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: 'var(--text-dim)',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+              }}
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+
+        {/* Addresses & Privileges Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
+          {/* Saved Addresses */}
+          <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--gold)' }}>
+                Saved Delivery Addresses
+              </h2>
+              <button
+                onClick={() => setIsAddingAddress(!isAddingAddress)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--gold)',
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                {isAddingAddress ? 'Cancel' : '+ Add Address'}
+              </button>
+            </div>
+
+            {isAddingAddress ? (
+              <form onSubmit={handleSaveAddress} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <input
+                  type="text"
+                  placeholder="Street / House / Building"
+                  required
+                  value={street}
+                  onChange={(e) => setStreet(e.target.value)}
+                  style={{ padding: '10px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff' }}
+                />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <input
+                    type="text"
+                    placeholder="City"
+                    required
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    style={{ padding: '10px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff' }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="State"
+                    required
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    style={{ padding: '10px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff' }}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <input
+                    type="text"
+                    placeholder="6-Digit PIN Code"
+                    maxLength={6}
+                    required
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value)}
+                    style={{ padding: '10px', background: 'rgba(0,0,0,0.5)', border: '1px solid var(--gold)', borderRadius: '6px', color: '#fff', fontFamily: 'monospace' }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    style={{ padding: '10px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff' }}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  style={{ marginTop: '8px', padding: '12px', background: 'var(--gold)', color: '#110c08', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Save Address
+                </button>
+              </form>
+            ) : addresses.length === 0 ? (
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>No delivery addresses saved yet.</p>
+            ) : (
+              addresses.map((addr, idx) => (
+                <div key={idx} style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', marginBottom: '12px' }}>
+                  <p style={{ fontWeight: 600, color: '#fff', fontSize: '0.9rem' }}>{addr.fullName || user?.name}</p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '4px' }}>{addr.street}, {addr.city}, {addr.state} - <strong>{addr.pincode}</strong></p>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--gold)', marginTop: '4px' }}>📱 {addr.phone || 'Phone linked to account'}</p>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Patron Privileges */}
+          <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '32px' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--gold)', marginBottom: '16px' }}>
+              Sutraಧಾರ Patron Privileges
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <span style={{ color: 'var(--gold)', fontSize: '1.1rem' }}>✓</span>
+                <div>
+                  <strong style={{ color: '#fff' }}>1-of-1 Heirloom Reservation:</strong>
+                  <p>10-minute uninterrupted checkout hold on single-piece unrepeatable weaves.</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <span style={{ color: 'var(--gold)', fontSize: '1.1rem' }}>✓</span>
+                <div>
+                  <strong style={{ color: '#fff' }}>Pre-Shipment 20s Inspection Log:</strong>
+                  <p>Watch your saree's Silk Mark and gold zari purity test recorded before package sealing.</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <span style={{ color: 'var(--gold)', fontSize: '1.1rem' }}>✓</span>
+                <div>
+                  <strong style={{ color: '#fff' }}>Complimentary Insured Air Express:</strong>
+                  <p>Zero contactless loss. Your package is dispatched in a sealed tamper-proof luxury box.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ⚠️ Privacy & Account Deactivation Sanctuary (DPDP / GDPR Compliance) */}
+        <div
+          style={{
+            marginTop: '48px',
+            background: 'rgba(239, 68, 68, 0.04)',
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            borderRadius: '12px',
+            padding: '28px 32px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '20px',
+          }}
+        >
+          <div>
+            <h3 style={{ fontSize: '1.1rem', color: '#f87171', fontWeight: 600 }}>
+              Account Privacy &amp; Right to Erasure
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '4px', maxWidth: '640px' }}>
+              In accordance with India DPDP Act 2023 &amp; GDPR, you may request permanent deactivation of your account and erasure of all personal delivery addresses. Past order records are anonymized and retained for GST accounting compliance.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsDeleteModalOpen(true);
+              setDeleteStep('TYPE_DELETE');
+              setDeleteConfirmationText('');
+              setDeleteOtp('');
+              setDeleteError(null);
+            }}
+            style={{
+              padding: '10px 20px',
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid #ef4444',
+              borderRadius: '6px',
+              color: '#fca5a5',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)')}
+          >
+            Delete Account
+          </button>
+        </div>
+      </div>
+
+      {/* 2-Step Deletion Modal */}
+      {isDeleteModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '480px',
+              background: '#110c08',
+              border: '1px solid #ef4444',
+              borderRadius: '16px',
+              padding: '36px 32px',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9)',
+            }}
+          >
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <span style={{ fontSize: '2rem' }}>⚠️</span>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: '#fff', marginTop: '8px' }}>
+                Deactivate Sutraಧಾರ Account
+              </h2>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '6px', lineHeight: 1.5 }}>
+                {deleteStep === 'TYPE_DELETE'
+                  ? 'This action will permanently anonymize your name, phone, and purge all saved delivery addresses. Type "DELETE" below to request confirmation OTP.'
+                  : `A 6-digit confirmation code has been dispatched to ${user?.email}. Enter it below to execute permanent deactivation.`}
+              </p>
+            </div>
+
+            {devDeletionOtp && (
+              <div
+                style={{
+                  marginBottom: '16px',
+                  padding: '10px 14px',
+                  background: 'rgba(201, 168, 76, 0.15)',
+                  border: '1px solid var(--gold)',
+                  borderRadius: '6px',
+                  textAlign: 'center',
+                }}
+              >
+                <span style={{ fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase' }}>
+                  🔑 Deletion Test Code:
+                </span>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff', letterSpacing: '4px' }}>
+                  {devDeletionOtp}
+                </div>
+              </div>
+            )}
+
+            {deleteError && (
+              <div
+                style={{
+                  marginBottom: '16px',
+                  padding: '10px 14px',
+                  background: 'rgba(239, 68, 68, 0.2)',
+                  border: '1px solid #ef4444',
+                  borderRadius: '6px',
+                  color: '#fca5a5',
+                  fontSize: '0.82rem',
+                  textAlign: 'center',
+                }}
+              >
+                {deleteError}
+              </div>
+            )}
+
+            {deleteStep === 'TYPE_DELETE' ? (
+              <form onSubmit={handleRequestDeletionOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: '#f87171', marginBottom: '6px', textAlign: 'center' }}>
+                    Type <strong>DELETE</strong> to confirm:
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    placeholder="DELETE"
+                    value={deleteConfirmationText}
+                    onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid #ef4444',
+                      borderRadius: '8px',
+                      color: '#fff',
+                      fontSize: '1.1rem',
+                      textAlign: 'center',
+                      letterSpacing: '3px',
+                      fontWeight: 700,
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsDeleteModalOpen(false)}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '8px',
+                      color: '#fff',
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isDeleting || deleteConfirmationText.trim() !== 'DELETE'}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      background: deleteConfirmationText.trim() !== 'DELETE' ? 'rgba(239, 68, 68, 0.3)' : '#dc2626',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#fff',
+                      fontSize: '0.85rem',
+                      fontWeight: 700,
+                      cursor: deleteConfirmationText.trim() !== 'DELETE' || isDeleting ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {isDeleting ? 'Sending OTP...' : 'Send Deletion OTP →'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleConfirmAccountDeletion} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--gold)', marginBottom: '6px', textAlign: 'center' }}>
+                    Enter 6-Digit Deletion Code:
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    maxLength={6}
+                    placeholder="• • • • • •"
+                    value={deleteOtp}
+                    onChange={(e) => setDeleteOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid var(--gold)',
+                      borderRadius: '8px',
+                      color: '#fff',
+                      fontSize: '1.5rem',
+                      textAlign: 'center',
+                      letterSpacing: '6px',
+                      fontFamily: 'monospace',
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteStep('TYPE_DELETE')}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '8px',
+                      color: '#fff',
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isDeleting || deleteOtp.length < 6}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      background: deleteOtp.length < 6 ? 'rgba(239, 68, 68, 0.3)' : '#dc2626',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#fff',
+                      fontSize: '0.85rem',
+                      fontWeight: 700,
+                      cursor: deleteOtp.length < 6 || isDeleting ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {isDeleting ? 'Deactivating...' : 'Confirm Deletion'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

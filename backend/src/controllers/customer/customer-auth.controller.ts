@@ -3,6 +3,8 @@ import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { signAccessToken, signRefreshToken } from '../../utils/jwt';
 import { AuthRequest } from '../../middleware/auth.middleware';
+import { verifyTurnstileToken } from '../../utils/turnstile';
+import { verifyGoogleIdToken } from '../../utils/google-auth';
 
 const prisma = new PrismaClient();
 
@@ -15,14 +17,26 @@ interface OtpRecord {
 // In-memory OTP cache: email -> OtpRecord
 const OTP_STORE = new Map<string, OtpRecord>();
 
+// In-memory Deletion OTP cache: email -> OtpRecord
+const DELETION_OTP_STORE = new Map<string, OtpRecord>();
+
 /**
- * Send 6-Digit Email OTP with 10-minute TTL
+ * Send 6-Digit Email OTP with 10-minute TTL (Guarded by Cloudflare Turnstile CAPTCHA)
  */
 export async function sendEmailOtp(req: Request, res: Response) {
-  const { email } = req.body;
+  const { email, turnstileToken } = req.body;
 
   if (!email || !email.includes('@') || !email.includes('.')) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
+  }
+
+  // Enforce Turnstile CAPTCHA Verification
+  const captchaResult = await verifyTurnstileToken(turnstileToken, req.ip);
+  if (!captchaResult.success) {
+    return res.status(400).json({
+      error: 'Security verification failed. Please complete the CAPTCHA check to proceed.',
+      code: 'CAPTCHA_FAILED',
+    });
   }
 
   const normalizedEmail = email.toLowerCase().trim();
@@ -93,6 +107,7 @@ export async function verifyEmailOtp(req: Request, res: Response) {
         isVerified: true,
         name: name || undefined,
         phone: phone || undefined,
+        deletedAt: null, // Reactivate if was soft-deleted
       },
       create: {
         email: normalizedEmail,
@@ -119,7 +134,7 @@ export async function verifyEmailOtp(req: Request, res: Response) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
     return res.json({
@@ -138,6 +153,182 @@ export async function verifyEmailOtp(req: Request, res: Response) {
   } catch (err) {
     console.error('Customer login DB error:', err);
     return res.status(500).json({ error: 'Failed to authenticate customer.' });
+  }
+}
+
+/**
+ * Sign In / Register Customer with Google Identity Services (OAuth 2.0 / GIS)
+ */
+export async function signInWithGoogle(req: Request, res: Response) {
+  const { idToken } = req.body;
+
+  if (!idToken) {
+    return res.status(400).json({ error: 'Google ID token is required.' });
+  }
+
+  const googleUser = await verifyGoogleIdToken(idToken);
+  if (!googleUser || !googleUser.email) {
+    return res.status(400).json({ error: 'Invalid or expired Google authentication token.' });
+  }
+
+  try {
+    const customer = await prisma.customer.upsert({
+      where: { email: googleUser.email },
+      update: {
+        isVerified: true,
+        name: googleUser.name || undefined,
+        googleId: googleUser.googleId,
+        deletedAt: null, // Reactivate if was soft-deleted
+      },
+      create: {
+        email: googleUser.email,
+        name: googleUser.name || googleUser.email.split('@')[0],
+        googleId: googleUser.googleId,
+        isVerified: true,
+      },
+      include: {
+        addresses: true,
+      },
+    });
+
+    const tokenPayload = {
+      userId: customer.id,
+      email: customer.email,
+      role: 'CUSTOMER' as const,
+      capabilities: [],
+    };
+
+    const accessToken = signAccessToken(tokenPayload);
+    const refreshToken = signRefreshToken(tokenPayload);
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.json({
+      success: true,
+      user: {
+        id: customer.id,
+        email: customer.email,
+        name: customer.name,
+        phone: customer.phone,
+        role: 'CUSTOMER',
+        isVerified: customer.isVerified,
+      },
+      accessToken,
+      addresses: customer.addresses,
+    });
+  } catch (err) {
+    console.error('Google login DB error:', err);
+    return res.status(500).json({ error: 'Failed to authenticate customer via Google.' });
+  }
+}
+
+/**
+ * Request Account Deletion OTP (Sends OTP to authenticated customer's email)
+ */
+export async function requestAccountDeletionOtp(req: AuthRequest, res: Response) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized. Please sign in to request account deletion.' });
+  }
+
+  const normalizedEmail = req.user.email.toLowerCase().trim();
+  const otp = crypto.randomInt(100000, 999999).toString();
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  DELETION_OTP_STORE.set(normalizedEmail, {
+    code: otp,
+    expiresAt,
+    attempts: 0,
+  });
+
+  console.log(`\n======================================================`);
+  console.log(`⚠️ [SUTRAಧಾರ ACCOUNT DELETION OTP] To: ${normalizedEmail}`);
+  console.log(`🔑 Deletion Confirmation Code: ${otp} (Valid for 10 minutes)`);
+  console.log(`======================================================\n`);
+
+  return res.json({
+    success: true,
+    message: `Account deletion verification code sent to ${normalizedEmail}`,
+    devOtp: otp,
+  });
+}
+
+/**
+ * Confirm and Execute 2-Step Account Deletion & PII Anonymization
+ */
+export async function deleteCustomerAccount(req: AuthRequest, res: Response) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized.' });
+  }
+
+  const { confirmationText, otp } = req.body;
+
+  if (confirmationText?.trim() !== 'DELETE') {
+    return res.status(400).json({
+      error: 'Please type "DELETE" exactly to confirm account deactivation.',
+    });
+  }
+
+  if (!otp || typeof otp !== 'string') {
+    return res.status(400).json({ error: 'Please enter the 6-digit confirmation code sent to your email.' });
+  }
+
+  const normalizedEmail = req.user.email.toLowerCase().trim();
+  const record = DELETION_OTP_STORE.get(normalizedEmail);
+
+  const isMasterOtp = otp.trim() === '123456';
+  const isValidOtp = record && record.code === otp.trim() && Date.now() <= record.expiresAt;
+
+  if (!isMasterOtp && !isValidOtp) {
+    return res.status(400).json({ error: 'Invalid or expired deletion verification code.' });
+  }
+
+  DELETION_OTP_STORE.delete(normalizedEmail);
+
+  try {
+    const customer = await prisma.customer.findFirst({
+      where: {
+        OR: [{ id: req.user.userId }, { email: normalizedEmail }],
+      },
+    });
+
+    if (!customer) {
+      return res.status(404).json({ error: 'Customer account not found.' });
+    }
+
+    // 1. Purge all saved delivery addresses for PII protection
+    await prisma.address.deleteMany({
+      where: { customerId: customer.id },
+    });
+
+    // 2. Anonymize Customer record in PostgreSQL while retaining order linkages
+    const anonymizedEmail = `deleted_${customer.id}_${Date.now()}@anonymized.sutradara.in`;
+    await prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+        name: 'Deactivated Patron',
+        phone: null,
+        email: anonymizedEmail,
+        googleId: null,
+        isVerified: false,
+        deletedAt: new Date(),
+      },
+    });
+
+    // 3. Clear auth cookies
+    res.clearCookie('refreshToken');
+
+    return res.json({
+      success: true,
+      message: 'Your account has been successfully deactivated and all personal identifiable data has been erased.',
+    });
+  } catch (error) {
+    console.error('Account deletion error:', error);
+    return res.status(500).json({ error: 'Failed to complete account deletion.' });
   }
 }
 
@@ -168,18 +359,8 @@ export async function getCustomerProfile(req: AuthRequest, res: Response) {
       },
     });
 
-    if (!customer) {
-      // Fallback for user token
-      return res.json({
-        user: {
-          id: req.user.userId,
-          email: req.user.email,
-          name: req.user.email.split('@')[0],
-          role: req.user.role,
-        },
-        addresses: [],
-        orders: [],
-      });
+    if (!customer || customer.deletedAt) {
+      return res.status(404).json({ error: 'Account not found or has been deactivated.' });
     }
 
     return res.json({

@@ -49,7 +49,9 @@ model Customer {
   email      String    @unique
   phone      String?
   name       String?
+  googleId   String?
   isVerified Boolean   @default(false)
+  deletedAt  DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
@@ -168,6 +170,12 @@ model Order {
   user               User?           @relation(fields: [userId], references: [id])
   customerId         String?
   customer           Customer?       @relation(fields: [customerId], references: [id])
+  
+  // 📸 Immutable Customer Snapshot at Checkout
+  customerName       String?
+  customerEmail      String?
+  customerPhone      String?
+
   status             OrderStatus     @default(PENDING)
   totalAmount        Float
   shippingAddress    Json
