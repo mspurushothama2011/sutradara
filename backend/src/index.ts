@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import { openApiSpec } from './docs/openapi';
 
@@ -22,6 +23,7 @@ import adminMarketingRoutes from './routes/admin/marketing.routes';
 import adminStaffRoutes from './routes/admin/staff.routes';
 import adminAuditRoutes from './routes/admin/audit.routes';
 import adminCategoriesRoutes from './routes/admin/categories.routes';
+import adminUploadRoutes from './routes/admin/upload.routes';
 
 dotenv.config();
 
@@ -31,6 +33,9 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // Trust reverse proxies (Cloudflare, Railway, Vercel)
 app.set('trust proxy', 1);
+
+// Static uploads serving for uploaded sarees & category banners
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // CORS configuration supporting credentials (cookies)
 app.use(
@@ -98,6 +103,7 @@ app.use('/api/v1/auth', customerAuthRoutes);
 app.use('/api/v1/marketing', adminMarketingRoutes);
 app.use('/api/v1/staff', adminStaffRoutes);
 app.use('/api/v1/audit', adminAuditRoutes);
+app.use('/api/v1/uploads', adminUploadRoutes);
 
 // Global 404 handler
 app.use((req: Request, res: Response) => {

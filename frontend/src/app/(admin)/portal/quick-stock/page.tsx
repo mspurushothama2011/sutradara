@@ -123,8 +123,8 @@ export default function FloorQuickStockPage() {
       {/* Floor Mode Header */}
       <div
         style={{
-          background: 'linear-gradient(135deg, rgba(201, 168, 76, 0.2) 0%, rgba(26, 20, 14, 0.8) 100%)',
-          border: '1px solid rgba(201, 168, 76, 0.35)',
+          background: '#FFFFFF',
+          border: '1px solid rgba(179, 137, 56, 0.25)',
           borderRadius: '12px',
           padding: '24px 28px',
           marginBottom: '20px',
@@ -133,16 +133,17 @@ export default function FloorQuickStockPage() {
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: '16px',
+          boxShadow: '0 4px 16px rgba(26, 19, 13, 0.03)',
         }}
       >
         <div>
-          <span style={{ fontSize: '0.75rem', color: 'var(--gold)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--gold)', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600 }}>
             ⚡ FLOOR &amp; WAREHOUSE STOCK ADJUSTER
           </span>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: '#fff', marginTop: '4px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: 'var(--text)', marginTop: '4px' }}>
             Floor Stock &amp; Inventory Manager
           </h1>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '2px' }}>
             Direct number typing + instant barcode &amp; scanner integration with PostgreSQL
           </p>
         </div>
@@ -161,78 +162,81 @@ export default function FloorQuickStockPage() {
         <div
           onClick={() => setActiveFilter(activeFilter === 'LOW_STOCK' ? 'ALL' : 'LOW_STOCK')}
           style={{
-            padding: '14px 18px',
-            background: activeFilter === 'LOW_STOCK' ? 'rgba(245, 158, 11, 0.25)' : 'rgba(245, 158, 11, 0.1)',
-            border: activeFilter === 'LOW_STOCK' ? '2px solid #f59e0b' : '1px solid rgba(245, 158, 11, 0.3)',
+            padding: '16px 20px',
+            background: activeFilter === 'LOW_STOCK' ? '#FEF3C7' : '#FFFFFF',
+            border: activeFilter === 'LOW_STOCK' ? '2px solid #D97706' : '1px solid rgba(217, 119, 6, 0.3)',
             borderRadius: '10px',
             cursor: 'pointer',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             transition: 'all 0.2s ease',
+            boxShadow: '0 2px 8px rgba(26, 19, 13, 0.03)',
           }}
         >
           <div>
-            <span style={{ fontSize: '0.72rem', color: '#fcd34d', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block' }}>
+            <span style={{ fontSize: '0.75rem', color: '#92400E', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>
               ⚠️ Low Stock Priority (≤ 2)
             </span>
-            <strong style={{ fontSize: '1.3rem', color: '#fbbf24', marginTop: '2px', display: 'block' }}>
+            <strong style={{ fontSize: '1.4rem', color: '#B45309', marginTop: '2px', display: 'block' }}>
               {lowStockCount} Sarees
             </strong>
           </div>
-          <span style={{ fontSize: '1.4rem' }}>⏳</span>
+          <span style={{ fontSize: '1.5rem' }}>⏳</span>
         </div>
 
         {/* Sold Out Pill */}
         <div
           onClick={() => setActiveFilter(activeFilter === 'SOLD_OUT' ? 'ALL' : 'SOLD_OUT')}
           style={{
-            padding: '14px 18px',
-            background: activeFilter === 'SOLD_OUT' ? 'rgba(239, 68, 68, 0.25)' : 'rgba(239, 68, 68, 0.1)',
-            border: activeFilter === 'SOLD_OUT' ? '2px solid #ef4444' : '1px solid rgba(239, 68, 68, 0.3)',
+            padding: '16px 20px',
+            background: activeFilter === 'SOLD_OUT' ? '#FEE2E2' : '#FFFFFF',
+            border: activeFilter === 'SOLD_OUT' ? '2px solid #DC2626' : '1px solid rgba(220, 38, 38, 0.3)',
             borderRadius: '10px',
             cursor: 'pointer',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             transition: 'all 0.2s ease',
+            boxShadow: '0 2px 8px rgba(26, 19, 13, 0.03)',
           }}
         >
           <div>
-            <span style={{ fontSize: '0.72rem', color: '#fca5a5', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block' }}>
+            <span style={{ fontSize: '0.75rem', color: '#991B1B', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>
               🔴 Sold Out (0 in Vault)
             </span>
-            <strong style={{ fontSize: '1.3rem', color: '#f87171', marginTop: '2px', display: 'block' }}>
+            <strong style={{ fontSize: '1.4rem', color: '#DC2626', marginTop: '2px', display: 'block' }}>
               {soldOutCount} Sarees
             </strong>
           </div>
-          <span style={{ fontSize: '1.4rem' }}>🚫</span>
+          <span style={{ fontSize: '1.5rem' }}>🚫</span>
         </div>
 
         {/* Healthy Stock Pill */}
         <div
           onClick={() => setActiveFilter(activeFilter === 'IN_STOCK' ? 'ALL' : 'IN_STOCK')}
           style={{
-            padding: '14px 18px',
-            background: activeFilter === 'IN_STOCK' ? 'rgba(34, 197, 94, 0.25)' : 'rgba(34, 197, 94, 0.1)',
-            border: activeFilter === 'IN_STOCK' ? '2px solid #22c55e' : '1px solid rgba(34, 197, 94, 0.3)',
+            padding: '16px 20px',
+            background: activeFilter === 'IN_STOCK' ? '#DCFCE7' : '#FFFFFF',
+            border: activeFilter === 'IN_STOCK' ? '2px solid #16A34A' : '1px solid rgba(22, 163, 74, 0.3)',
             borderRadius: '10px',
             cursor: 'pointer',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             transition: 'all 0.2s ease',
+            boxShadow: '0 2px 8px rgba(26, 19, 13, 0.03)',
           }}
         >
           <div>
-            <span style={{ fontSize: '0.72rem', color: '#86efac', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block' }}>
+            <span style={{ fontSize: '0.75rem', color: '#166534', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>
               🟢 Healthy Stock (3+)
             </span>
-            <strong style={{ fontSize: '1.3rem', color: '#4ade80', marginTop: '2px', display: 'block' }}>
+            <strong style={{ fontSize: '1.4rem', color: '#15803D', marginTop: '2px', display: 'block' }}>
               {healthyStockCount} Sarees
             </strong>
           </div>
-          <span style={{ fontSize: '1.4rem' }}>📦</span>
+          <span style={{ fontSize: '1.5rem' }}>📦</span>
         </div>
       </div>
 
@@ -240,13 +244,13 @@ export default function FloorQuickStockPage() {
       {feedbackMessage && (
         <div
           style={{
-            padding: '12px 16px',
-            background: 'rgba(34, 197, 94, 0.2)',
-            border: '1px solid rgba(34, 197, 94, 0.4)',
+            padding: '12px 18px',
+            background: 'rgba(34, 197, 94, 0.12)',
+            border: '1px solid rgba(34, 197, 94, 0.35)',
             borderRadius: '8px',
-            color: '#4ade80',
+            color: '#15803d',
             fontSize: '0.88rem',
-            fontWeight: 500,
+            fontWeight: 600,
             marginBottom: '20px',
             textAlign: 'center',
           }}
@@ -268,13 +272,13 @@ export default function FloorQuickStockPage() {
               width: '100%',
               padding: '14px 20px',
               paddingRight: '48px',
-              background: 'var(--bg-deep)',
-              border: '2px solid rgba(201, 168, 76, 0.4)',
+              background: '#FFFFFF',
+              border: '2px solid rgba(179, 137, 56, 0.35)',
               borderRadius: '10px',
-              color: '#fff',
+              color: 'var(--text)',
               fontSize: '1rem',
               outline: 'none',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+              boxShadow: '0 2px 10px rgba(26, 19, 13, 0.03)',
             }}
           />
           {search && (
@@ -290,6 +294,7 @@ export default function FloorQuickStockPage() {
                 color: 'var(--text-dim)',
                 fontSize: '1.2rem',
                 cursor: 'pointer',
+                fontWeight: 700,
               }}
             >
               ✕
@@ -302,11 +307,12 @@ export default function FloorQuickStockPage() {
             onClick={() => setActiveFilter('ALL')}
             style={{
               padding: '12px 18px',
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              background: '#FFFFFF',
+              border: '1px solid rgba(179, 137, 56, 0.3)',
               borderRadius: '8px',
-              color: '#fff',
+              color: 'var(--text)',
               fontSize: '0.85rem',
+              fontWeight: 600,
               cursor: 'pointer',
             }}
           >
@@ -332,15 +338,15 @@ export default function FloorQuickStockPage() {
                 key={p.id}
                 style={{
                   background: isOut
-                    ? 'rgba(239, 68, 68, 0.06)'
+                    ? '#FFF5F5'
                     : isLow
-                    ? 'rgba(245, 158, 11, 0.06)'
-                    : 'var(--bg-deep)',
+                    ? '#FFFBEB'
+                    : '#FFFFFF',
                   border: isOut
-                    ? '1px solid rgba(239, 68, 68, 0.4)'
+                    ? '1px solid rgba(220, 38, 38, 0.35)'
                     : isLow
-                    ? '1px solid rgba(245, 158, 11, 0.4)'
-                    : '1px solid rgba(255, 255, 255, 0.08)',
+                    ? '1px solid rgba(217, 119, 6, 0.35)'
+                    : '1px solid rgba(179, 137, 56, 0.22)',
                   borderRadius: '12px',
                   padding: '18px 24px',
                   display: 'flex',
@@ -348,6 +354,7 @@ export default function FloorQuickStockPage() {
                   justifyContent: 'space-between',
                   gap: '20px',
                   flexWrap: 'wrap',
+                  boxShadow: '0 2px 10px rgba(26, 19, 13, 0.03)',
                 }}
               >
                 {/* Left: Thumbnail & Details */}
@@ -355,29 +362,29 @@ export default function FloorQuickStockPage() {
                   <img
                     src={p.images?.[0] || '/frames/ezgif-frame-240.jpg'}
                     alt={p.name}
-                    style={{ width: '58px', height: '58px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}
+                    style={{ width: '58px', height: '58px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(179, 137, 56, 0.25)' }}
                   />
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '0.82rem', fontFamily: 'monospace', color: 'var(--gold)', fontWeight: 700 }}>
+                      <span style={{ fontSize: '0.82rem', fontFamily: 'monospace', color: 'var(--gold-dark, #8A6418)', fontWeight: 700 }}>
                         {p.sku}
                       </span>
                       {p.isHeirloom1of1 && (
-                        <span style={{ fontSize: '0.68rem', padding: '2px 6px', background: 'rgba(201, 168, 76, 0.2)', color: 'var(--gold)', borderRadius: '4px', border: '1px solid rgba(201, 168, 76, 0.3)' }}>
+                        <span style={{ fontSize: '0.68rem', padding: '2px 6px', background: 'rgba(179, 137, 56, 0.12)', color: 'var(--gold-dark, #8A6418)', borderRadius: '4px', border: '1px solid rgba(179, 137, 56, 0.25)', fontWeight: 600 }}>
                           👑 1-of-1
                         </span>
                       )}
                       {isOut ? (
-                        <span style={{ fontSize: '0.68rem', padding: '2px 6px', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.4)' }}>
+                        <span style={{ fontSize: '0.68rem', padding: '2px 6px', background: 'rgba(220, 38, 38, 0.12)', color: '#dc2626', borderRadius: '4px', border: '1px solid rgba(220, 38, 38, 0.3)', fontWeight: 700 }}>
                           SOLD OUT
                         </span>
                       ) : isLow ? (
-                        <span style={{ fontSize: '0.68rem', padding: '2px 6px', background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.4)' }}>
+                        <span style={{ fontSize: '0.68rem', padding: '2px 6px', background: 'rgba(217, 119, 6, 0.12)', color: '#b45309', borderRadius: '4px', border: '1px solid rgba(217, 119, 6, 0.3)', fontWeight: 700 }}>
                           LOW STOCK (≤2)
                         </span>
                       ) : null}
                     </div>
-                    <h3 style={{ fontSize: '1rem', color: '#fff', margin: '4px 0 2px', fontWeight: 600 }}>{p.name}</h3>
+                    <h3 style={{ fontSize: '1rem', color: 'var(--text)', margin: '4px 0 2px', fontWeight: 700 }}>{p.name}</h3>
                     <p style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
                       {p.craftRegion} • {p.fabric} • ₹{p.sellingPrice.toLocaleString('en-IN')}
                     </p>
@@ -388,10 +395,10 @@ export default function FloorQuickStockPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                   {/* Direct Number Input Box */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--gold)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
                       TYPE DIRECT QTY
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <input
                         type="number"
                         min="0"
@@ -409,13 +416,13 @@ export default function FloorQuickStockPage() {
                           fontSize: '1.2rem',
                           fontWeight: 700,
                           borderRadius: '8px',
-                          background: '#0a0602',
+                          background: '#FAF8F5',
                           border: isOut
-                            ? '2px solid #ef4444'
+                            ? '2px solid #dc2626'
                             : isLow
-                            ? '2px solid #f59e0b'
+                            ? '2px solid #d97706'
                             : '2px solid var(--gold)',
-                          color: isOut ? '#f87171' : isLow ? '#fbbf24' : '#4ade80',
+                          color: isOut ? '#dc2626' : isLow ? '#b45309' : '#15803d',
                           outline: 'none',
                         }}
                       />
@@ -423,14 +430,15 @@ export default function FloorQuickStockPage() {
                         onClick={() => handleDirectInputSubmit(p.id, p.name)}
                         title="Save Stock Count"
                         style={{
-                          padding: '8px 12px',
+                          padding: '8px 14px',
                           background: 'var(--gold)',
-                          color: '#110c08',
+                          color: '#FFFFFF',
                           border: 'none',
                           borderRadius: '6px',
                           fontWeight: 700,
-                          fontSize: '0.8rem',
+                          fontSize: '0.82rem',
                           cursor: 'pointer',
+                          boxShadow: '0 2px 6px rgba(179, 137, 56, 0.3)',
                         }}
                       >
                         Set
@@ -448,11 +456,11 @@ export default function FloorQuickStockPage() {
                         width: '40px',
                         height: '40px',
                         borderRadius: '8px',
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.15)',
-                        color: '#fff',
+                        background: '#FAF8F5',
+                        border: '1px solid rgba(179, 137, 56, 0.3)',
+                        color: 'var(--text)',
                         fontSize: '1.2rem',
-                        fontWeight: 600,
+                        fontWeight: 700,
                         cursor: p.stock <= 0 ? 'not-allowed' : 'pointer',
                         opacity: p.stock <= 0 ? 0.3 : 1,
                       }}
@@ -467,11 +475,11 @@ export default function FloorQuickStockPage() {
                         width: '40px',
                         height: '40px',
                         borderRadius: '8px',
-                        background: 'rgba(201, 168, 76, 0.2)',
+                        background: 'rgba(179, 137, 56, 0.12)',
                         border: '1px solid var(--gold)',
-                        color: 'var(--gold)',
+                        color: 'var(--gold-dark, #8A6418)',
                         fontSize: '1.2rem',
-                        fontWeight: 600,
+                        fontWeight: 700,
                         cursor: 'pointer',
                       }}
                     >
@@ -486,12 +494,12 @@ export default function FloorQuickStockPage() {
                         onClick={() => handleStockUpdate(p.id, 0, p.name)}
                         style={{
                           padding: '10px 14px',
-                          background: 'rgba(220, 38, 38, 0.15)',
-                          border: '1px solid rgba(220, 38, 38, 0.35)',
+                          background: 'rgba(220, 38, 38, 0.1)',
+                          border: '1px solid rgba(220, 38, 38, 0.3)',
                           borderRadius: '8px',
-                          color: '#f87171',
+                          color: '#dc2626',
                           fontSize: '0.78rem',
-                          fontWeight: 600,
+                          fontWeight: 700,
                           cursor: 'pointer',
                         }}
                       >
@@ -502,12 +510,12 @@ export default function FloorQuickStockPage() {
                         onClick={() => handleStockUpdate(p.id, 1, p.name)}
                         style={{
                           padding: '10px 14px',
-                          background: 'rgba(34, 197, 94, 0.2)',
-                          border: '1px solid rgba(34, 197, 94, 0.4)',
+                          background: 'rgba(34, 197, 94, 0.12)',
+                          border: '1px solid rgba(34, 197, 94, 0.35)',
                           borderRadius: '8px',
-                          color: '#4ade80',
+                          color: '#15803d',
                           fontSize: '0.78rem',
-                          fontWeight: 600,
+                          fontWeight: 700,
                           cursor: 'pointer',
                         }}
                       >

@@ -139,22 +139,22 @@ export default function CustomerAccountPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       {/* Universal Storefront Navigation */}
       <LandingNavbar />
 
       <div style={{ paddingTop: '120px', paddingBottom: '80px', paddingLeft: '24px', paddingRight: '24px', maxWidth: '1080px', margin: '0 auto' }}>
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '1px solid rgba(201, 168, 76, 0.2)', paddingBottom: '24px', marginBottom: '40px', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '1px solid rgba(179, 137, 56, 0.2)', paddingBottom: '24px', marginBottom: '40px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <span style={{ fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase' }}>
-              CUSTOMER SANCTUARY
+            <span style={{ fontSize: '0.75rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 700 }}>
+              MY ACCOUNT
             </span>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', color: '#fff', marginTop: '4px' }}>
-              Namaste, {user?.name || user?.email?.split('@')[0] || 'Patron'}
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', color: 'var(--text)', marginTop: '4px' }}>
+              Namaste, {user?.name || user?.email?.split('@')[0] || 'Customer'}
             </h1>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-              {user?.email} • Verified Sutraಧಾರ Patron
+              {user?.email} • Verified Customer
             </p>
           </div>
 
@@ -163,7 +163,7 @@ export default function CustomerAccountPage() {
               href="/account/orders"
               style={{
                 padding: '10px 20px',
-                background: 'rgba(201, 168, 76, 0.15)',
+                background: 'rgba(179, 137, 56, 0.12)',
                 border: '1px solid var(--gold)',
                 color: 'var(--gold)',
                 borderRadius: '6px',
@@ -178,12 +178,13 @@ export default function CustomerAccountPage() {
               onClick={handleLogout}
               style={{
                 padding: '10px 18px',
-                background: 'transparent',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                background: '#ffffff',
+                border: '1px solid rgba(179, 137, 56, 0.3)',
                 color: 'var(--text-dim)',
                 borderRadius: '6px',
                 cursor: 'pointer',
                 fontSize: '0.85rem',
+                fontWeight: 600,
               }}
             >
               Sign Out
@@ -194,7 +195,7 @@ export default function CustomerAccountPage() {
         {/* Addresses & Privileges Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
           {/* Saved Addresses */}
-          <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '32px' }}>
+          <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '32px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--gold)' }}>
                 Saved Delivery Addresses
@@ -222,7 +223,7 @@ export default function CustomerAccountPage() {
                   required
                   value={street}
                   onChange={(e) => setStreet(e.target.value)}
-                  style={{ padding: '10px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff' }}
+                  style={{ padding: '10px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)' }}
                 />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <input
@@ -231,7 +232,7 @@ export default function CustomerAccountPage() {
                     required
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    style={{ padding: '10px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff' }}
+                    style={{ padding: '10px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)' }}
                   />
                   <input
                     type="text"
@@ -239,7 +240,7 @@ export default function CustomerAccountPage() {
                     required
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    style={{ padding: '10px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff' }}
+                    style={{ padding: '10px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)' }}
                   />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -250,19 +251,19 @@ export default function CustomerAccountPage() {
                     required
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value)}
-                    style={{ padding: '10px', background: 'rgba(0,0,0,0.5)', border: '1px solid var(--gold)', borderRadius: '6px', color: '#fff', fontFamily: 'monospace' }}
+                    style={{ padding: '10px', background: '#FAF8F5', border: '1px solid var(--gold)', borderRadius: '6px', color: 'var(--text)', fontFamily: 'monospace' }}
                   />
                   <input
                     type="text"
                     placeholder="Phone"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    style={{ padding: '10px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff' }}
+                    style={{ padding: '10px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)' }}
                   />
                 </div>
                 <button
                   type="submit"
-                  style={{ marginTop: '8px', padding: '12px', background: 'var(--gold)', color: '#110c08', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                  style={{ marginTop: '8px', padding: '12px', background: 'var(--gold)', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(179, 137, 56, 0.25)' }}
                 >
                   Save Address
                 </button>
@@ -271,39 +272,39 @@ export default function CustomerAccountPage() {
               <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>No delivery addresses saved yet.</p>
             ) : (
               addresses.map((addr, idx) => (
-                <div key={idx} style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', marginBottom: '12px' }}>
-                  <p style={{ fontWeight: 600, color: '#fff', fontSize: '0.9rem' }}>{addr.fullName || user?.name}</p>
+                <div key={idx} style={{ padding: '16px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.2)', borderRadius: '8px', marginBottom: '12px' }}>
+                  <p style={{ fontWeight: 600, color: 'var(--text)', fontSize: '0.9rem' }}>{addr.fullName || user?.name}</p>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '4px' }}>{addr.street}, {addr.city}, {addr.state} - <strong>{addr.pincode}</strong></p>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--gold)', marginTop: '4px' }}>📱 {addr.phone || 'Phone linked to account'}</p>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--gold)', marginTop: '4px', fontWeight: 600 }}>📱 {addr.phone || 'Phone linked to account'}</p>
                 </div>
               ))
             )}
           </div>
 
-          {/* Patron Privileges */}
-          <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '32px' }}>
+          {/* Member Benefits */}
+          <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '32px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--gold)', marginBottom: '16px' }}>
-              Sutraಧಾರ Patron Privileges
+              Sutraಧಾರ Member Benefits
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <span style={{ color: 'var(--gold)', fontSize: '1.1rem' }}>✓</span>
+                <span style={{ color: 'var(--gold)', fontSize: '1.1rem', fontWeight: 700 }}>✓</span>
                 <div>
-                  <strong style={{ color: '#fff' }}>1-of-1 Heirloom Reservation:</strong>
+                  <strong style={{ color: 'var(--text)' }}>1-of-1 Heirloom Reservation:</strong>
                   <p>10-minute uninterrupted checkout hold on single-piece unrepeatable weaves.</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <span style={{ color: 'var(--gold)', fontSize: '1.1rem' }}>✓</span>
+                <span style={{ color: 'var(--gold)', fontSize: '1.1rem', fontWeight: 700 }}>✓</span>
                 <div>
-                  <strong style={{ color: '#fff' }}>Pre-Shipment 20s Inspection Log:</strong>
+                  <strong style={{ color: 'var(--text)' }}>Pre-Shipment 20s Inspection Log:</strong>
                   <p>Watch your saree's Silk Mark and gold zari purity test recorded before package sealing.</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <span style={{ color: 'var(--gold)', fontSize: '1.1rem' }}>✓</span>
+                <span style={{ color: 'var(--gold)', fontSize: '1.1rem', fontWeight: 700 }}>✓</span>
                 <div>
-                  <strong style={{ color: '#fff' }}>Complimentary Insured Air Express:</strong>
+                  <strong style={{ color: 'var(--text)' }}>Complimentary Insured Air Express:</strong>
                   <p>Zero contactless loss. Your package is dispatched in a sealed tamper-proof luxury box.</p>
                 </div>
               </div>
@@ -315,8 +316,8 @@ export default function CustomerAccountPage() {
         <div
           style={{
             marginTop: '48px',
-            background: 'rgba(239, 68, 68, 0.04)',
-            border: '1px solid rgba(239, 68, 68, 0.2)',
+            background: '#ffffff',
+            border: '1px solid rgba(239, 68, 68, 0.25)',
             borderRadius: '12px',
             padding: '28px 32px',
             display: 'flex',
@@ -324,10 +325,11 @@ export default function CustomerAccountPage() {
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: '20px',
+            boxShadow: '0 4px 16px rgba(239, 68, 68, 0.04)',
           }}
         >
           <div>
-            <h3 style={{ fontSize: '1.1rem', color: '#f87171', fontWeight: 600 }}>
+            <h3 style={{ fontSize: '1.1rem', color: '#b91c1c', fontWeight: 600 }}>
               Account Privacy &amp; Right to Erasure
             </h3>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '4px', maxWidth: '640px' }}>
@@ -346,17 +348,17 @@ export default function CustomerAccountPage() {
             }}
             style={{
               padding: '10px 20px',
-              background: 'rgba(239, 68, 68, 0.15)',
+              background: 'rgba(239, 68, 68, 0.1)',
               border: '1px solid #ef4444',
               borderRadius: '6px',
-              color: '#fca5a5',
+              color: '#b91c1c',
               fontSize: '0.85rem',
               fontWeight: 600,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)')}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)')}
           >
             Delete Account
           </button>
@@ -369,7 +371,7 @@ export default function CustomerAccountPage() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.85)',
+            background: 'rgba(26, 19, 13, 0.65)',
             backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
@@ -382,16 +384,16 @@ export default function CustomerAccountPage() {
             style={{
               width: '100%',
               maxWidth: '480px',
-              background: '#110c08',
-              border: '1px solid #ef4444',
+              background: '#ffffff',
+              border: '1.5px solid #ef4444',
               borderRadius: '16px',
               padding: '36px 32px',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9)',
+              boxShadow: '0 25px 60px rgba(26, 19, 13, 0.2)',
             }}
           >
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
               <span style={{ fontSize: '2rem' }}>⚠️</span>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: '#fff', marginTop: '8px' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: 'var(--text)', marginTop: '8px' }}>
                 Deactivate Sutraಧಾರ Account
               </h2>
               <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '6px', lineHeight: 1.5 }}>
@@ -406,16 +408,16 @@ export default function CustomerAccountPage() {
                 style={{
                   marginBottom: '16px',
                   padding: '10px 14px',
-                  background: 'rgba(201, 168, 76, 0.15)',
-                  border: '1px solid var(--gold)',
+                  background: '#FAF8F5',
+                  border: '1px dashed var(--gold)',
                   borderRadius: '6px',
                   textAlign: 'center',
                 }}
               >
-                <span style={{ fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 600 }}>
                   🔑 Deletion Test Code:
                 </span>
-                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff', letterSpacing: '4px' }}>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text)', letterSpacing: '4px' }}>
                   {devDeletionOtp}
                 </div>
               </div>
@@ -426,12 +428,13 @@ export default function CustomerAccountPage() {
                 style={{
                   marginBottom: '16px',
                   padding: '10px 14px',
-                  background: 'rgba(239, 68, 68, 0.2)',
+                  background: 'rgba(239, 68, 68, 0.12)',
                   border: '1px solid #ef4444',
                   borderRadius: '6px',
-                  color: '#fca5a5',
+                  color: '#b91c1c',
                   fontSize: '0.82rem',
                   textAlign: 'center',
+                  fontWeight: 600,
                 }}
               >
                 {deleteError}
@@ -441,7 +444,7 @@ export default function CustomerAccountPage() {
             {deleteStep === 'TYPE_DELETE' ? (
               <form onSubmit={handleRequestDeletionOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', color: '#f87171', marginBottom: '6px', textAlign: 'center' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: '#b91c1c', marginBottom: '6px', textAlign: 'center', fontWeight: 600 }}>
                     Type <strong>DELETE</strong> to confirm:
                   </label>
                   <input
@@ -454,10 +457,10 @@ export default function CustomerAccountPage() {
                     style={{
                       width: '100%',
                       padding: '12px 16px',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid #ef4444',
+                      background: '#FAF8F5',
+                      border: '1.5px solid #ef4444',
                       borderRadius: '8px',
-                      color: '#fff',
+                      color: 'var(--text)',
                       fontSize: '1.1rem',
                       textAlign: 'center',
                       letterSpacing: '3px',
@@ -473,12 +476,13 @@ export default function CustomerAccountPage() {
                     style={{
                       flex: 1,
                       padding: '12px',
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      background: '#FAF8F5',
+                      border: '1px solid rgba(179, 137, 56, 0.3)',
                       borderRadius: '8px',
-                      color: '#fff',
+                      color: 'var(--text)',
                       fontSize: '0.85rem',
                       cursor: 'pointer',
+                      fontWeight: 600,
                     }}
                   >
                     Cancel
@@ -505,7 +509,7 @@ export default function CustomerAccountPage() {
             ) : (
               <form onSubmit={handleConfirmAccountDeletion} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--gold)', marginBottom: '6px', textAlign: 'center' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--gold)', marginBottom: '6px', textAlign: 'center', fontWeight: 600 }}>
                     Enter 6-Digit Deletion Code:
                   </label>
                   <input
@@ -519,14 +523,15 @@ export default function CustomerAccountPage() {
                     style={{
                       width: '100%',
                       padding: '14px',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid var(--gold)',
+                      background: '#FAF8F5',
+                      border: '1.5px solid var(--gold)',
                       borderRadius: '8px',
-                      color: '#fff',
+                      color: 'var(--text)',
                       fontSize: '1.5rem',
                       textAlign: 'center',
                       letterSpacing: '6px',
                       fontFamily: 'monospace',
+                      fontWeight: 700,
                     }}
                   />
                 </div>
@@ -538,12 +543,13 @@ export default function CustomerAccountPage() {
                     style={{
                       flex: 1,
                       padding: '12px',
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      background: '#FAF8F5',
+                      border: '1px solid rgba(179, 137, 56, 0.3)',
                       borderRadius: '8px',
-                      color: '#fff',
+                      color: 'var(--text)',
                       fontSize: '0.85rem',
                       cursor: 'pointer',
+                      fontWeight: 600,
                     }}
                   >
                     ← Back

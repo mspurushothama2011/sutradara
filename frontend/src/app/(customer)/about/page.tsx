@@ -1,63 +1,65 @@
 'use client';
 
 import Link from 'next/link';
+import LandingNavbar from '@/components/landing/LandingNavbar';
 
 export default function AboutPage() {
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff', padding: '80px 24px' }}>
-      <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+      <LandingNavbar />
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '140px 24px 80px' }}>
         <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-          <span style={{ fontSize: '0.8rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase' }}>
-            OUR PROVENANCE & PHILOSOPHY
+          <span style={{ fontSize: '0.8rem', letterSpacing: '0.22em', color: 'var(--gold-dark)', textTransform: 'uppercase', fontWeight: 600 }}>
+            OUR STORY &amp; MISSION
           </span>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.5rem, 5vw, 3.8rem)', color: '#fff', marginTop: '10px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.5rem, 5vw, 3.8rem)', color: 'var(--text)', marginTop: '10px' }}>
             Guardians of the Loom
           </h1>
-          <p style={{ maxWidth: '640px', margin: '16px auto 0', color: 'var(--text-cream)', fontSize: '1.05rem', lineHeight: 1.7 }}>
-            We only curate — never mass-produce. Sutraಧಾರ bridges India&apos;s generational master weavers directly with discerning patrons across the world.
+          <p style={{ maxWidth: '640px', margin: '16px auto 0', color: 'var(--text-dim)', fontSize: '1.05rem', lineHeight: 1.7 }}>
+            We only curate — never mass-produce. Sutraಧಾರ connects India&apos;s master weavers directly with discerning customers across the world.
           </p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '48px', fontSize: '1rem', color: 'var(--text-dim)', lineHeight: 1.8 }}>
-          <section style={{ background: 'var(--bg-deep)', padding: '40px', borderRadius: '16px', border: '1px solid rgba(201, 168, 76, 0.2)' }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: 'var(--gold)', marginBottom: '14px' }}>
-              The Genesis: Zero Middlemen, Pure Direct Curation
+          <section style={{ background: '#ffffff', padding: '40px', borderRadius: '16px', border: '1px solid rgba(179, 137, 56, 0.22)', boxShadow: '0 4px 20px rgba(26, 19, 13, 0.04)' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: 'var(--gold-dark)', marginBottom: '14px', fontWeight: 600 }}>
+              Direct From Master Weavers: Zero Middlemen
             </h2>
-            <p>
-              In traditional textile trading, a handloom saree passes through four to six intermediaries before reaching a luxury boutique — driving retail prices up by 300% while leaving the master weaving family with a fraction of the value.
+            <p style={{ color: 'var(--text)' }}>
+              In traditional textile trading, a handloom saree passes through several intermediaries before reaching a store — driving prices up while leaving the master weaving family with only a fraction of the value.
             </p>
-            <p style={{ marginTop: '14px' }}>
-              Sutraಧಾರ was founded on a singular conviction: <strong>Direct Curatorial Provenance</strong>. We work directly with master craftspeople in Varanasi, Kanchipuram, Yeola, and Chanderi. Every saree is acquired at fair, dignified prices that honor months of intricate handloom labor.
+            <p style={{ marginTop: '14px', color: 'var(--text)' }}>
+              Sutraಧಾರ was founded on a simple mission: <strong>Direct Artisan Connection</strong>. We work directly with master craftspeople in Varanasi, Kanchipuram, Yeola, and Chanderi. Every saree is acquired at fair, dignified prices that honor months of intricate handloom labor.
             </p>
           </section>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
-            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '28px' }}>
+            <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '28px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)' }}>
               <span style={{ fontSize: '1.8rem' }}>🏛️</span>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: '#fff', margin: '10px 0 6px' }}>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: 'var(--text)', margin: '10px 0 6px', fontWeight: 600 }}>
                 Silk Mark Authenticated
               </h3>
-              <p style={{ fontSize: '0.88rem' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)' }}>
                 Every single saree is backed by an official Silk Mark Organisation of India certification number guaranteeing 100% natural mulberry silk.
               </p>
             </div>
 
-            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '28px' }}>
+            <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '28px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)' }}>
               <span style={{ fontSize: '1.8rem' }}>👑</span>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: '#fff', margin: '10px 0 6px' }}>
-                1-of-1 Heirloom Vault
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: 'var(--text)', margin: '10px 0 6px', fontWeight: 600 }}>
+                Exclusive 1-of-1 Sarees
               </h3>
-              <p style={{ fontSize: '0.88rem' }}>
-                Our heirloom pieces are woven only once. Once acquired by a patron, the graph and weave card are permanently archived.
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)' }}>
+                Our exclusive single-piece sarees are woven only once. Once purchased by a customer, the design is never repeated.
               </p>
             </div>
 
-            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '28px' }}>
+            <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '28px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)' }}>
               <span style={{ fontSize: '1.8rem' }}>📹</span>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: '#fff', margin: '10px 0 6px' }}>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: 'var(--text)', margin: '10px 0 6px', fontWeight: 600 }}>
                 20s Pre-Shipment Video
               </h3>
-              <p style={{ fontSize: '0.88rem' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)' }}>
                 Our Master Curator records a 20-second high-definition inspection video before handover to express air courier.
               </p>
             </div>
@@ -70,13 +72,14 @@ export default function AboutPage() {
                 display: 'inline-block',
                 padding: '16px 40px',
                 background: 'var(--gold)',
-                color: '#110c08',
+                color: '#ffffff',
                 borderRadius: '8px',
                 textDecoration: 'none',
                 fontWeight: 700,
                 fontSize: '0.95rem',
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
+                boxShadow: '0 4px 16px rgba(179, 137, 56, 0.25)',
               }}
             >
               Explore Our Curations →
@@ -87,3 +90,4 @@ export default function AboutPage() {
     </div>
   );
 }
+

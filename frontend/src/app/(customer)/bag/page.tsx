@@ -136,14 +136,14 @@ export default function BagPage() {
 
   if (bagItems.length === 0) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
         <LandingNavbar />
         <div style={{ paddingTop: '140px', textAlign: 'center', paddingLeft: '20px', paddingRight: '20px' }}>
           <span style={{ fontSize: '3.5rem', display: 'block', marginBottom: '16px' }}>🛍️</span>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: '#fff' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: 'var(--text)', fontWeight: 500 }}>
             Your Acquisition Bag is Empty
           </h1>
-          <p style={{ color: 'var(--text-dim)', marginTop: '8px', maxWidth: '480px', margin: '8px auto 0' }}>
+          <p style={{ color: 'var(--text-dim)', marginTop: '8px', maxWidth: '480px', margin: '8px auto 0', lineHeight: 1.6 }}>
             Explore our curated heirloom vaults, featuring one-of-a-kind handloom sarees woven with pure certified zari.
           </p>
           <div style={{ marginTop: '28px' }}>
@@ -153,11 +153,11 @@ export default function BagPage() {
                 display: 'inline-block',
                 padding: '14px 32px',
                 background: 'var(--gold)',
-                color: '#110c08',
+                color: '#ffffff',
                 borderRadius: '8px',
                 fontWeight: 700,
                 textDecoration: 'none',
-                boxShadow: '0 8px 24px rgba(201, 168, 76, 0.4)',
+                boxShadow: '0 4px 16px rgba(179, 137, 56, 0.35)',
               }}
             >
               Explore Master Catalog →
@@ -177,10 +177,10 @@ export default function BagPage() {
         {/* Header Breadcrumb */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <span style={{ fontSize: '0.72rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase' }}>
-              PATRON ACQUISITION VAULT
+            <span style={{ fontSize: '0.72rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 700 }}>
+              YOUR SELECTIONS
             </span>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', color: '#fff', marginTop: '4px' }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', color: 'var(--text)', marginTop: '4px', fontWeight: 500 }}>
               Shopping Bag ({totalCount} {totalCount === 1 ? 'Piece' : 'Pieces'})
             </h1>
           </div>
@@ -193,6 +193,7 @@ export default function BagPage() {
               fontSize: '0.82rem',
               cursor: 'pointer',
               textDecoration: 'underline',
+              fontWeight: 500,
             }}
           >
             Clear Entire Bag
@@ -201,8 +202,8 @@ export default function BagPage() {
 
         {/* Sold out Alert notice */}
         {hasSoldOutItems && (
-          <div style={{ marginBottom: '24px', padding: '14px 18px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.5)', borderRadius: '10px', color: '#fca5a5', fontSize: '0.88rem' }}>
-            ⚠️ <strong>Notice:</strong> One or more items in your bag have just been acquired by another patron and are currently sold out. Please remove them to proceed.
+          <div style={{ marginBottom: '24px', padding: '14px 18px', background: '#FEE2E2', border: '1px solid #ef4444', borderRadius: '10px', color: '#b91c1c', fontSize: '0.88rem' }}>
+            ⚠️ <strong>Notice:</strong> One or more items in your bag were just purchased by another customer and are sold out. Please remove them to proceed.
           </div>
         )}
 
@@ -222,50 +223,51 @@ export default function BagPage() {
                     display: 'flex',
                     gap: '16px',
                     padding: '20px',
-                    background: 'var(--bg-deep)',
-                    border: isSoldOut ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.08)',
+                    background: '#ffffff',
+                    border: isSoldOut ? '1px solid #ef4444' : '1px solid rgba(179, 137, 56, 0.22)',
                     borderRadius: '12px',
                     alignItems: 'center',
                     flexWrap: 'wrap',
                     opacity: isSoldOut ? 0.75 : 1,
+                    boxShadow: '0 4px 16px rgba(45, 25, 8, 0.04)',
                   }}
                 >
                   <Link href={`/product/${p.slug}`}>
                     <img
                       src={p.images?.[0] || '/frames/ezgif-frame-240.jpg'}
                       alt={p.name}
-                      style={{ width: '90px', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}
+                      style={{ width: '90px', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(179, 137, 56, 0.25)', flexShrink: 0 }}
                     />
                   </Link>
 
                   <div style={{ flex: '1 1 200px', minWidth: '180px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.72rem', fontFamily: 'monospace', color: 'var(--gold)', fontWeight: 600 }}>
+                      <span style={{ fontSize: '0.72rem', fontFamily: 'monospace', color: 'var(--gold-dark, #8c6818)', fontWeight: 700 }}>
                         {p.sku}
                       </span>
                       {p.isHeirloom1of1 && (
-                        <span style={{ fontSize: '0.65rem', padding: '2px 6px', background: 'rgba(201, 168, 76, 0.2)', color: 'var(--gold)', borderRadius: '4px' }}>
+                        <span style={{ fontSize: '0.65rem', padding: '2px 6px', background: 'rgba(179, 137, 56, 0.15)', color: 'var(--gold-dark, #8c6818)', borderRadius: '4px', fontWeight: 600 }}>
                           👑 1-of-1 Heirloom
                         </span>
                       )}
                       {/* Live Stock Indicator */}
                       {isSoldOut ? (
-                        <span style={{ fontSize: '0.65rem', background: 'rgba(239, 68, 68, 0.25)', color: '#fca5a5', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                        <span style={{ fontSize: '0.65rem', background: '#FEE2E2', color: '#b91c1c', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
                           🔴 Sold Out
                         </span>
                       ) : itemStock <= 2 ? (
-                        <span style={{ fontSize: '0.65rem', background: 'rgba(234, 179, 8, 0.2)', color: '#fef08a', padding: '2px 6px', borderRadius: '4px' }}>
+                        <span style={{ fontSize: '0.65rem', background: '#FEF3C7', color: '#92400e', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                           ⚡ Only {itemStock} left in vault
                         </span>
                       ) : (
-                        <span style={{ fontSize: '0.65rem', background: 'rgba(34, 197, 94, 0.15)', color: '#86efac', padding: '2px 6px', borderRadius: '4px' }}>
+                        <span style={{ fontSize: '0.65rem', background: '#DCFCE7', color: '#166534', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                           🟢 In Stock
                         </span>
                       )}
                     </div>
 
                     <Link href={`/product/${p.slug}`} style={{ textDecoration: 'none' }}>
-                      <h3 style={{ fontSize: '1rem', color: '#fff', fontWeight: 600, margin: '2px 0 4px' }}>
+                      <h3 style={{ fontSize: '1rem', color: 'var(--text)', fontWeight: 600, margin: '2px 0 4px' }}>
                         {p.name}
                       </h3>
                     </Link>
@@ -274,21 +276,21 @@ export default function BagPage() {
                       {p.craftRegion} • {p.fabric} • {p.zariType}
                     </p>
 
-                    <strong style={{ fontSize: '1.1rem', color: 'var(--gold)', display: 'block' }}>
+                    <strong style={{ fontSize: '1.1rem', color: 'var(--text)', display: 'block', fontWeight: 700 }}>
                       ₹{(p.sellingPrice * item.quantity).toLocaleString('en-IN')}
                     </strong>
                   </div>
 
                   {/* Quantity & Delete Controls */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px', marginLeft: 'auto' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.5)', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#FAF8F5', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(179, 137, 56, 0.3)' }}>
                       <button
                         onClick={() => updateQuantity(p.id, item.quantity - 1)}
-                        style={{ width: '26px', height: '26px', background: 'transparent', border: 'none', color: '#fff', fontSize: '1.1rem', cursor: 'pointer' }}
+                        style={{ width: '26px', height: '26px', background: 'transparent', border: 'none', color: 'var(--text)', fontSize: '1.1rem', cursor: 'pointer', fontWeight: 600 }}
                       >
                         -
                       </button>
-                      <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', minWidth: '18px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text)', minWidth: '18px', textAlign: 'center' }}>
                         {item.quantity}
                       </span>
                       <button
@@ -299,9 +301,10 @@ export default function BagPage() {
                           height: '26px',
                           background: 'transparent',
                           border: 'none',
-                          color: p.isHeirloom1of1 || item.quantity >= itemStock ? 'var(--text-dim)' : '#fff',
+                          color: p.isHeirloom1of1 || item.quantity >= itemStock ? 'var(--text-dim)' : 'var(--text)',
                           fontSize: '1.1rem',
                           cursor: p.isHeirloom1of1 || item.quantity >= itemStock ? 'not-allowed' : 'pointer',
+                          fontWeight: 600,
                         }}
                       >
                         +
@@ -313,9 +316,10 @@ export default function BagPage() {
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        color: '#fca5a5',
+                        color: '#dc2626',
                         fontSize: '0.75rem',
                         cursor: 'pointer',
+                        fontWeight: 600,
                       }}
                     >
                       🗑️ Remove
@@ -329,23 +333,23 @@ export default function BagPage() {
           {/* RIGHT: Order Summary & Proceed CTA */}
           <div
             style={{
-              background: 'var(--bg-deep)',
-              border: '1px solid rgba(201, 168, 76, 0.3)',
+              background: '#ffffff',
+              border: '1px solid rgba(179, 137, 56, 0.25)',
               borderRadius: '16px',
               padding: '24px 28px',
-              boxShadow: '0 16px 48px rgba(0, 0, 0, 0.4)',
+              boxShadow: '0 8px 30px rgba(45, 25, 8, 0.06)',
               position: 'sticky',
               top: '110px',
             }}
           >
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: '#fff', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--text)', marginBottom: '16px', borderBottom: '1px solid rgba(179, 137, 56, 0.15)', paddingBottom: '12px', fontWeight: 600 }}>
               Acquisition Summary
             </h2>
 
             {/* Coupon Box & View Coupons CTA */}
             <div style={{ marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--gold)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--gold-dark, #8c6818)', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
                   Privilege Code
                 </span>
                 <button
@@ -354,7 +358,7 @@ export default function BagPage() {
                   style={{
                     background: 'transparent',
                     border: 'none',
-                    color: 'var(--gold)',
+                    color: 'var(--gold-dark, #8c6818)',
                     fontSize: '0.75rem',
                     cursor: 'pointer',
                     textDecoration: 'underline',
@@ -374,10 +378,10 @@ export default function BagPage() {
                   style={{
                     flex: 1,
                     padding: '9px 12px',
-                    background: '#110c08',
-                    border: '1px solid rgba(255,255,255,0.15)',
+                    background: '#FAF8F5',
+                    border: '1px solid rgba(179, 137, 56, 0.3)',
                     borderRadius: '6px',
-                    color: '#fff',
+                    color: 'var(--text)',
                     fontSize: '0.82rem',
                     textTransform: 'uppercase',
                   }}
@@ -386,11 +390,11 @@ export default function BagPage() {
                   onClick={() => handleApplyCoupon()}
                   style={{
                     padding: '9px 16px',
-                    background: 'rgba(201, 168, 76, 0.2)',
-                    border: '1px solid var(--gold)',
+                    background: 'var(--gold)',
+                    border: 'none',
                     borderRadius: '6px',
-                    color: 'var(--gold)',
-                    fontWeight: 600,
+                    color: '#ffffff',
+                    fontWeight: 700,
                     fontSize: '0.8rem',
                     cursor: 'pointer',
                     flexShrink: 0,
@@ -400,31 +404,31 @@ export default function BagPage() {
                 </button>
               </div>
 
-              {couponSuccess && <p style={{ color: '#86efac', fontSize: '0.75rem', marginTop: '6px' }}>{couponSuccess}</p>}
-              {couponError && <p style={{ color: '#fca5a5', fontSize: '0.75rem', marginTop: '6px' }}>{couponError}</p>}
+              {couponSuccess && <p style={{ color: '#16a34a', fontSize: '0.75rem', marginTop: '6px', fontWeight: 600 }}>{couponSuccess}</p>}
+              {couponError && <p style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '6px', fontWeight: 600 }}>{couponError}</p>}
             </div>
 
             {/* Price Calculations */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '16px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem', borderBottom: '1px solid rgba(179, 137, 56, 0.15)', paddingBottom: '16px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-dim)' }}>
                 <span>Subtotal ({totalCount} items)</span>
-                <span style={{ color: '#fff' }}>₹{subtotal.toLocaleString('en-IN')}</span>
+                <span style={{ color: 'var(--text)', fontWeight: 600 }}>₹{subtotal.toLocaleString('en-IN')}</span>
               </div>
               {discountAmount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4ade80' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a', fontWeight: 600 }}>
                   <span>Privilege Discount ({appliedCoupon})</span>
                   <span>-₹{discountAmount.toLocaleString('en-IN')}</span>
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-dim)' }}>
                 <span>Express Delivery</span>
-                <span style={{ color: 'var(--gold)' }}>COMPLIMENTARY</span>
+                <span style={{ color: '#16a34a', fontWeight: 600 }}>COMPLIMENTARY</span>
               </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '24px' }}>
-              <span style={{ fontSize: '1rem', color: '#fff', fontWeight: 600 }}>Total Payable</span>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: 'var(--gold)', fontWeight: 700 }}>
+              <span style={{ fontSize: '1rem', color: 'var(--text)', fontWeight: 600 }}>Total Payable</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: 'var(--gold-dark, #8c6818)', fontWeight: 700 }}>
                 ₹{finalTotal.toLocaleString('en-IN')}
               </span>
             </div>
@@ -436,16 +440,16 @@ export default function BagPage() {
               style={{
                 width: '100%',
                 padding: '16px',
-                background: hasSoldOutItems ? 'rgba(255,255,255,0.1)' : 'var(--gold)',
+                background: hasSoldOutItems ? 'rgba(0,0,0,0.1)' : 'var(--gold)',
                 border: 'none',
                 borderRadius: '8px',
-                color: hasSoldOutItems ? 'var(--text-dim)' : '#110c08',
+                color: hasSoldOutItems ? 'var(--text-dim)' : '#ffffff',
                 fontSize: '0.92rem',
                 fontWeight: 700,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 cursor: hasSoldOutItems ? 'not-allowed' : 'pointer',
-                boxShadow: hasSoldOutItems ? 'none' : '0 8px 24px rgba(201, 168, 76, 0.4)',
+                boxShadow: hasSoldOutItems ? 'none' : '0 4px 16px rgba(179, 137, 56, 0.35)',
               }}
             >
               {hasSoldOutItems ? '⚠️ Remove Sold Out Pieces' : '👑 Proceed to Checkout'}
@@ -460,7 +464,7 @@ export default function BagPage() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.8)',
+            background: 'rgba(26, 19, 13, 0.65)',
             backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
@@ -474,23 +478,23 @@ export default function BagPage() {
             style={{
               width: '100%',
               maxWidth: '520px',
-              background: '#130d07',
-              border: '1px solid var(--gold)',
+              background: '#ffffff',
+              border: '1.5px solid var(--gold)',
               borderRadius: '16px',
               padding: '24px',
-              boxShadow: '0 24px 64px rgba(0, 0, 0, 0.8)',
+              boxShadow: '0 24px 64px rgba(45, 25, 8, 0.2)',
               maxHeight: '90vh',
               overflowY: 'auto',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid rgba(201, 168, 76, 0.3)', paddingBottom: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid rgba(179, 137, 56, 0.2)', paddingBottom: '12px' }}>
               <div>
-                <span style={{ fontSize: '0.7rem', color: 'var(--gold)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-                  PATRON PRIVILEGES
+                <span style={{ fontSize: '0.7rem', color: 'var(--gold-dark, #8c6818)', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700 }}>
+                  OFFERS &amp; DISCOUNTS
                 </span>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: '#fff', marginTop: '2px' }}>
-                  Available Heirloom Coupons
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--text)', marginTop: '2px', fontWeight: 600 }}>
+                  Available Coupons
                 </h3>
               </div>
               <button
@@ -509,9 +513,9 @@ export default function BagPage() {
             </div>
 
             {isLoadingCoupons ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '24px' }}>Loading available privileges...</p>
+              <p style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '24px' }}>Loading available coupons...</p>
             ) : availableCoupons.length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '24px' }}>No active privileges found at this time.</p>
+              <p style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '24px' }}>No active coupons available right now.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {availableCoupons.map((coupon) => {
@@ -524,14 +528,14 @@ export default function BagPage() {
                       key={coupon.id || coupon.code}
                       style={{
                         padding: '16px',
-                        background: isEligible ? 'rgba(201, 168, 76, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                        background: isEligible ? '#FAF8F5' : '#F4EFEA',
                         border: isEligible
                           ? isCurrentlyApplied
-                            ? '2px solid #4ade80'
-                            : '1px solid var(--gold)'
-                          : '1px solid rgba(255, 255, 255, 0.1)',
+                            ? '2px solid #16a34a'
+                            : '1px solid rgba(179, 137, 56, 0.35)'
+                          : '1px solid rgba(0, 0, 0, 0.08)',
                         borderRadius: '10px',
-                        opacity: isEligible ? 1 : 0.45,
+                        opacity: isEligible ? 1 : 0.55,
                         transition: 'all 0.2s ease',
                       }}
                     >
@@ -542,17 +546,17 @@ export default function BagPage() {
                               fontFamily: 'monospace',
                               fontWeight: 700,
                               fontSize: '1rem',
-                              color: isEligible ? 'var(--gold)' : '#fff',
-                              background: 'rgba(0, 0, 0, 0.5)',
+                              color: 'var(--gold-dark, #8c6818)',
+                              background: '#ffffff',
                               padding: '4px 8px',
                               borderRadius: '4px',
-                              border: '1px dashed rgba(201, 168, 76, 0.4)',
+                              border: '1px dashed rgba(179, 137, 56, 0.5)',
                               display: 'inline-block',
                             }}
                           >
                             {coupon.code}
                           </span>
-                          <p style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 600, marginTop: '6px' }}>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text)', fontWeight: 600, marginTop: '6px' }}>
                             {coupon.discountType === 'PERCENTAGE'
                               ? `${coupon.discountValue}% OFF on Master Weaves`
                               : `₹${coupon.discountValue.toLocaleString('en-IN')} FLAT OFF`}
@@ -566,9 +570,9 @@ export default function BagPage() {
                             disabled={isCurrentlyApplied}
                             style={{
                               padding: '6px 14px',
-                              background: isCurrentlyApplied ? 'rgba(34, 197, 94, 0.2)' : 'var(--gold)',
-                              border: isCurrentlyApplied ? '1px solid #4ade80' : 'none',
-                              color: isCurrentlyApplied ? '#4ade80' : '#110c08',
+                              background: isCurrentlyApplied ? '#DCFCE7' : 'var(--gold)',
+                              border: isCurrentlyApplied ? '1px solid #16a34a' : 'none',
+                              color: isCurrentlyApplied ? '#166534' : '#ffffff',
                               borderRadius: '6px',
                               fontSize: '0.78rem',
                               fontWeight: 700,
@@ -578,7 +582,7 @@ export default function BagPage() {
                             {isCurrentlyApplied ? '✓ Applied' : 'Apply Code'}
                           </button>
                         ) : (
-                          <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: 'rgba(0,0,0,0.4)', padding: '4px 8px', borderRadius: '4px' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: '#ffffff', padding: '4px 8px', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.1)' }}>
                             Locked
                           </span>
                         )}
@@ -598,7 +602,7 @@ export default function BagPage() {
                       </div>
 
                       {!isEligible && (
-                        <div style={{ marginTop: '8px', padding: '6px 10px', background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.2)', borderRadius: '4px', color: '#fef08a', fontSize: '0.72rem' }}>
+                        <div style={{ marginTop: '8px', padding: '6px 10px', background: '#FEF3C7', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '4px', color: '#92400e', fontSize: '0.72rem' }}>
                           ⚠️ Add ₹{deficit.toLocaleString('en-IN')} more to unlock this privilege
                         </div>
                       )}

@@ -113,8 +113,8 @@ export default function CustomerRegisterPage() {
     <div
       style={{
         minHeight: '100vh',
-        background: 'radial-gradient(ellipse at center, #1a140e 0%, #0d0906 100%)',
-        color: '#fff',
+        background: 'radial-gradient(ellipse at center, #FAF8F5 0%, #F4EFEA 100%)',
+        color: 'var(--text)',
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -134,12 +134,11 @@ export default function CustomerRegisterPage() {
           style={{
             width: '100%',
             maxWidth: '520px',
-            background: 'rgba(17, 12, 8, 0.95)',
-            border: '1px solid var(--gold)',
+            background: '#ffffff',
+            border: '1.5px solid var(--gold)',
             borderRadius: '16px',
             padding: '40px 36px',
-            boxShadow: '0 32px 80px rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(16px)',
+            boxShadow: '0 16px 48px rgba(26, 19, 13, 0.08)',
           }}
         >
           {/* Header */}
@@ -150,24 +149,24 @@ export default function CustomerRegisterPage() {
                 letterSpacing: '0.3em',
                 color: 'var(--gold)',
                 textTransform: 'uppercase',
-                fontWeight: 600,
+                fontWeight: 700,
               }}
             >
-              SUTRAಧಾರ SANCTUARY
+              SUTRAಧಾರ ACCOUNT
             </span>
             <h1
               style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: '2.1rem',
-                color: '#fff',
+                color: 'var(--text)',
                 marginTop: '6px',
               }}
             >
-              {step === 'DETAILS' ? 'Become a Patron' : 'Verify Email'}
+              {step === 'DETAILS' ? 'Create Customer Account' : 'Verify Email'}
             </h1>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '6px' }}>
               {step === 'DETAILS'
-                ? 'Create your account to unlock 1-of-1 weave reservations & insured express dispatch'
+                ? 'Create your account to enjoy exclusive saree reservations and fast tracked delivery'
                 : `Enter the 6-digit code sent to ${email}`}
             </p>
           </div>
@@ -178,16 +177,16 @@ export default function CustomerRegisterPage() {
               style={{
                 marginBottom: '20px',
                 padding: '12px 16px',
-                background: 'rgba(201, 168, 76, 0.15)',
-                border: '1px solid var(--gold)',
+                background: '#FAF8F5',
+                border: '1px dashed var(--gold)',
                 borderRadius: '8px',
                 textAlign: 'center',
               }}
             >
-              <span style={{ fontSize: '0.75rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>
                 🔑 Developer Test Code:
               </span>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', letterSpacing: '4px', marginTop: '2px' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text)', letterSpacing: '4px', marginTop: '2px' }}>
                 {devOtp}
               </div>
             </div>
@@ -199,12 +198,13 @@ export default function CustomerRegisterPage() {
               style={{
                 marginBottom: '20px',
                 padding: '12px 16px',
-                background: 'rgba(239, 68, 68, 0.15)',
+                background: 'rgba(239, 68, 68, 0.12)',
                 border: '1px solid #ef4444',
                 borderRadius: '8px',
-                color: '#fca5a5',
+                color: '#b91c1c',
                 fontSize: '0.85rem',
                 textAlign: 'center',
+                fontWeight: 600,
               }}
             >
               {error}
@@ -214,7 +214,7 @@ export default function CustomerRegisterPage() {
           {step === 'DETAILS' ? (
             <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--gold)', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--gold)', marginBottom: '6px', fontWeight: 600 }}>
                   Full Name *
                 </label>
                 <input
@@ -226,28 +226,29 @@ export default function CustomerRegisterPage() {
                   style={{
                     width: '100%',
                     padding: '12px 16px',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    background: '#FAF8F5',
+                    border: '1px solid rgba(179, 137, 56, 0.3)',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text)',
                     fontSize: '0.95rem',
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--gold)', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--gold)', marginBottom: '6px', fontWeight: 600 }}>
                   Mobile Number (for delivery tracking)
                 </label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <span
                     style={{
                       padding: '12px 14px',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      background: '#FAF8F5',
+                      border: '1px solid rgba(179, 137, 56, 0.3)',
                       borderRadius: '8px',
                       color: 'var(--gold)',
                       fontSize: '0.9rem',
+                      fontWeight: 600,
                     }}
                   >
                     +91
@@ -261,10 +262,10 @@ export default function CustomerRegisterPage() {
                     style={{
                       flex: 1,
                       padding: '12px 16px',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      background: '#FAF8F5',
+                      border: '1px solid rgba(179, 137, 56, 0.3)',
                       borderRadius: '8px',
-                      color: '#fff',
+                      color: 'var(--text)',
                       fontSize: '0.95rem',
                       fontFamily: 'monospace',
                     }}
@@ -273,7 +274,7 @@ export default function CustomerRegisterPage() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--gold)', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--gold)', marginBottom: '6px', fontWeight: 600 }}>
                   Email Address *
                 </label>
                 <input
@@ -285,10 +286,10 @@ export default function CustomerRegisterPage() {
                   style={{
                     width: '100%',
                     padding: '12px 16px',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    background: '#FAF8F5',
+                    border: '1px solid rgba(179, 137, 56, 0.3)',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text)',
                     fontSize: '0.95rem',
                   }}
                 />
@@ -311,8 +312,8 @@ export default function CustomerRegisterPage() {
                 style={{
                   width: '100%',
                   padding: '14px',
-                  background: !turnstileToken ? 'rgba(201, 168, 76, 0.3)' : 'var(--gold)',
-                  color: !turnstileToken ? 'var(--text-dim)' : '#110c08',
+                  background: !turnstileToken ? 'rgba(179, 137, 56, 0.3)' : 'var(--gold)',
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: '8px',
                   fontWeight: 700,
@@ -321,28 +322,29 @@ export default function CustomerRegisterPage() {
                   cursor: !turnstileToken || isLoading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
                   marginTop: '6px',
+                  boxShadow: '0 4px 14px rgba(179, 137, 56, 0.25)',
                 }}
               >
                 {isLoading ? 'Generating Security Code...' : 'Create Account & Send Code'}
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '8px 0' }}>
-                <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
+                <div style={{ flex: 1, height: '1px', background: 'rgba(179, 137, 56, 0.15)' }} />
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>or</span>
-                <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
+                <div style={{ flex: 1, height: '1px', background: 'rgba(179, 137, 56, 0.15)' }} />
               </div>
 
               {/* Google Sign-in */}
               <GoogleAuthButton
                 text="signup_with"
                 onSuccess={handleGoogleSuccess}
-                onError={(err) => setError('Google sign-in could not be completed.')}
+                onError={() => setError('Google sign-in could not be completed.')}
               />
             </form>
           ) : (
             <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--gold)', marginBottom: '8px', textAlign: 'center' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--gold)', marginBottom: '8px', textAlign: 'center', fontWeight: 600 }}>
                   6-Digit Verification Code
                 </label>
                 <input
@@ -356,14 +358,15 @@ export default function CustomerRegisterPage() {
                   style={{
                     width: '100%',
                     padding: '16px',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid var(--gold)',
+                    background: '#FAF8F5',
+                    border: '1.5px solid var(--gold)',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text)',
                     fontSize: '1.6rem',
                     textAlign: 'center',
                     letterSpacing: '8px',
                     fontFamily: 'monospace',
+                    fontWeight: 700,
                   }}
                 />
               </div>
@@ -374,8 +377,8 @@ export default function CustomerRegisterPage() {
                 style={{
                   width: '100%',
                   padding: '14px',
-                  background: otp.length < 6 ? 'rgba(201, 168, 76, 0.3)' : 'var(--gold)',
-                  color: otp.length < 6 ? 'var(--text-dim)' : '#110c08',
+                  background: otp.length < 6 ? 'rgba(179, 137, 56, 0.3)' : 'var(--gold)',
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: '8px',
                   fontWeight: 700,
@@ -383,6 +386,7 @@ export default function CustomerRegisterPage() {
                   letterSpacing: '0.05em',
                   cursor: otp.length < 6 || isLoading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 14px rgba(179, 137, 56, 0.25)',
                 }}
               >
                 {isLoading ? 'Verifying...' : 'Complete Registration'}
@@ -394,11 +398,12 @@ export default function CustomerRegisterPage() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'var(--text-dim)',
-                  fontSize: '0.8rem',
+                  color: 'var(--gold)',
+                  fontSize: '0.85rem',
                   cursor: 'pointer',
                   textDecoration: 'underline',
                   textAlign: 'center',
+                  fontWeight: 600,
                 }}
               >
                 ← Edit registration details
@@ -411,7 +416,7 @@ export default function CustomerRegisterPage() {
             style={{
               marginTop: '28px',
               paddingTop: '20px',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              borderTop: '1px solid rgba(179, 137, 56, 0.15)',
               textAlign: 'center',
               fontSize: '0.85rem',
               color: 'var(--text-dim)',

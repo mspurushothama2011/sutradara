@@ -16,8 +16,10 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestOpti
     }
   }
 
+  const isFormData = options.body instanceof FormData || options.data instanceof FormData;
+
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers as Record<string, string>),
   };
 
@@ -32,7 +34,7 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestOpti
   };
 
   if (options.data) {
-    config.body = JSON.stringify(options.data);
+    config.body = isFormData ? (options.data as any) : JSON.stringify(options.data);
   } else if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
     config.body = JSON.stringify(options.body);
   }
@@ -81,3 +83,79 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestOpti
 
   return response.json();
 }
+
+/**
+ * Upload a single image to backend disk storage
+ */
+export async function uploadSingleImage(file: File): Promise<{ url: string; fullUrl: string; filename: string }> {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const token =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('sutradara_token') || localStorage.getItem('accessToken')
+      : null;
+
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_BASE_URL}/admin/uploads/single`, {
+    method: 'POST',
+    headers,
+    body: formData,
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || `Upload failed with status ${res.status}`);
+  }
+
+  const data = await res.json();
+  return {
+    url: data.url,
+    fullUrl: data.fullUrl,
+    filename: data.file?.filename || '',
+  };
+}
+
+/**
+ * Upload multiple images to backend disk storage
+ */
+export async function uploadMultipleImages(files: File[]): Promise<{ urls: string[]; files: any[] }> {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append('images', file);
+  });
+
+  const token =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('sutradara_token') || localStorage.getItem('accessToken')
+      : null;
+
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_BASE_URL}/admin/uploads/multiple`, {
+    method: 'POST',
+    headers,
+    body: formData,
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || `Upload failed with status ${res.status}`);
+  }
+
+  const data = await res.json();
+  return {
+    urls: data.urls || [],
+    files: data.files || [],
+  };
+}
+

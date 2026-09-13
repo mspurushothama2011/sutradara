@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { apiRequest } from '@/lib/api';
-import { Product } from '../../../../shared/types/index';
 
 const FALLBACK_SAREES = [
   {
@@ -64,11 +63,11 @@ export default function FeaturedShowcase() {
   return (
     <section
       style={{
-        background: 'linear-gradient(180deg, #110c08 0%, #1a140e 50%, #0d0906 100%)',
+        background: 'transparent',
         padding: '100px 32px 120px',
         position: 'relative',
         zIndex: 10,
-        borderTop: '1px solid rgba(201, 168, 76, 0.25)',
+        borderTop: '1px solid rgba(179, 137, 56, 0.15)',
       }}
     >
       <div style={{ maxWidth: '1280px', margin: '0 auto', textAlign: 'center' }}>
@@ -81,6 +80,7 @@ export default function FeaturedShowcase() {
             textTransform: 'uppercase',
             display: 'inline-block',
             marginBottom: '12px',
+            fontWeight: 700,
           }}
         >
           STEP INSIDE THE SANCTUARY
@@ -89,7 +89,7 @@ export default function FeaturedShowcase() {
           style={{
             fontFamily: 'var(--font-display)',
             fontSize: 'clamp(2.4rem, 5vw, 4rem)',
-            color: '#fff',
+            color: 'var(--text)',
             fontWeight: 400,
             lineHeight: 1.2,
           }}
@@ -123,19 +123,16 @@ export default function FeaturedShowcase() {
             <Link
               key={saree.id}
               href={`/product/${saree.slug}`}
+              className="glass-card-luxury"
               style={{
                 textDecoration: 'none',
-                background: 'var(--bg-deep)',
-                border: '1px solid rgba(201, 168, 76, 0.2)',
                 borderRadius: '12px',
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'transform 0.3s ease, border-color 0.3s ease',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
               }}
             >
-              <div style={{ position: 'relative', height: '380px', background: '#0a0602', overflow: 'hidden' }}>
+              <div style={{ position: 'relative', height: '380px', background: 'rgba(244, 239, 234, 0.6)', overflow: 'hidden' }}>
                 <img
                   src={saree.images?.[0] || '/frames/ezgif-frame-240.jpg'}
                   alt={saree.name}
@@ -147,14 +144,16 @@ export default function FeaturedShowcase() {
                       position: 'absolute',
                       top: '14px',
                       left: '14px',
-                      padding: '4px 10px',
-                      background: 'rgba(26, 20, 14, 0.9)',
+                      padding: '5px 12px',
+                      background: 'var(--plum, #5C1D6E)',
                       backdropFilter: 'blur(8px)',
-                      border: '1px solid var(--gold)',
-                      color: 'var(--gold)',
+                      border: '1px solid #D4AF37',
+                      color: '#ffffff',
                       fontSize: '0.72rem',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       borderRadius: '4px',
+                      letterSpacing: '0.05em',
+                      boxShadow: '0 2px 8px rgba(92, 29, 110, 0.4)',
                     }}
                   >
                     👑 1-OF-1 HEIRLOOM
@@ -165,11 +164,13 @@ export default function FeaturedShowcase() {
                     position: 'absolute',
                     top: '14px',
                     right: '14px',
-                    padding: '4px 8px',
-                    background: 'rgba(0, 0, 0, 0.75)',
-                    color: '#4ade80',
-                    fontSize: '0.68rem',
+                    padding: '5px 10px',
+                    background: 'var(--emerald, #145A52)',
+                    color: '#ffffff',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
                     borderRadius: '4px',
+                    boxShadow: '0 2px 8px rgba(20, 90, 82, 0.35)',
                   }}
                 >
                   ✓ Silk Mark
@@ -178,20 +179,20 @@ export default function FeaturedShowcase() {
 
               <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--gold)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--gold)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>
                     {saree.craftRegion || saree.region} • {saree.fabric}
                   </span>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: '#fff', margin: '8px 0 4px' }}>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: 'var(--text)', margin: '8px 0 4px' }}>
                     {saree.name}
                   </h3>
                   <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)' }}>{saree.zariType || saree.zari}</p>
                 </div>
 
-                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontSize: '1.3rem', color: '#fff', fontWeight: 600 }}>
+                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(179, 137, 56, 0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <span style={{ fontSize: '1.3rem', color: 'var(--text)', fontWeight: 700 }}>
                     ₹{Number(saree.sellingPrice || saree.price).toLocaleString('en-IN')}
                   </span>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--gold)', fontWeight: 500 }}>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--gold)', fontWeight: 600 }}>
                     View Heirloom →
                   </span>
                 </div>
@@ -207,12 +208,14 @@ export default function FeaturedShowcase() {
             className="gold-btn"
             style={{
               padding: '16px 40px',
-              fontSize: '0.95rem',
-              letterSpacing: '0.1em',
+              fontSize: '0.92rem',
+              letterSpacing: '0.08em',
               textTransform: 'uppercase',
               textDecoration: 'none',
-              borderRadius: '4px',
+              borderRadius: '8px',
               display: 'inline-block',
+              fontWeight: 700,
+              boxShadow: '0 4px 16px rgba(179, 137, 56, 0.3)',
             }}
           >
             Explore Complete Treasury ({sarees.length > 3 ? '5+' : 'All'} Sarees) →

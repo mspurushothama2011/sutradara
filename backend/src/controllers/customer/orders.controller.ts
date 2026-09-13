@@ -2,6 +2,11 @@ import { Response } from 'express';
 import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../../middleware/auth.middleware';
+import {
+  createRazorpayOrder,
+  verifyRazorpaySignature,
+  verifyWebhookSignature,
+} from '../../services/razorpay.service';
 
 const prisma = new PrismaClient();
 
@@ -375,3 +380,329 @@ export async function trackOrder(req: any, res: Response) {
     return res.status(500).json({ error: 'Database failed to track order.' });
   }
 }
+
+/**
+ * Initiate Razorpay Order (Paise calculation, stock reservation check, server-side receipt)
+ */
+export async function initiateRazorpayOrder(req: AuthRequest, res: Response) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Customer sign in is required to initialize payment.' });
+  }
+
+  const { items, couponCode } = req.body as {
+    items: { productId: string; quantity: number }[];
+    couponCode?: string;
+  };
+
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'Order must contain at least one saree.' });
+  }
+
+  try {
+    const productIds = items.map((i) => i.productId);
+    const dbProducts = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+    });
+
+    let subtotal = 0;
+
+    for (const item of items) {
+      const p = dbProducts.find((prod) => prod.id === item.productId);
+      if (!p) {
+        return res.status(404).json({ error: `Saree "${item.productId}" is no longer available in our collection.` });
+      }
+      if (p.stock < item.quantity) {
+        return res.status(409).json({
+          error: `"${p.name}" has only ${p.stock} piece(s) remaining. It was just acquired by another patron.`,
+          code: 'OUT_OF_STOCK',
+        });
+      }
+      subtotal += p.sellingPrice * item.quantity;
+    }
+
+    // Apply Coupon Discount if provided
+    let discountAmount = 0;
+    if (couponCode) {
+      const coupon = await prisma.coupon.findUnique({
+        where: { code: couponCode.toUpperCase().trim() },
+      });
+      if (coupon && coupon.isActive && new Date(coupon.validUntil) >= new Date()) {
+        if (!coupon.minOrderValue || subtotal >= coupon.minOrderValue) {
+          if (coupon.discountType === 'PERCENTAGE') {
+            discountAmount = (subtotal * coupon.discountValue) / 100;
+            if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+              discountAmount = coupon.maxDiscount;
+            }
+          } else {
+            discountAmount = coupon.discountValue;
+          }
+        }
+      }
+    }
+
+    const finalTotal = Math.max(0, subtotal - discountAmount);
+    const amountInPaise = Math.round(finalTotal * 100);
+
+    const rzpOrder = await createRazorpayOrder({
+      amountInPaise,
+      currency: 'INR',
+      receipt: `rcpt_${Date.now()}`,
+      notes: {
+        customerEmail: req.user.email,
+        itemCount: String(items.length),
+      },
+    });
+
+    return res.json({
+      success: true,
+      razorpayOrderId: rzpOrder.id,
+      amount: rzpOrder.amount,
+      amountInPaise,
+      currency: rzpOrder.currency,
+      keyId: rzpOrder.keyId,
+      isSimulated: rzpOrder.isSimulated,
+      finalTotal,
+      subtotal,
+      discountAmount,
+    });
+  } catch (error: any) {
+    console.error('Failed to initiate Razorpay order:', error);
+    return res.status(500).json({ error: error?.message || 'Failed to initialize payment gateway.' });
+  }
+}
+
+/**
+ * Verify Razorpay Cryptographic Signature & Commit Order in PostgreSQL
+ */
+export async function verifyRazorpayPayment(req: AuthRequest, res: Response) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Customer sign in is required to complete order.' });
+  }
+
+  const {
+    razorpayOrderId,
+    razorpayPaymentId,
+    razorpaySignature,
+    items,
+    shippingAddress,
+    couponCode,
+  } = req.body as {
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+    items: { productId: string; quantity: number }[];
+    shippingAddress: {
+      recipientName?: string;
+      recipientPhone?: string;
+      street: string;
+      landmark?: string;
+      city: string;
+      state: string;
+      pincode: string;
+      country?: string;
+    };
+    couponCode?: string;
+  };
+
+  if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+    return res.status(400).json({ error: 'Missing payment gateway authorization tokens.' });
+  }
+
+  if (!items || items.length === 0) {
+    return res.status(400).json({ error: 'No items in order payload.' });
+  }
+
+  if (!shippingAddress || !shippingAddress.street || !shippingAddress.pincode) {
+    return res.status(400).json({ error: 'Valid delivery address is required.' });
+  }
+
+  // 1. Verify Cryptographic Signature
+  const verification = verifyRazorpaySignature({
+    razorpayOrderId,
+    razorpayPaymentId,
+    razorpaySignature,
+  });
+
+  if (!verification.isValid) {
+    console.warn('⚠️ Razorpay signature mismatch for order:', razorpayOrderId);
+    return res.status(400).json({ error: 'Invalid payment signature. Transaction unverified.' });
+  }
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // Resolve or create Customer
+      let customer = await tx.customer.findFirst({
+        where: {
+          OR: [
+            { id: req.user!.userId },
+            { email: req.user!.email.toLowerCase() },
+          ],
+        },
+      });
+
+      if (!customer) {
+        customer = await tx.customer.create({
+          data: {
+            email: req.user!.email.toLowerCase(),
+            name: req.user!.email.split('@')[0],
+            isVerified: true,
+          },
+        });
+      }
+
+      // Re-fetch products with row checks and calculate subtotal
+      const productIds = items.map((i) => i.productId);
+      const dbProducts = await tx.product.findMany({
+        where: { id: { in: productIds } },
+      });
+
+      let subtotal = 0;
+      const orderLineItems: { productId: string; price: number; quantity: number }[] = [];
+
+      for (const item of items) {
+        const p = dbProducts.find((prod) => prod.id === item.productId);
+        if (!p) {
+          throw new Error(`Saree "${item.productId}" is no longer available in our collection.`);
+        }
+        if (p.stock < item.quantity) {
+          throw new Error(`STOCK_UNAVAILABLE: "${p.name}" has only ${p.stock} piece(s) available. It was just acquired by another patron.`);
+        }
+
+        subtotal += p.sellingPrice * item.quantity;
+        orderLineItems.push({
+          productId: p.id,
+          price: p.sellingPrice,
+          quantity: item.quantity,
+        });
+
+        // Atomic stock decrement
+        await tx.product.update({
+          where: { id: p.id },
+          data: { stock: { decrement: item.quantity } },
+        });
+
+        HEIRLOOM_LOCKS.delete(p.id);
+      }
+
+      // Apply coupon if valid
+      let discountAmount = 0;
+      if (couponCode) {
+        const coupon = await tx.coupon.findUnique({
+          where: { code: couponCode.toUpperCase().trim() },
+        });
+        if (coupon && coupon.isActive && new Date(coupon.validUntil) >= new Date()) {
+          if (!coupon.minOrderValue || subtotal >= coupon.minOrderValue) {
+            if (coupon.discountType === 'PERCENTAGE') {
+              discountAmount = (subtotal * coupon.discountValue) / 100;
+              if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+                discountAmount = coupon.maxDiscount;
+              }
+            } else {
+              discountAmount = coupon.discountValue;
+            }
+            await tx.coupon.update({
+              where: { id: coupon.id },
+              data: { usedCount: { increment: 1 } },
+            });
+          }
+        }
+      }
+
+      const finalTotal = Math.max(0, subtotal - discountAmount);
+      const orderNumber = `SUT-${new Date().getFullYear()}-${crypto.randomInt(1000, 9999)}`;
+
+      const initialMilestones = [
+        {
+          status: 'PAID',
+          location: 'Varanasi Master Loom Vault',
+          message: `Payment authorized via Razorpay (${razorpayPaymentId}). Artisan piece queued for pre-shipment quality inspection.`,
+          timestamp: new Date().toISOString(),
+        },
+      ];
+
+      // Create Order in PostgreSQL
+      const createdOrder = await tx.order.create({
+        data: {
+          orderNumber,
+          customerId: customer.id,
+          customerName: customer.name || shippingAddress.recipientName || 'Valued Patron',
+          customerEmail: customer.email,
+          customerPhone: customer.phone || shippingAddress.recipientPhone || null,
+          status: 'PAID',
+          totalAmount: finalTotal,
+          shippingAddress: shippingAddress as any,
+          razorpayOrderId,
+          razorpayPaymentId,
+          trackingHistory: initialMilestones as any,
+          items: {
+            create: orderLineItems,
+          },
+        },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      return { createdOrder };
+    });
+
+    return res.json({
+      success: true,
+      message: 'Payment verified and royal order placed successfully.',
+      order: result.createdOrder,
+      trackingUrl: `/track/${result.createdOrder.orderNumber}`,
+    });
+  } catch (error: any) {
+    console.error('Failed to verify and create order in DB:', error);
+    const errMsg = error?.message || 'Database failed to record payment.';
+    if (errMsg.startsWith('STOCK_UNAVAILABLE:')) {
+      return res.status(409).json({ error: errMsg.replace('STOCK_UNAVAILABLE:', '').trim(), code: 'OUT_OF_STOCK' });
+    }
+    return res.status(500).json({ error: errMsg });
+  }
+}
+
+/**
+ * Razorpay Webhook Listener for Asynchronous Payment Confirmations
+ */
+export async function handleRazorpayWebhook(req: any, res: Response) {
+  const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  const signature = req.headers['x-razorpay-signature'] as string;
+
+  if (webhookSecret && signature) {
+    const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+    const isValid = verifyWebhookSignature(rawBody, signature, webhookSecret);
+    if (!isValid) {
+      return res.status(400).json({ error: 'Invalid webhook signature.' });
+    }
+  }
+
+  const event = req.body?.event;
+  const payload = req.body?.payload;
+
+  if (event === 'payment.captured' || event === 'order.paid') {
+    const rzpOrderId = payload?.payment?.entity?.order_id || payload?.order?.entity?.id;
+    const rzpPaymentId = payload?.payment?.entity?.id;
+
+    if (rzpOrderId) {
+      try {
+        await prisma.order.updateMany({
+          where: { razorpayOrderId: rzpOrderId },
+          data: {
+            status: 'PAID',
+            razorpayPaymentId: rzpPaymentId || undefined,
+          },
+        });
+      } catch (e) {
+        console.error('Webhook order update notice:', e);
+      }
+    }
+  }
+
+  return res.json({ status: 'ok', received: true });
+}
+

@@ -2,6 +2,7 @@
 
 import { use } from 'react';
 import Link from 'next/link';
+import LandingNavbar from '@/components/landing/LandingNavbar';
 
 export default function DynamicCollectionPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
@@ -37,13 +38,14 @@ export default function DynamicCollectionPage({ params }: { params: Promise<{ sl
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff', padding: '60px 24px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '40px', borderBottom: '1px solid rgba(201, 168, 76, 0.2)', paddingBottom: '24px' }}>
-          <Link href="/collections" style={{ color: 'var(--gold)', textDecoration: 'none', fontSize: '0.85rem' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+      <LandingNavbar />
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '140px 24px 80px' }}>
+        <div style={{ marginBottom: '40px', borderBottom: '1px solid rgba(179, 137, 56, 0.2)', paddingBottom: '24px' }}>
+          <Link href="/collections" style={{ color: 'var(--gold)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
             ← Back to All Collections
           </Link>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.8rem', color: '#fff', marginTop: '12px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.8rem', color: 'var(--text)', marginTop: '12px' }}>
             {colInfo.title}
           </h1>
           <p style={{ color: 'var(--text-dim)', fontSize: '0.95rem', marginTop: '6px' }}>
@@ -52,8 +54,8 @@ export default function DynamicCollectionPage({ params }: { params: Promise<{ sl
         </div>
 
         {/* Jump to catalog with active filters */}
-        <div style={{ background: 'var(--bg-deep)', padding: '36px', borderRadius: '12px', border: '1px solid rgba(201, 168, 76, 0.2)', textAlign: 'center' }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: '#fff' }}>
+        <div style={{ background: '#ffffff', padding: '36px', borderRadius: '12px', border: '1px solid rgba(179, 137, 56, 0.22)', textAlign: 'center', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--text)' }}>
             Explore Verified Sarees in {colInfo.title}
           </h2>
           <p style={{ color: 'var(--text-dim)', fontSize: '0.88rem', margin: '8px auto 24px', maxWidth: '500px' }}>
@@ -65,13 +67,14 @@ export default function DynamicCollectionPage({ params }: { params: Promise<{ sl
               display: 'inline-block',
               padding: '14px 36px',
               background: 'var(--gold)',
-              color: '#110c08',
+              color: '#ffffff',
               borderRadius: '8px',
               textDecoration: 'none',
               fontWeight: 700,
               fontSize: '0.9rem',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
+              boxShadow: '0 4px 14px rgba(179, 137, 56, 0.25)',
             }}
           >
             Browse Matching Sarees in Catalog →

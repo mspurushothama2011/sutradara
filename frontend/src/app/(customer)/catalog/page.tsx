@@ -79,14 +79,14 @@ function CatalogContent() {
           textAlign: 'center',
         }}
       >
-        <span style={{ fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 700 }}>
           MASTER WEAVER CURATION
         </span>
         <h1
           style={{
             fontFamily: 'var(--font-display)',
             fontSize: 'clamp(2rem, 4vw, 3.2rem)',
-            color: '#fff',
+            color: 'var(--text)',
             marginTop: '8px',
             fontWeight: 400,
           }}
@@ -102,8 +102,8 @@ function CatalogContent() {
       <section style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 32px 32px' }}>
         <div
           style={{
-            background: 'var(--bg-deep)',
-            border: '1px solid rgba(201, 168, 76, 0.2)',
+            background: '#ffffff',
+            border: '1px solid rgba(179, 137, 56, 0.25)',
             borderRadius: '12px',
             padding: '20px 24px',
             display: 'flex',
@@ -111,6 +111,7 @@ function CatalogContent() {
             gap: '16px',
             justifyContent: 'space-between',
             alignItems: 'center',
+            boxShadow: '0 4px 20px rgba(45, 25, 8, 0.04)',
           }}
         >
           {/* Search Box */}
@@ -122,10 +123,10 @@ function CatalogContent() {
             style={{
               padding: '10px 16px',
               minWidth: '260px',
-              background: 'rgba(10, 6, 2, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              background: '#FAF8F5',
+              border: '1px solid rgba(179, 137, 56, 0.3)',
               borderRadius: '6px',
-              color: '#fff',
+              color: 'var(--text)',
               fontSize: '0.85rem',
               outline: 'none',
             }}
@@ -139,17 +140,18 @@ function CatalogContent() {
               onChange={(e) => setSelectedCluster(e.target.value)}
               style={{
                 padding: '10px 16px',
-                background: 'rgba(10, 6, 2, 0.6)',
-                border: '1px solid rgba(201, 168, 76, 0.3)',
+                background: '#FAF8F5',
+                border: '1px solid rgba(179, 137, 56, 0.35)',
                 borderRadius: '6px',
-                color: 'var(--gold)',
+                color: 'var(--gold-dark, #8c6818)',
+                fontWeight: 600,
                 fontSize: '0.85rem',
                 cursor: 'pointer',
                 outline: 'none',
               }}
             >
               {CRAFT_REGIONS.map((r) => (
-                <option key={r} value={r} style={{ background: '#1a140e', color: '#fff' }}>
+                <option key={r} value={r} style={{ background: '#ffffff', color: '#1a130d' }}>
                   {r}
                 </option>
               ))}
@@ -161,17 +163,17 @@ function CatalogContent() {
               onChange={(e) => setSelectedZari(e.target.value)}
               style={{
                 padding: '10px 16px',
-                background: 'rgba(10, 6, 2, 0.6)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
+                background: '#FAF8F5',
+                border: '1px solid rgba(179, 137, 56, 0.35)',
                 borderRadius: '6px',
-                color: '#fff',
+                color: 'var(--text)',
                 fontSize: '0.85rem',
                 cursor: 'pointer',
                 outline: 'none',
               }}
             >
               {ZARI_TYPES.map((z) => (
-                <option key={z} value={z} style={{ background: '#1a140e', color: '#fff' }}>
+                <option key={z} value={z} style={{ background: '#ffffff', color: '#1a130d' }}>
                   {z}
                 </option>
               ))}
@@ -184,10 +186,11 @@ function CatalogContent() {
                 alignItems: 'center',
                 gap: '8px',
                 padding: '8px 14px',
-                background: onlyHeirloom ? 'rgba(201, 168, 76, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                border: onlyHeirloom ? '1px solid var(--gold)' : '1px solid rgba(255, 255, 255, 0.1)',
+                background: onlyHeirloom ? 'rgba(179, 137, 56, 0.15)' : '#FAF8F5',
+                border: onlyHeirloom ? '1px solid var(--gold)' : '1px solid rgba(179, 137, 56, 0.25)',
                 borderRadius: '6px',
-                color: onlyHeirloom ? 'var(--gold)' : 'var(--text-dim)',
+                color: onlyHeirloom ? 'var(--gold-dark, #8c6818)' : 'var(--text-dim)',
+                fontWeight: onlyHeirloom ? 700 : 500,
                 fontSize: '0.82rem',
                 cursor: 'pointer',
                 userSelect: 'none',
@@ -209,11 +212,11 @@ function CatalogContent() {
       <section style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 32px 80px' }}>
         {isLoading ? (
           <div style={{ textAlign: 'center', padding: '80px', color: 'var(--gold)' }}>
-            <p style={{ letterSpacing: '0.2em' }}>CURATING AVAILABLE WEAVES...</p>
+            <p style={{ letterSpacing: '0.2em', fontWeight: 600 }}>CURATING AVAILABLE WEAVES...</p>
           </div>
         ) : products.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px', background: 'var(--bg-deep)', borderRadius: '12px' }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: '#fff' }}>No Sarees Matched Your Filter</h3>
+          <div style={{ textAlign: 'center', padding: '80px', background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.2)', borderRadius: '12px', boxShadow: '0 4px 20px rgba(45, 25, 8, 0.04)' }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--text)' }}>No Sarees Matched Your Filter</h3>
             <p style={{ color: 'var(--text-dim)', marginTop: '6px', fontSize: '0.88rem' }}>
               Try loosening your filters or resetting the cluster search.
             </p>
@@ -234,17 +237,18 @@ function CatalogContent() {
                   href={`/product/${p.slug}`}
                   style={{
                     textDecoration: 'none',
-                    background: 'var(--bg-deep)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: '10px',
+                    background: '#ffffff',
+                    border: '1px solid rgba(179, 137, 56, 0.22)',
+                    borderRadius: '12px',
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
-                    transition: 'all 0.3s ease',
+                    transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
+                    boxShadow: '0 6px 20px rgba(45, 25, 8, 0.05)',
                   }}
                 >
                   {/* Image Container */}
-                  <div style={{ position: 'relative', height: '360px', overflow: 'hidden', background: '#0a0602' }}>
+                  <div style={{ position: 'relative', height: '360px', overflow: 'hidden', background: '#F4EFEA' }}>
                     <img
                       src={p.images?.[0] || '/frames/ezgif-frame-240.jpg'}
                       alt={p.name}
@@ -264,15 +268,16 @@ function CatalogContent() {
                           position: 'absolute',
                           top: '12px',
                           left: '12px',
-                          padding: '4px 10px',
-                          background: 'rgba(26, 20, 14, 0.85)',
+                          padding: '5px 10px',
+                          background: 'var(--plum, #5C1D6E)',
                           backdropFilter: 'blur(8px)',
-                          border: '1px solid var(--gold)',
-                          color: 'var(--gold)',
+                          border: '1px solid #D4AF37',
+                          color: '#ffffff',
                           fontSize: '0.7rem',
-                          fontWeight: 600,
+                          fontWeight: 700,
                           borderRadius: '4px',
                           letterSpacing: '0.05em',
+                          boxShadow: '0 2px 8px rgba(92, 29, 110, 0.4)',
                         }}
                       >
                         👑 1-OF-1 HEIRLOOM
@@ -286,12 +291,13 @@ function CatalogContent() {
                           position: 'absolute',
                           top: '12px',
                           right: '12px',
-                          padding: '4px 8px',
-                          background: 'rgba(0, 0, 0, 0.75)',
-                          color: '#4ade80',
-                          fontSize: '0.65rem',
+                          padding: '5px 8px',
+                          background: 'var(--emerald, #145A52)',
+                          color: '#ffffff',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
                           borderRadius: '4px',
-                          border: '1px solid rgba(74, 222, 128, 0.4)',
+                          boxShadow: '0 2px 8px rgba(20, 90, 82, 0.35)',
                         }}
                       >
                         ✓ Silk Mark
@@ -331,7 +337,7 @@ function CatalogContent() {
                   <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
                           {p.craftRegion}
                         </span>
                         <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
@@ -343,10 +349,10 @@ function CatalogContent() {
                         style={{
                           fontFamily: 'var(--font-display)',
                           fontSize: '1.05rem',
-                          color: '#fff',
+                          color: 'var(--text)',
                           lineHeight: 1.4,
                           margin: '4px 0 8px',
-                          fontWeight: 400,
+                          fontWeight: 600,
                         }}
                       >
                         {p.name}
@@ -361,14 +367,14 @@ function CatalogContent() {
                     <div
                       style={{
                         paddingTop: '12px',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                        borderTop: '1px solid rgba(179, 137, 56, 0.15)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'baseline',
                       }}
                     >
                       <div>
-                        <span style={{ fontSize: '1.15rem', fontWeight: 600, color: '#fff' }}>
+                        <span style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text)' }}>
                           ₹{p.sellingPrice.toLocaleString('en-IN')}
                         </span>
                         {p.comparePrice && (
@@ -385,7 +391,7 @@ function CatalogContent() {
                         )}
                       </div>
 
-                      <span style={{ fontSize: '0.78rem', color: 'var(--gold)', fontWeight: 500 }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--gold)', fontWeight: 600 }}>
                         {p.isHeirloom1of1 ? 'View Heirloom →' : 'Details →'}
                       </span>
                     </div>

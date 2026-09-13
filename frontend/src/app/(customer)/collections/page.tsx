@@ -44,16 +44,16 @@ const COLLECTIONS = [
 
 export default function CollectionsPage() {
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       {/* Universal Storefront Navigation */}
       <LandingNavbar />
 
       <div style={{ paddingTop: '120px', paddingBottom: '80px', paddingLeft: '24px', paddingRight: '24px', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-          <span style={{ fontSize: '0.8rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '0.8rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 700 }}>
             CURATED EDITS
           </span>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.2rem, 4vw, 3.4rem)', color: '#fff', marginTop: '8px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.2rem, 4vw, 3.4rem)', color: 'var(--text)', marginTop: '8px' }}>
             Sutraಧಾರ Collections
           </h1>
           <p style={{ maxWidth: '600px', margin: '12px auto 0', color: 'var(--text-dim)', fontSize: '0.95rem' }}>
@@ -68,13 +68,14 @@ export default function CollectionsPage() {
               href={`/catalog?collection=${col.slug}`}
               style={{
                 textDecoration: 'none',
-                background: 'var(--bg-deep)',
-                border: '1px solid rgba(201, 168, 76, 0.2)',
+                background: '#ffffff',
+                border: '1px solid rgba(179, 137, 56, 0.22)',
                 borderRadius: '12px',
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
                 transition: 'all 0.3s ease',
+                boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)',
               }}
             >
               <div style={{ position: 'relative', height: '260px', overflow: 'hidden' }}>
@@ -104,10 +105,10 @@ export default function CollectionsPage() {
 
               <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>
                     {col.tagline}
                   </span>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: '#fff', marginTop: '6px' }}>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--text)', marginTop: '6px' }}>
                     {col.name}
                   </h3>
                   <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginTop: '8px', lineHeight: 1.5 }}>
@@ -119,13 +120,13 @@ export default function CollectionsPage() {
                   style={{
                     marginTop: '20px',
                     paddingTop: '16px',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderTop: '1px solid rgba(179, 137, 56, 0.15)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                   }}
                 >
-                  <span style={{ fontSize: '0.82rem', color: 'var(--gold)' }}>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--gold)', fontWeight: 600 }}>
                     View Collection →
                   </span>
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>

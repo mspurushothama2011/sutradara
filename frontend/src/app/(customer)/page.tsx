@@ -1,38 +1,460 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { apiRequest } from '@/lib/api';
 import LandingNavbar from '@/components/landing/LandingNavbar';
-import DealCountdownBanner from '@/components/storefront/DealCountdownBanner';
 import FeaturedShowcase from '@/components/landing/FeaturedShowcase';
+import SilkCascadeIntro from '@/components/intro/SilkCascadeIntro';
 
-const CLUSTERS_PREVIEW = [
+interface SubCategoryItem {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+}
+
+interface ProductPreviewItem {
+  id: string;
+  name: string;
+  images: string[];
+  sellingPrice: number;
+  slug: string;
+  zariType?: string;
+  fabric?: string;
+}
+
+interface CategoryItem {
+  id: string;
+  name: string;
+  slug: string;
+  region: string;
+  description?: string | null;
+  image?: string | null;
+  isFeatured?: boolean;
+  displayOrder?: number;
+  subCategories?: SubCategoryItem[];
+  products?: ProductPreviewItem[];
+  tag?: string;
+  craft?: string;
+}
+
+const FALLBACK_CLUSTERS: CategoryItem[] = [
   {
-    name: 'Varanasi',
+    id: 'varanasi',
+    name: 'Banarasi Heritage',
+    region: 'Varanasi',
+    slug: 'banarasi-heritage',
     craft: 'Royal Kadhwa & Tanchoi Brocades',
+    description: 'Famed for Kadhwa, Tanchoi, and Jangla weaves in pure mulberry silk with pure gold & silver zari.',
     image: '/frames/ezgif-frame-240.jpg',
+    isFeatured: true,
+    displayOrder: 1,
     tag: 'Pure Gold Zari',
   },
   {
-    name: 'Kanchipuram',
+    id: 'kanchipuram',
+    name: 'Kanjivaram Heritage',
+    region: 'Kanchipuram',
+    slug: 'kanjivaram-heritage',
     craft: '3-Ply Mulberry Korvai Silks',
+    description: 'Renowned for 3-ply heavy mulberry silk with interlocking Korvai temple borders and petni pallus.',
     image: '/frames/ezgif-frame-180.jpg',
+    isFeatured: true,
+    displayOrder: 2,
     tag: 'Temple Borders',
   },
   {
-    name: 'Yeola (Paithani)',
+    id: 'yeola',
+    name: 'Paithani Heritage',
+    region: 'Yeola',
+    slug: 'paithani-heritage',
     craft: 'Kaleidoscope Peacock Pallus',
+    description: 'The Queen of Silks featuring oblique square borders and handwoven kaleidoscope peacock pallus.',
     image: '/frames/ezgif-frame-150.jpg',
+    isFeatured: true,
+    displayOrder: 3,
     tag: 'Tapestry Weave',
   },
   {
-    name: 'Chanderi',
+    id: 'chanderi',
+    name: 'Chanderi Heritage',
+    region: 'Chanderi',
+    slug: 'chanderi-heritage',
     craft: 'Featherlight Tissue & Organza',
+    description: 'Featherlight tissue and pure organza silk sarees with gold and silver zari buttis.',
     image: '/frames/ezgif-frame-120.jpg',
+    isFeatured: true,
+    displayOrder: 4,
     tag: 'Gold Meenakari',
   },
 ];
+
+const getCategoryImageUrl = (image?: string | null, index: number = 0) => {
+  if (!image) {
+    const fallbackFrames = [
+      '/frames/ezgif-frame-240.jpg',
+      '/frames/ezgif-frame-180.jpg',
+      '/frames/ezgif-frame-150.jpg',
+      '/frames/ezgif-frame-120.jpg',
+      '/frames/ezgif-frame-090.jpg',
+      '/frames/ezgif-frame-200.jpg',
+      '/frames/ezgif-frame-060.jpg',
+    ];
+    return fallbackFrames[index % fallbackFrames.length];
+  }
+  if (image.startsWith('http://') || image.startsWith('https://')) return image;
+  if (image.startsWith('/uploads/')) {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1\/?$/, '') || 'http://localhost:4000';
+    return `${backendUrl}${image}`;
+  }
+  return image;
+};
+
+const getCategoryTag = (cat: CategoryItem) => {
+  if (cat.tag) return cat.tag;
+  if (cat.subCategories && cat.subCategories.length > 0) {
+    return cat.subCategories[0].name;
+  }
+  if (cat.region) return `${cat.region} Craft`;
+  return 'Pure Silk Handloom';
+};
+
+function FeaturedCategoryCard({
+  category,
+  index,
+}: {
+  category: CategoryItem;
+  index: number;
+}) {
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  // Distinct regional frame image mappings
+  const REGION_FRAME_MAP: Record<string, string[]> = {
+    varanasi: ['/frames/ezgif-frame-240.jpg', '/frames/ezgif-frame-220.jpg', '/frames/ezgif-frame-200.jpg'],
+    kanchipuram: ['/frames/ezgif-frame-180.jpg', '/frames/ezgif-frame-170.jpg', '/frames/ezgif-frame-160.jpg'],
+    yeola: ['/frames/ezgif-frame-150.jpg', '/frames/ezgif-frame-140.jpg', '/frames/ezgif-frame-130.jpg'],
+    chanderi: ['/frames/ezgif-frame-120.jpg', '/frames/ezgif-frame-110.jpg', '/frames/ezgif-frame-100.jpg'],
+    mysore: ['/frames/ezgif-frame-090.jpg', '/frames/ezgif-frame-080.jpg', '/frames/ezgif-frame-070.jpg'],
+    patan: ['/frames/ezgif-frame-200.jpg', '/frames/ezgif-frame-190.jpg', '/frames/ezgif-frame-180.jpg'],
+    bhagalpur: ['/frames/ezgif-frame-060.jpg', '/frames/ezgif-frame-050.jpg', '/frames/ezgif-frame-040.jpg'],
+  };
+
+  // Collect image slides from category.products or distinct regional frames
+  const slides = useMemo(() => {
+    const list: { image: string; title?: string; subtitle?: string; price?: number }[] = [];
+    const regKey = (category.region || category.slug || '').toLowerCase();
+    const regionalFrames = REGION_FRAME_MAP[regKey] || [
+      '/frames/ezgif-frame-240.jpg',
+      '/frames/ezgif-frame-180.jpg',
+      '/frames/ezgif-frame-150.jpg',
+      '/frames/ezgif-frame-120.jpg',
+    ];
+
+    // Category main banner image
+    if (category.image) {
+      list.push({
+        image: getCategoryImageUrl(category.image, index),
+        title: category.region || category.name.replace(/\s*Heritage|\s*Silk/gi, ''),
+        subtitle: category.tag || category.craft || '100% Pure Silk',
+      });
+    }
+
+    // Product images if available
+    if (category.products && category.products.length > 0) {
+      category.products.forEach((p) => {
+        const prodImg = p.images && p.images.length > 0 ? p.images[0] : null;
+        if (prodImg && !list.some((s) => s.image === prodImg)) {
+          list.push({
+            image: getCategoryImageUrl(prodImg, index),
+            title: category.region || category.name.replace(/\s*Heritage|\s*Silk/gi, ''),
+            subtitle: p.zariType || p.fabric || category.tag || 'Handloom Silk',
+            price: p.sellingPrice,
+          });
+        }
+      });
+    }
+
+    // Fallback padding if less than 3 slides using distinct regional frames
+    let fbIdx = 0;
+    while (list.length < 3) {
+      list.push({
+        image: regionalFrames[fbIdx % regionalFrames.length],
+        title: category.region || category.name.replace(/\s*Heritage|\s*Silk/gi, ''),
+        subtitle: category.tag || category.craft || 'Authentic Weave',
+      });
+      fbIdx++;
+    }
+
+    return list.slice(0, 4);
+  }, [category, index]);
+
+  const currentSlide = slides[activeSlide] || slides[0];
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveSlide((prev) => (prev > 0 ? prev - 1 : slides.length - 1));
+  };
+
+  const handleNext = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveSlide((prev) => (prev < slides.length - 1 ? prev + 1 : 0));
+  };
+
+  const targetHref = category.region
+    ? `/catalog?craftRegion=${encodeURIComponent(category.region)}`
+    : `/catalog?category=${encodeURIComponent(category.slug || category.id)}`;
+
+  const displayName = category.region || category.name.replace(/\s*Heritage|\s*Silk/gi, '');
+  const displaySubtitle = category.tag || currentSlide.subtitle || category.craft || 'Pure Silk Zari';
+
+  return (
+    <Link
+      href={targetHref}
+      style={{
+        textDecoration: 'none',
+        position: 'relative',
+        overflow: 'hidden',
+        aspectRatio: '16 / 11',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: '24px',
+        borderRadius: '16px',
+        border: '1.5px solid rgba(179, 137, 56, 0.35)',
+        boxShadow: '0 8px 30px rgba(26, 19, 13, 0.16)',
+        transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-6px)';
+        e.currentTarget.style.borderColor = 'var(--gold)';
+        e.currentTarget.style.boxShadow = '0 16px 40px rgba(179, 137, 56, 0.3)';
+        const img = e.currentTarget.querySelector('img');
+        if (img) img.style.transform = 'scale(1.05)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.borderColor = 'rgba(179, 137, 56, 0.35)';
+        e.currentTarget.style.boxShadow = '0 8px 30px rgba(26, 19, 13, 0.16)';
+        const img = e.currentTarget.querySelector('img');
+        if (img) img.style.transform = 'scale(1)';
+      }}
+    >
+      {/* Background Saree Photography */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 1,
+          overflow: 'hidden',
+          backgroundColor: '#1A130D',
+        }}
+      >
+        <img
+          key={currentSlide.image}
+          src={currentSlide.image}
+          alt={currentSlide.title || category.name}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease',
+          }}
+        />
+
+        {/* Multi-tier luxury gradient overlay ensuring 100% text contrast & readability */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(180deg, rgba(16, 11, 7, 0.88) 0%, rgba(16, 11, 7, 0.35) 45%, rgba(16, 11, 7, 0.15) 65%, rgba(16, 11, 7, 0.88) 100%)',
+            pointerEvents: 'none',
+          }}
+        />
+      </div>
+
+      {/* Top-Left: Crisp, High-Contrast Luxury Frosted Glass Badge Plate */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 3,
+          alignSelf: 'flex-start',
+          maxWidth: '85%',
+        }}
+      >
+        <div
+          style={{
+            background: 'rgba(26, 19, 13, 0.75)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(179, 137, 56, 0.45)',
+            borderRadius: '10px',
+            padding: '10px 16px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.35)',
+            display: 'inline-block',
+          }}
+        >
+          <h3
+            style={{
+              fontSize: '1.45rem',
+              fontWeight: 800,
+              color: '#FFFFFF',
+              margin: 0,
+              lineHeight: 1.15,
+              letterSpacing: '-0.01em',
+              fontFamily: 'var(--font-display, Georgia, serif)',
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.7)',
+            }}
+          >
+            {displayName}
+          </h3>
+          <p
+            style={{
+              fontSize: '0.82rem',
+              color: '#E5C07B',
+              margin: '3px 0 0',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              textShadow: '0 1px 4px rgba(0, 0, 0, 0.6)',
+              textTransform: 'uppercase',
+            }}
+          >
+            ✦ {displaySubtitle}
+          </p>
+        </div>
+      </div>
+
+      {/* Bottom Controls Row: Luminous Diamond Dots & Glass Chevrons */}
+      <div
+        style={{
+          position: 'relative',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          zIndex: 3,
+          paddingTop: '6px',
+        }}
+      >
+        {/* Diamond Pagination Indicators in Frosted Capsule */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'rgba(26, 19, 13, 0.75)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(179, 137, 56, 0.4)',
+            borderRadius: '20px',
+            padding: '6px 14px',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+          }}
+        >
+          {slides.map((_, i) => (
+            <span
+              key={i}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setActiveSlide(i);
+              }}
+              style={{
+                display: 'inline-block',
+                width: i === activeSlide ? '8px' : '6px',
+                height: i === activeSlide ? '8px' : '6px',
+                transform: 'rotate(45deg)',
+                backgroundColor: i === activeSlide ? 'var(--gold)' : 'rgba(255, 255, 255, 0.35)',
+                boxShadow: i === activeSlide ? '0 0 10px rgba(179, 137, 56, 0.9)' : 'none',
+                cursor: 'pointer',
+                transition: 'all 0.25s ease',
+              }}
+              title={`Slide ${i + 1}`}
+            />
+          ))}
+        </div>
+
+        {/* Circular Glass Chevron Navigation Buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            type="button"
+            onClick={handlePrev}
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: 'rgba(26, 19, 13, 0.75)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid rgba(179, 137, 56, 0.45)',
+              color: '#FFFFFF',
+              fontSize: '1.2rem',
+              cursor: 'pointer',
+              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--gold)';
+              e.currentTarget.style.borderColor = 'var(--gold)';
+              e.currentTarget.style.transform = 'scale(1.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(26, 19, 13, 0.75)';
+              e.currentTarget.style.borderColor = 'rgba(179, 137, 56, 0.45)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+            title="Previous slide"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: 'rgba(26, 19, 13, 0.75)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid rgba(179, 137, 56, 0.45)',
+              color: '#FFFFFF',
+              fontSize: '1.2rem',
+              cursor: 'pointer',
+              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--gold)';
+              e.currentTarget.style.borderColor = 'var(--gold)';
+              e.currentTarget.style.transform = 'scale(1.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(26, 19, 13, 0.75)';
+              e.currentTarget.style.borderColor = 'rgba(179, 137, 56, 0.45)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+            title="Next slide"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 const TRENDING_SEARCHES = [
   'Varanasi Kadhwa',
@@ -46,6 +468,38 @@ const TRENDING_SEARCHES = [
 export default function Home() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [replayKey, setReplayKey] = useState(0);
+  const [categories, setCategories] = useState<CategoryItem[]>(FALLBACK_CLUSTERS);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadCategories() {
+      try {
+        const res = await apiRequest<{ categories?: CategoryItem[] }>('/categories');
+        if (isMounted && res && res.categories && res.categories.length > 0) {
+          setCategories(res.categories);
+        }
+      } catch (err) {
+        console.error('Failed to load categories from database:', err);
+      } finally {
+        if (isMounted) setIsLoadingCategories(false);
+      }
+    }
+    loadCategories();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const featuredTop4 = useMemo(() => {
+    const featured = categories.filter((c) => c.isFeatured);
+    if (featured.length >= 4) {
+      return featured.slice(0, 4);
+    }
+    const nonFeatured = categories.filter((c) => !c.isFeatured);
+    return [...featured, ...nonFeatured].slice(0, 4);
+  }, [categories]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +515,10 @@ export default function Home() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: 'transparent', color: 'var(--text)' }}>
+      {/* 👘 Silk Saree Cascade Full-Screen Startup Animation */}
+      <SilkCascadeIntro key={replayKey} forcePlay={replayKey > 0} />
+
       {/* Unified Luxury Navbar with Deal Countdown */}
       <LandingNavbar />
 
@@ -73,13 +530,13 @@ export default function Home() {
           paddingBottom: '100px',
           paddingLeft: '24px',
           paddingRight: '24px',
-          background: 'radial-gradient(ellipse at top, #2b1f15 0%, #150f0a 60%, #0d0906 100%)',
+          background: 'transparent',
           textAlign: 'center',
           overflow: 'hidden',
-          borderBottom: '1px solid rgba(201, 168, 76, 0.2)',
+          borderBottom: '1px solid rgba(179, 137, 56, 0.15)',
         }}
       >
-        {/* Subtle background glow effect */}
+        {/* Subtle warm gold background glow */}
         <div
           style={{
             position: 'absolute',
@@ -88,36 +545,59 @@ export default function Home() {
             transform: 'translate(-50%, -50%)',
             width: '600px',
             height: '300px',
-            background: 'radial-gradient(circle, rgba(201, 168, 76, 0.15) 0%, rgba(0,0,0,0) 70%)',
+            background: 'radial-gradient(circle, rgba(179, 137, 56, 0.12) 0%, rgba(250, 248, 245, 0) 70%)',
             filter: 'blur(60px)',
             pointerEvents: 'none',
           }}
         />
 
         <div style={{ maxWidth: '1080px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
-          <span
-            style={{
-              fontSize: '0.82rem',
-              letterSpacing: '0.35em',
-              color: 'var(--gold)',
-              textTransform: 'uppercase',
-              display: 'inline-block',
-              fontWeight: 600,
-              marginBottom: '16px',
-              padding: '6px 16px',
-              background: 'rgba(201, 168, 76, 0.1)',
-              border: '1px solid rgba(201, 168, 76, 0.3)',
-              borderRadius: '20px',
-            }}
-          >
-            DIRECT FROM MASTER WEAVING GUILDS
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
+            <span
+              style={{
+                fontSize: '0.72rem',
+                letterSpacing: '0.22em',
+                color: 'var(--olive-deep)',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                padding: '6px 18px',
+                background: 'var(--olive-glow)',
+                border: '1px solid var(--olive-border)',
+                borderRadius: '20px',
+                boxShadow: '0 2px 8px var(--olive-glow)',
+              }}
+            >
+              ✦ 100% AUTHENTIC HANDWOVEN SILK ✦
+            </span>
+            <button
+              type="button"
+              onClick={() => setReplayKey((k) => k + 1)}
+              style={{
+                fontSize: '0.75rem',
+                color: 'var(--gold-dark)',
+                background: '#ffffff',
+                border: '1px solid rgba(179, 137, 56, 0.35)',
+                borderRadius: '20px',
+                padding: '5px 14px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                boxShadow: '0 2px 8px rgba(26, 19, 13, 0.04)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+              title="Replay the Silk Saree Cascade Startup Animation"
+            >
+              <span>✨ Replay Saree Unveiling</span>
+            </button>
+          </div>
 
           <h1
             style={{
               fontFamily: 'var(--font-display)',
               fontSize: 'clamp(2.6rem, 5.5vw, 4.6rem)',
-              color: '#ffffff',
+              color: 'var(--text)',
               lineHeight: 1.15,
               fontWeight: 400,
               letterSpacing: '-0.01em',
@@ -125,7 +605,7 @@ export default function Home() {
               maxWidth: '900px',
             }}
           >
-            The Sanctuary of Authentic Indian Handloom Heritage
+            Authentic Handloom Silk Sarees Direct from Master Weavers
           </h1>
 
           <p
@@ -133,26 +613,25 @@ export default function Home() {
               maxWidth: '680px',
               margin: '0 auto 36px',
               fontSize: 'clamp(1rem, 2vw, 1.18rem)',
-              color: '#d4ccbf',
+              color: 'var(--text-dim)',
               lineHeight: 1.7,
-              fontWeight: 300,
+              fontWeight: 400,
             }}
           >
-            Curated single-piece Banarasi, Kanjivaram, Paithani, and Chanderi sarees.
-            Every weave is authenticated with official Silk Mark certification and sealed with high-assurance delivery.
+            Handcrafted Banarasi, Kanjivaram, Paithani, and Chanderi pure silk sarees.
+            Every piece is certified with official Silk Mark India tags and delivered with secure tracking.
           </p>
 
           {/* 🔍 Prominent Storefront Search Bar at Top of Home Page */}
           <div
+            className="glass-card-luxury"
             style={{
               maxWidth: '760px',
               margin: '0 auto 48px',
-              background: 'rgba(17, 12, 8, 0.85)',
-              border: '1.5px solid var(--gold)',
               borderRadius: '16px',
               padding: '16px 20px',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.7)',
-              backdropFilter: 'blur(16px)',
+              border: '1.5px solid var(--gold)',
+              boxShadow: '0 12px 36px rgba(179, 137, 56, 0.14), 0 0 24px var(--olive-glow)',
             }}
           >
             <form
@@ -174,7 +653,7 @@ export default function Home() {
                   flex: '1 1 280px',
                   background: 'transparent',
                   border: 'none',
-                  color: '#fff',
+                  color: 'var(--text)',
                   fontSize: '1rem',
                   outline: 'none',
                   padding: '8px 4px',
@@ -185,7 +664,7 @@ export default function Home() {
                 style={{
                   padding: '12px 24px',
                   background: 'var(--gold)',
-                  color: '#110c08',
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: '8px',
                   fontWeight: 700,
@@ -194,6 +673,7 @@ export default function Home() {
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   flexShrink: 0,
+                  boxShadow: '0 4px 12px rgba(179, 137, 56, 0.25)',
                 }}
               >
                 Search Sarees →
@@ -208,7 +688,7 @@ export default function Home() {
                 gap: '8px',
                 marginTop: '14px',
                 paddingTop: '12px',
-                borderTop: '1px solid rgba(201, 168, 76, 0.2)',
+                borderTop: '1px solid rgba(179, 137, 56, 0.15)',
                 flexWrap: 'wrap',
                 justifyContent: 'center',
               }}
@@ -223,10 +703,10 @@ export default function Home() {
                   onClick={() => handleTrendingClick(tag)}
                   style={{
                     padding: '4px 12px',
-                    background: 'rgba(255, 255, 255, 0.06)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    background: 'rgba(244, 239, 234, 0.75)',
+                    border: '1px solid rgba(179, 137, 56, 0.25)',
                     borderRadius: '16px',
-                    color: '#e0d8cc',
+                    color: 'var(--text-dim)',
                     fontSize: '0.78rem',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
@@ -234,10 +714,12 @@ export default function Home() {
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = 'var(--gold)';
                     e.currentTarget.style.color = 'var(--gold)';
+                    e.currentTarget.style.background = '#ffffff';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                    e.currentTarget.style.color = '#e0d8cc';
+                    e.currentTarget.style.borderColor = 'rgba(179, 137, 56, 0.25)';
+                    e.currentTarget.style.color = 'var(--text-dim)';
+                    e.currentTarget.style.background = 'rgba(244, 239, 234, 0.75)';
                   }}
                 >
                   {tag}
@@ -261,9 +743,9 @@ export default function Home() {
               href="/catalog"
               style={{
                 padding: '16px 36px',
-                background: 'rgba(201, 168, 76, 0.15)',
+                background: 'var(--gold)',
                 border: '1px solid var(--gold)',
-                color: 'var(--gold)',
+                color: '#ffffff',
                 borderRadius: '8px',
                 textDecoration: 'none',
                 fontSize: '0.9rem',
@@ -271,6 +753,7 @@ export default function Home() {
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 transition: 'all 0.3s ease',
+                boxShadow: '0 4px 16px rgba(179, 137, 56, 0.3)',
               }}
             >
               Explore Full Catalog →
@@ -280,15 +763,17 @@ export default function Home() {
               href="/collections/1-of-1-heirlooms"
               style={{
                 padding: '16px 32px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                color: '#fff',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(179, 137, 56, 0.4)',
+                color: 'var(--text)',
                 borderRadius: '8px',
                 textDecoration: 'none',
                 fontSize: '0.9rem',
                 fontWeight: 600,
                 letterSpacing: '0.05em',
-                backdropFilter: 'blur(8px)',
+                boxShadow: '0 4px 12px rgba(26, 19, 13, 0.05)',
+                transition: 'all 0.2s ease',
               }}
             >
               👑 1-of-1 Heirloom Vault
@@ -297,20 +782,18 @@ export default function Home() {
 
           {/* 4 Pillars of Assurance Strip */}
           <div
+            className="glass-card-luxury"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
               gap: '24px',
               padding: '32px 24px',
-              background: 'rgba(17, 12, 8, 0.65)',
-              border: '1px solid rgba(201, 168, 76, 0.25)',
               borderRadius: '12px',
-              backdropFilter: 'blur(8px)',
             }}
           >
             <div>
               <span style={{ fontSize: '1.8rem', display: 'block', marginBottom: '8px' }}>🛡️</span>
-              <strong style={{ display: 'block', color: 'var(--gold)', fontSize: '0.9rem', letterSpacing: '0.05em' }}>
+              <strong style={{ display: 'block', color: 'var(--text)', fontSize: '0.9rem', letterSpacing: '0.05em' }}>
                 Silk Mark 100%
               </strong>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>Govt. certified purity</span>
@@ -318,7 +801,7 @@ export default function Home() {
 
             <div>
               <span style={{ fontSize: '1.8rem', display: 'block', marginBottom: '8px' }}>🔒</span>
-              <strong style={{ display: 'block', color: 'var(--gold)', fontSize: '0.9rem', letterSpacing: '0.05em' }}>
+              <strong style={{ display: 'block', color: 'var(--text)', fontSize: '0.9rem', letterSpacing: '0.05em' }}>
                 1-of-1 Heirlooms
               </strong>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>10-min uninterrupted cart hold</span>
@@ -326,7 +809,7 @@ export default function Home() {
 
             <div>
               <span style={{ fontSize: '1.8rem', display: 'block', marginBottom: '8px' }}>📹</span>
-              <strong style={{ display: 'block', color: 'var(--gold)', fontSize: '0.9rem', letterSpacing: '0.05em' }}>
+              <strong style={{ display: 'block', color: 'var(--text)', fontSize: '0.9rem', letterSpacing: '0.05em' }}>
                 Recorded Packing
               </strong>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>20s pre-shipment sealing video</span>
@@ -334,7 +817,7 @@ export default function Home() {
 
             <div>
               <span style={{ fontSize: '1.8rem', display: 'block', marginBottom: '8px' }}>✈️</span>
-              <strong style={{ display: 'block', color: 'var(--gold)', fontSize: '0.9rem', letterSpacing: '0.05em' }}>
+              <strong style={{ display: 'block', color: 'var(--text)', fontSize: '0.9rem', letterSpacing: '0.05em' }}>
                 Insured Air Express
               </strong>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>4-digit drop OTP security</span>
@@ -349,67 +832,70 @@ export default function Home() {
       {/* 4 Geographical Craft Clusters */}
       <section style={{ padding: '80px 24px', maxWidth: '1280px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <span style={{ fontSize: '0.75rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase' }}>
-            REGIONAL WEAVING PROVENANCE
+          <span style={{ fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 600 }}>
+            TRADITIONAL WEAVING REGIONS
           </span>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', color: '#fff', marginTop: '6px' }}>
-            Four Sacred Craft Traditions
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', color: 'var(--text)', marginTop: '6px' }}>
+            Iconic Handloom Weaving Regions
           </h2>
           <p style={{ color: 'var(--text-dim)', fontSize: '0.95rem', marginTop: '8px' }}>
-            Direct collaborations with state-awarded master weaver cooperatives
+            Handwoven directly by master artisans and weaver cooperatives
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
-          {CLUSTERS_PREVIEW.map((cluster) => (
-            <Link
-              key={cluster.name}
-              href={`/categories/${cluster.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
-              style={{
-                textDecoration: 'none',
-                position: 'relative',
-                height: '380px',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                border: '1px solid rgba(201, 168, 76, 0.25)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-end',
-                padding: '24px',
-                background: `linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(17,12,8,0.95) 100%), url(${cluster.image}) center/cover no-repeat`,
-                transition: 'transform 0.3s ease, border-color 0.3s ease',
-              }}
-            >
-              <span
-                style={{
-                  alignSelf: 'flex-start',
-                  padding: '4px 10px',
-                  background: 'rgba(26, 20, 14, 0.85)',
-                  border: '1px solid var(--gold)',
-                  borderRadius: '4px',
-                  color: 'var(--gold)',
-                  fontSize: '0.72rem',
-                  fontWeight: 600,
-                  letterSpacing: '0.05em',
-                  marginBottom: 'auto',
-                }}
-              >
-                {cluster.tag}
-              </span>
-
-              <div>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: '#fff', margin: 0 }}>
-                  {cluster.name}
-                </h3>
-                <p style={{ fontSize: '0.85rem', color: '#d4ccbf', marginTop: '6px' }}>
-                  {cluster.craft}
-                </p>
-                <span style={{ fontSize: '0.78rem', color: 'var(--gold)', marginTop: '8px', display: 'inline-block', fontWeight: 600 }}>
-                  Explore Cluster →
-                </span>
-              </div>
-            </Link>
+        {/* 2x2 Clean Minimalist Luxury Grid Layout (Exact Reference Match) */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 460px), 1fr))',
+            gap: '16px',
+            maxWidth: '1080px',
+            margin: '0 auto',
+          }}
+        >
+          {featuredTop4.map((cluster, idx) => (
+            <FeaturedCategoryCard
+              key={cluster.id || cluster.slug || cluster.name}
+              category={cluster}
+              index={idx}
+            />
           ))}
+        </div>
+
+        {/* View All Categories Button */}
+        <div style={{ textAlign: 'center', marginTop: '48px' }}>
+          <Link
+            href="/categories"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '14px 32px',
+              background: '#FFFFFF',
+              border: '1px solid rgba(179, 137, 56, 0.4)',
+              borderRadius: '8px',
+              color: 'var(--gold-dark)',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              letterSpacing: '0.04em',
+              textDecoration: 'none',
+              boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--gold)';
+              e.currentTarget.style.background = 'var(--gold)';
+              e.currentTarget.style.color = '#FFFFFF';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(179, 137, 56, 0.4)';
+              e.currentTarget.style.background = '#FFFFFF';
+              e.currentTarget.style.color = 'var(--gold-dark)';
+            }}
+          >
+            <span>Explore All {categories.length || 8} Weaving Regions</span>
+            <span>→</span>
+          </Link>
         </div>
       </section>
 
@@ -417,36 +903,42 @@ export default function Home() {
       <section
         style={{
           padding: '80px 24px',
-          background: 'linear-gradient(180deg, #150f0a 0%, #110c08 100%)',
-          borderTop: '1px solid rgba(201, 168, 76, 0.15)',
-          borderBottom: '1px solid rgba(201, 168, 76, 0.15)',
+          background: 'transparent',
           textAlign: 'center',
         }}
       >
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <span style={{ fontSize: '0.75rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase' }}>
+        <div
+          className="glass-card-luxury"
+          style={{
+            maxWidth: '960px',
+            margin: '0 auto',
+            padding: '56px 36px',
+            borderRadius: '16px',
+          }}
+        >
+          <span style={{ fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 600 }}>
             THE SUTRAಧಾರ PROMISE
           </span>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: '#fff', margin: '12px 0 20px' }}>
-            No Machine Imitations. Only Genuine Handloom.
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: 'var(--text)', margin: '12px 0 20px' }}>
+            No Machine Copies. 100% Handwoven Silk.
           </h2>
-          <p style={{ color: '#d4ccbf', lineHeight: 1.8, fontSize: '1rem', fontWeight: 300 }}>
-            In an era flooded with powerloom polyester copies, Sutraಧಾರ exists as an unyielding fortress of authenticity. 
-            Every single saree is woven thread-by-thread on traditional wooden pit looms, tested for pure zari purity, 
-            and authenticated with Silk Mark India credentials.
+          <p style={{ color: 'var(--text-dim)', lineHeight: 1.8, fontSize: '1rem', fontWeight: 400, maxWidth: '780px', margin: '0 auto' }}>
+            We bring you certified genuine handloom sarees. Every piece is woven thread-by-thread on traditional wooden pit looms, tested for pure zari purity, and authenticated with Silk Mark India certification.
           </p>
           <div style={{ marginTop: '32px' }}>
             <Link
               href="/authenticity"
               style={{
                 padding: '14px 28px',
-                background: 'rgba(201, 168, 76, 0.15)',
-                border: '1px solid var(--gold)',
-                color: 'var(--gold)',
+                background: 'var(--gold)',
+                color: '#ffffff',
+                border: 'none',
                 borderRadius: '6px',
                 textDecoration: 'none',
                 fontWeight: 600,
                 fontSize: '0.88rem',
+                boxShadow: '0 4px 14px rgba(179, 137, 56, 0.3)',
+                display: 'inline-block',
               }}
             >
               Learn About Silk Mark Verification →

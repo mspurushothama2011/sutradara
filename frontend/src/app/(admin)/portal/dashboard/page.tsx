@@ -11,25 +11,26 @@ export default function PortalDashboardPage() {
       {/* Welcome Banner */}
       <div
         style={{
-          background: 'linear-gradient(135deg, rgba(201, 168, 76, 0.15) 0%, rgba(26, 20, 14, 0.6) 100%)',
-          border: '1px solid rgba(201, 168, 76, 0.25)',
+          background: '#ffffff',
+          border: '1px solid rgba(179, 137, 56, 0.25)',
           borderRadius: '12px',
           padding: '28px 32px',
           marginBottom: '32px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
         }}
       >
         <div>
-          <span style={{ fontSize: '0.75rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '0.75rem', letterSpacing: '0.2em', color: 'var(--gold-dark)', textTransform: 'uppercase', fontWeight: 700 }}>
             {user?.role} WORKSPACE
           </span>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: '#fff', marginTop: '4px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text)', marginTop: '4px' }}>
             Welcome back, {user?.name || 'Team Member'}
           </h1>
           <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-            Sutradara Handloom Operations & Commerce Hub
+            Sutradara Handloom Operations &amp; Commerce Hub
           </p>
         </div>
 
@@ -39,17 +40,17 @@ export default function PortalDashboardPage() {
             style={{
               padding: '6px 14px',
               borderRadius: '20px',
-              background: 'rgba(34, 197, 94, 0.15)',
+              background: 'rgba(34, 197, 94, 0.12)',
               border: '1px solid rgba(34, 197, 94, 0.35)',
-              color: '#4ade80',
+              color: '#15803d',
               fontSize: '0.8rem',
-              fontWeight: 500,
+              fontWeight: 700,
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
             }}
           >
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#16a34a' }} />
             Shift Active
           </span>
         </div>
@@ -67,65 +68,69 @@ export default function PortalDashboardPage() {
         {/* Metric 1: Orders Pending */}
         <div
           style={{
-            background: 'var(--bg-deep)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            background: '#ffffff',
+            border: '1px solid rgba(179, 137, 56, 0.22)',
             borderRadius: '10px',
             padding: '20px 24px',
+            boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
           }}
         >
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
             Pending Dispatch
           </span>
-          <p style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: '#fff', margin: '8px 0 4px' }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: 'var(--text)', margin: '8px 0 4px', fontWeight: 700 }}>
             12
           </p>
-          <span style={{ fontSize: '0.75rem', color: 'var(--gold)' }}>3 ready for video inspection</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--gold-dark)', fontWeight: 600 }}>3 ready for video inspection</span>
         </div>
 
         {/* Metric 2: Live Stock Count */}
         <div
           style={{
-            background: 'var(--bg-deep)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            background: '#ffffff',
+            border: '1px solid rgba(179, 137, 56, 0.22)',
             borderRadius: '10px',
             padding: '20px 24px',
+            boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
           }}
         >
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
             Active Sarees in Stock
           </span>
-          <p style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: '#fff', margin: '8px 0 4px' }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: 'var(--text)', margin: '8px 0 4px', fontWeight: 700 }}>
             48
           </p>
-          <span style={{ fontSize: '0.75rem', color: '#60a5fa' }}>14 tagged as 1-of-1 Heirloom</span>
+          <span style={{ fontSize: '0.75rem', color: '#2563eb', fontWeight: 600 }}>14 tagged as 1-of-1 Heirloom</span>
         </div>
 
         {/* Metric 3: Revenue (Only visible if finance:view capability) */}
         {hasCapability('finance:view') ? (
           <div
             style={{
-              background: 'var(--bg-deep)',
-              border: '1px solid rgba(201, 168, 76, 0.3)',
+              background: '#ffffff',
+              border: '1px solid rgba(179, 137, 56, 0.3)',
               borderRadius: '10px',
               padding: '20px 24px',
+              boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
             }}
           >
-            <span style={{ fontSize: '0.75rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--gold-dark)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
               Today's Net Revenue 👑
             </span>
-            <p style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: '#fff', margin: '8px 0 4px' }}>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: 'var(--text)', margin: '8px 0 4px', fontWeight: 700 }}>
               ₹1,42,800
             </p>
-            <span style={{ fontSize: '0.75rem', color: '#4ade80' }}>+18.4% vs yesterday</span>
+            <span style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 600 }}>+18.4% vs yesterday</span>
           </div>
         ) : (
           <div
             style={{
-              background: 'var(--bg-deep)',
-              border: '1px solid rgba(255, 255, 255, 0.04)',
+              background: '#ffffff',
+              border: '1px solid rgba(179, 137, 56, 0.15)',
               borderRadius: '10px',
               padding: '20px 24px',
-              opacity: 0.6,
+              opacity: 0.75,
+              boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
             }}
           >
             <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -144,13 +149,14 @@ export default function PortalDashboardPage() {
         {/* Left Column: Granted Capabilities */}
         <div
           style={{
-            background: 'var(--bg-deep)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            background: '#ffffff',
+            border: '1px solid rgba(179, 137, 56, 0.22)',
             borderRadius: '10px',
             padding: '24px',
+            boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
           }}
         >
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: '#fff', marginBottom: '16px' }}>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--text)', marginBottom: '16px', fontWeight: 600 }}>
             Your Active Portal Capabilities
           </h3>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginBottom: '16px' }}>
@@ -161,13 +167,13 @@ export default function PortalDashboardPage() {
             {user?.role === 'ADMIN' ? (
               <span
                 style={{
-                  padding: '6px 12px',
+                  padding: '6px 14px',
                   borderRadius: '6px',
-                  background: 'rgba(201, 168, 76, 0.2)',
+                  background: 'rgba(179, 137, 56, 0.15)',
                   border: '1px solid var(--gold)',
-                  color: 'var(--gold)',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
+                  color: 'var(--gold-dark)',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
                 }}
               >
                 👑 Full System Super-Admin (All Capabilities Active)
@@ -177,13 +183,14 @@ export default function PortalDashboardPage() {
                 <span
                   key={cap}
                   style={{
-                    padding: '4px 10px',
-                    borderRadius: '4px',
-                    background: 'rgba(255, 255, 255, 0.06)',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    color: '#e0d8cc',
+                    padding: '5px 12px',
+                    borderRadius: '6px',
+                    background: '#FAF8F5',
+                    border: '1px solid rgba(179, 137, 56, 0.25)',
+                    color: 'var(--text)',
                     fontSize: '0.75rem',
                     fontFamily: 'monospace',
+                    fontWeight: 600,
                   }}
                 >
                   ✓ {cap}
@@ -196,16 +203,17 @@ export default function PortalDashboardPage() {
         {/* Right Column: Quick Shortcuts */}
         <div
           style={{
-            background: 'var(--bg-deep)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            background: '#ffffff',
+            border: '1px solid rgba(179, 137, 56, 0.22)',
             borderRadius: '10px',
             padding: '24px',
             display: 'flex',
             flexDirection: 'column',
             gap: '12px',
+            boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
           }}
         >
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: '#fff', marginBottom: '4px' }}>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--text)', marginBottom: '4px', fontWeight: 600 }}>
             Floor Shortcuts
           </h3>
 
@@ -215,12 +223,12 @@ export default function PortalDashboardPage() {
               style={{
                 padding: '12px',
                 borderRadius: '6px',
-                background: 'rgba(201, 168, 76, 0.12)',
-                border: '1px solid rgba(201, 168, 76, 0.25)',
-                color: 'var(--gold)',
+                background: 'rgba(179, 137, 56, 0.12)',
+                border: '1px solid rgba(179, 137, 56, 0.3)',
+                color: 'var(--gold-dark)',
                 textDecoration: 'none',
                 fontSize: '0.82rem',
-                fontWeight: 500,
+                fontWeight: 700,
                 display: 'block',
                 textAlign: 'center',
               }}
@@ -235,16 +243,17 @@ export default function PortalDashboardPage() {
               style={{
                 padding: '12px',
                 borderRadius: '6px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: '#fff',
+                background: '#FAF8F5',
+                border: '1px solid rgba(179, 137, 56, 0.25)',
+                color: 'var(--text)',
                 textDecoration: 'none',
                 fontSize: '0.82rem',
+                fontWeight: 600,
                 display: 'block',
                 textAlign: 'center',
               }}
             >
-              📦 View Packing & QC Queue
+              📦 View Packing &amp; QC Queue
             </Link>
           )}
 
@@ -255,10 +264,11 @@ export default function PortalDashboardPage() {
               padding: '12px',
               borderRadius: '6px',
               background: 'transparent',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(179, 137, 56, 0.25)',
               color: 'var(--text-dim)',
               textDecoration: 'none',
               fontSize: '0.82rem',
+              fontWeight: 600,
               display: 'block',
               textAlign: 'center',
             }}
@@ -270,3 +280,4 @@ export default function PortalDashboardPage() {
     </div>
   );
 }
+

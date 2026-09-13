@@ -85,21 +85,21 @@ export default function CraftCategoriesPage() {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       {/* Universal Storefront Navigation */}
       <LandingNavbar />
 
       <div style={{ paddingTop: '120px', paddingBottom: '80px', paddingLeft: '24px', paddingRight: '24px', maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-          <span style={{ fontSize: '0.8rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase' }}>
-            GEOGRAPHICAL PROVENANCE
+          <span style={{ fontSize: '0.8rem', letterSpacing: '0.22em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 700 }}>
+            SAREE CATEGORIES
           </span>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.2rem, 4vw, 3.4rem)', color: '#fff', marginTop: '8px' }}>
-            Master Weaving Clusters
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.2rem, 4vw, 3.4rem)', color: 'var(--text)', marginTop: '8px' }}>
+            Saree Categories &amp; Weaves
           </h1>
           <p style={{ maxWidth: '640px', margin: '12px auto 0', color: 'var(--text-dim)', fontSize: '0.95rem' }}>
-            Explore certified authentic handloom sarees directly categorized by India&apos;s most venerated artisanal craft centers.
+            Explore certified authentic handloom pure silk sarees by weaving region and style.
           </p>
         </div>
 
@@ -111,13 +111,14 @@ export default function CraftCategoriesPage() {
               href={`/catalog?craftRegion=${encodeURIComponent(cluster.region)}`}
               style={{
                 textDecoration: 'none',
-                background: 'var(--bg-deep)',
-                border: '1px solid rgba(201, 168, 76, 0.2)',
+                background: '#ffffff',
+                border: '1px solid rgba(179, 137, 56, 0.22)',
                 borderRadius: '12px',
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
                 transition: 'all 0.3s ease',
+                boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)',
               }}
             >
               <div style={{ position: 'relative', height: '240px', overflow: 'hidden' }}>
@@ -148,7 +149,7 @@ export default function CraftCategoriesPage() {
 
               <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: '#fff' }}>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--text)' }}>
                     {cluster.name}
                   </h3>
                   <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginTop: '8px', lineHeight: 1.5 }}>
@@ -164,10 +165,10 @@ export default function CraftCategoriesPage() {
                           style={{
                             fontSize: '0.72rem',
                             padding: '3px 8px',
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            background: '#FAF8F5',
+                            border: '1px solid rgba(179, 137, 56, 0.2)',
                             borderRadius: '4px',
-                            color: '#e0d8cc',
+                            color: 'var(--text-dim)',
                           }}
                         >
                           {sub.name}
@@ -181,13 +182,13 @@ export default function CraftCategoriesPage() {
                   style={{
                     marginTop: '20px',
                     paddingTop: '16px',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderTop: '1px solid rgba(179, 137, 56, 0.15)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                   }}
                 >
-                  <span style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--gold)', fontWeight: 600 }}>
                     Explore Cluster Weaves →
                   </span>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>

@@ -6,6 +6,7 @@ import marketingRoutes from './marketing.routes';
 import staffRoutes from './staff.routes';
 import auditRoutes from './audit.routes';
 import categoriesRoutes from './categories.routes';
+import uploadRoutes from './upload.routes';
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use('/marketing', marketingRoutes);
 router.use('/staff', staffRoutes);
 router.use('/audit', auditRoutes);
 router.use('/categories', categoriesRoutes);
+router.use('/uploads', uploadRoutes);
 
 export default router;

@@ -125,11 +125,11 @@ export default function AdminOrderTrackingPage() {
   if (!order) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
-        <h2 style={{ fontFamily: 'var(--font-display)', color: '#fff' }}>Order Not Found</h2>
+        <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>Order Not Found</h2>
         <p style={{ color: 'var(--text-dim)', marginTop: '8px' }}>Could not locate tracking record for #{orderId}</p>
         <Link
           href="/portal/orders"
-          style={{ display: 'inline-block', marginTop: '16px', color: 'var(--gold)', textDecoration: 'none' }}
+          style={{ display: 'inline-block', marginTop: '16px', color: 'var(--gold)', textDecoration: 'none', fontWeight: 600 }}
         >
           ← Back to Orders Queue
         </Link>
@@ -148,14 +148,14 @@ export default function AdminOrderTrackingPage() {
         <span>/</span>
         <Link href="/portal/orders" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>Orders Queue</Link>
         <span>/</span>
-        <span style={{ color: 'var(--gold)' }}>Dispatch Telemetry: {order.orderNumber}</span>
+        <span style={{ color: 'var(--gold-dark, #8A6418)', fontWeight: 600 }}>Dispatch Telemetry: {order.orderNumber}</span>
       </div>
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: '#fff', margin: 0 }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text)', margin: 0 }}>
               Order Dispatch Desk: {order.orderNumber}
             </h1>
             <span
@@ -164,15 +164,15 @@ export default function AdminOrderTrackingPage() {
                 borderRadius: '6px',
                 fontSize: '0.78rem',
                 fontWeight: 700,
-                background: order.status === 'DELIVERED' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(201, 168, 76, 0.2)',
-                color: order.status === 'DELIVERED' ? '#4ade80' : 'var(--gold)',
-                border: '1px solid rgba(201, 168, 76, 0.3)',
+                background: order.status === 'DELIVERED' ? 'rgba(34, 197, 94, 0.12)' : 'rgba(179, 137, 56, 0.12)',
+                color: order.status === 'DELIVERED' ? '#15803d' : 'var(--gold-dark, #8A6418)',
+                border: '1px solid rgba(179, 137, 56, 0.25)',
               }}
             >
               {order.status}
             </span>
             {order.isNdrFlagged && (
-              <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.72rem', background: '#dc2626', color: '#fff', fontWeight: 700 }}>
+              <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.72rem', background: '#dc2626', color: '#FFFFFF', fontWeight: 700 }}>
                 ⚠️ NDR FLAGGED
               </span>
             )}
@@ -189,15 +189,17 @@ export default function AdminOrderTrackingPage() {
             rel="noreferrer"
             style={{
               padding: '10px 18px',
-              background: 'rgba(255, 255, 255, 0.06)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
+              background: '#FFFFFF',
+              border: '1px solid rgba(179, 137, 56, 0.3)',
               borderRadius: '6px',
-              color: '#fff',
+              color: 'var(--text)',
               fontSize: '0.82rem',
+              fontWeight: 600,
               textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
+              boxShadow: '0 2px 8px rgba(26, 19, 13, 0.03)',
             }}
           >
             <span>Customer View ↗</span>
@@ -212,10 +214,11 @@ export default function AdminOrderTrackingPage() {
                 background: 'var(--gold)',
                 border: 'none',
                 borderRadius: '6px',
-                color: '#110c08',
+                color: '#FFFFFF',
                 fontSize: '0.82rem',
                 fontWeight: 700,
                 cursor: isDispatching ? 'wait' : 'pointer',
+                boxShadow: '0 2px 8px rgba(179, 137, 56, 0.3)',
               }}
             >
               {isDispatching ? 'Booking...' : '🚀 1-Click Shiprocket Dispatch'}
@@ -226,12 +229,12 @@ export default function AdminOrderTrackingPage() {
             onClick={handleToggleNdr}
             style={{
               padding: '10px 16px',
-              background: order.isNdrFlagged ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-              border: order.isNdrFlagged ? '1px solid #22c55e' : '1px solid #ef4444',
+              background: order.isNdrFlagged ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.1)',
+              border: order.isNdrFlagged ? '1px solid #16a34a' : '1px solid #ef4444',
               borderRadius: '6px',
-              color: order.isNdrFlagged ? '#4ade80' : '#f87171',
+              color: order.isNdrFlagged ? '#15803d' : '#b91c1c',
               fontSize: '0.82rem',
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: 'pointer',
             }}
           >
@@ -247,23 +250,23 @@ export default function AdminOrderTrackingPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           {/* Customer Snapshot Card */}
-          <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '24px' }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.03)' }}>
             <span style={{ fontSize: '0.72rem', letterSpacing: '0.15em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 600 }}>
               IMMUTABLE CUSTOMER SNAPSHOT
             </span>
             <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.88rem' }}>
-              <p style={{ color: '#fff', fontWeight: 600, fontSize: '1.05rem' }}>
+              <p style={{ color: 'var(--text)', fontWeight: 700, fontSize: '1.05rem' }}>
                 {order.customerName || shipping.recipientName || 'Valued Patron'}
               </p>
               <p style={{ color: 'var(--text-dim)' }}>
-                ✉️ <strong>Email:</strong> {order.customerEmail || '—'}
+                ✉️ <strong style={{ color: 'var(--text)' }}>Email:</strong> {order.customerEmail || '—'}
               </p>
               <p style={{ color: 'var(--text-dim)' }}>
-                📞 <strong>Phone:</strong> {order.customerPhone || shipping.recipientPhone || '—'}
+                📞 <strong style={{ color: 'var(--text)' }}>Phone:</strong> {order.customerPhone || shipping.recipientPhone || '—'}
               </p>
-              <div style={{ marginTop: '8px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--gold)' }}>📍 Shipping Destination:</span>
-                <p style={{ color: '#e0d8cc', fontSize: '0.84rem', marginTop: '2px', lineHeight: 1.4 }}>
+              <div style={{ marginTop: '8px', paddingTop: '10px', borderTop: '1px solid rgba(179, 137, 56, 0.15)' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--gold-dark, #8A6418)', fontWeight: 600 }}>📍 Shipping Destination:</span>
+                <p style={{ color: 'var(--text)', fontSize: '0.86rem', marginTop: '2px', lineHeight: 1.4 }}>
                   {shipping.recipientName && <strong>{shipping.recipientName} • </strong>}
                   {shipping.street}, {shipping.city}, {shipping.state} - <strong>{shipping.pincode}</strong>
                 </p>
@@ -272,22 +275,22 @@ export default function AdminOrderTrackingPage() {
           </div>
 
           {/* Verification & Handover Credentials */}
-          <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(201, 168, 76, 0.25)', borderRadius: '12px', padding: '24px' }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.03)' }}>
             <span style={{ fontSize: '0.72rem', letterSpacing: '0.15em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 600 }}>
               VERIFICATION &amp; EVIDENCE
             </span>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
-              <div style={{ padding: '16px', background: 'rgba(201, 168, 76, 0.08)', borderRadius: '8px', border: '1px solid rgba(201, 168, 76, 0.2)', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase' }}>Handover Protocol</span>
-                <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff', marginTop: '6px' }}>
+              <div style={{ padding: '16px', background: 'rgba(179, 137, 56, 0.08)', borderRadius: '8px', border: '1px solid rgba(179, 137, 56, 0.2)', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--gold-dark, #8A6418)', textTransform: 'uppercase', fontWeight: 600 }}>Handover Protocol</span>
+                <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text)', marginTop: '6px' }}>
                   Direct Signature
                 </div>
               </div>
 
-              <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Items in Trunk</span>
-                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', marginTop: '4px' }}>
+              <div style={{ padding: '16px', background: 'var(--bg-deep)', borderRadius: '8px', border: '1px solid rgba(179, 137, 56, 0.15)', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>Items in Trunk</span>
+                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text)', marginTop: '4px' }}>
                   {order.items?.length || 1} Piece(s)
                 </div>
               </div>
@@ -295,7 +298,7 @@ export default function AdminOrderTrackingPage() {
 
             {/* Inspection Video Clip */}
             <div style={{ marginTop: '16px' }}>
-              <span style={{ fontSize: '0.78rem', color: 'var(--gold)', display: 'block', marginBottom: '4px' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--gold-dark, #8A6418)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                 📹 Pre-Shipment Sealing Video:
               </span>
               {order.inspectionVideoUrl ? (
@@ -304,7 +307,7 @@ export default function AdminOrderTrackingPage() {
                     href={order.inspectionVideoUrl}
                     target="_blank"
                     rel="noreferrer"
-                    style={{ color: '#60a5fa', fontSize: '0.82rem', textDecoration: 'underline', wordBreak: 'break-all' }}
+                    style={{ color: '#2563eb', fontSize: '0.82rem', textDecoration: 'underline', wordBreak: 'break-all', fontWeight: 600 }}
                   >
                     {order.inspectionVideoUrl}
                   </a>
@@ -316,7 +319,7 @@ export default function AdminOrderTrackingPage() {
           </div>
 
           {/* Order Items List */}
-          <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '24px' }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.03)' }}>
             <span style={{ fontSize: '0.72rem', letterSpacing: '0.15em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 600 }}>
               ACQUIRED PIECES (₹{order.totalAmount.toLocaleString('en-IN')})
             </span>
@@ -326,12 +329,12 @@ export default function AdminOrderTrackingPage() {
                   <img
                     src={item.product?.images?.[0] || '/frames/ezgif-frame-240.jpg'}
                     alt={item.product?.name || 'Saree'}
-                    style={{ width: '48px', height: '48px', borderRadius: '6px', objectFit: 'cover' }}
+                    style={{ width: '48px', height: '48px', borderRadius: '6px', objectFit: 'cover', border: '1px solid rgba(179, 137, 56, 0.25)' }}
                   />
                   <div style={{ flex: 1 }}>
-                    <p style={{ color: '#fff', fontSize: '0.86rem', fontWeight: 600 }}>{item.product?.name || 'Silk Handloom'}</p>
+                    <p style={{ color: 'var(--text)', fontSize: '0.88rem', fontWeight: 700 }}>{item.product?.name || 'Silk Handloom'}</p>
                     <p style={{ color: 'var(--text-dim)', fontSize: '0.75rem' }}>
-                      SKU: {item.product?.sku} • ₹{item.price.toLocaleString('en-IN')} × {item.quantity}
+                      SKU: <span style={{ fontFamily: 'monospace', color: 'var(--gold-dark, #8A6418)', fontWeight: 600 }}>{item.product?.sku}</span> • ₹{item.price.toLocaleString('en-IN')} × {item.quantity}
                     </p>
                   </div>
                 </div>
@@ -344,15 +347,15 @@ export default function AdminOrderTrackingPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           {/* Dispatch & Milestone Management Form */}
-          <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(201, 168, 76, 0.25)', borderRadius: '12px', padding: '28px' }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: 'var(--gold)', marginBottom: '18px' }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '28px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.03)' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: 'var(--text)', marginBottom: '18px' }}>
               Update Logistics &amp; Milestone Telemetry
             </h2>
 
             <form onSubmit={handleUpdateMilestone} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-dim)', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text)', fontWeight: 600, marginBottom: '4px' }}>
                     Status
                   </label>
                   <select
@@ -360,12 +363,13 @@ export default function AdminOrderTrackingPage() {
                     onChange={(e) => setStatusInput(e.target.value)}
                     style={{
                       width: '100%',
-                      padding: '10px',
-                      background: 'rgba(0,0,0,0.5)',
-                      border: '1px solid rgba(255,255,255,0.15)',
+                      padding: '10px 14px',
+                      background: '#FAF8F5',
+                      border: '1px solid rgba(179, 137, 56, 0.3)',
                       borderRadius: '6px',
-                      color: '#fff',
+                      color: 'var(--text)',
                       fontSize: '0.85rem',
+                      outline: 'none',
                     }}
                   >
                     <option value="PAID">PAID (Order Placed)</option>
@@ -379,7 +383,7 @@ export default function AdminOrderTrackingPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-dim)', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text)', fontWeight: 600, marginBottom: '4px' }}>
                     Courier Partner
                   </label>
                   <input
@@ -388,12 +392,13 @@ export default function AdminOrderTrackingPage() {
                     onChange={(e) => setCourierInput(e.target.value)}
                     style={{
                       width: '100%',
-                      padding: '10px',
-                      background: 'rgba(0,0,0,0.5)',
-                      border: '1px solid rgba(255,255,255,0.15)',
+                      padding: '10px 14px',
+                      background: '#FAF8F5',
+                      border: '1px solid rgba(179, 137, 56, 0.3)',
                       borderRadius: '6px',
-                      color: '#fff',
+                      color: 'var(--text)',
                       fontSize: '0.85rem',
+                      outline: 'none',
                     }}
                   />
                 </div>
@@ -401,7 +406,7 @@ export default function AdminOrderTrackingPage() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-dim)', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text)', fontWeight: 600, marginBottom: '4px' }}>
                     AWB Airway Bill Number
                   </label>
                   <input
@@ -411,19 +416,21 @@ export default function AdminOrderTrackingPage() {
                     onChange={(e) => setAwbInput(e.target.value)}
                     style={{
                       width: '100%',
-                      padding: '10px',
-                      background: 'rgba(0,0,0,0.5)',
-                      border: '1px solid rgba(255,255,255,0.15)',
+                      padding: '10px 14px',
+                      background: '#FAF8F5',
+                      border: '1px solid rgba(179, 137, 56, 0.3)',
                       borderRadius: '6px',
-                      color: '#fff',
+                      color: 'var(--text)',
                       fontSize: '0.85rem',
                       fontFamily: 'monospace',
+                      fontWeight: 600,
+                      outline: 'none',
                     }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-dim)', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text)', fontWeight: 600, marginBottom: '4px' }}>
                     Location (Hub / Vault)
                   </label>
                   <input
@@ -433,19 +440,20 @@ export default function AdminOrderTrackingPage() {
                     onChange={(e) => setLocationInput(e.target.value)}
                     style={{
                       width: '100%',
-                      padding: '10px',
-                      background: 'rgba(0,0,0,0.5)',
-                      border: '1px solid rgba(255,255,255,0.15)',
+                      padding: '10px 14px',
+                      background: '#FAF8F5',
+                      border: '1px solid rgba(179, 137, 56, 0.3)',
                       borderRadius: '6px',
-                      color: '#fff',
+                      color: 'var(--text)',
                       fontSize: '0.85rem',
+                      outline: 'none',
                     }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-dim)', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text)', fontWeight: 600, marginBottom: '4px' }}>
                   Milestone Progress Note
                 </label>
                 <input
@@ -455,18 +463,19 @@ export default function AdminOrderTrackingPage() {
                   onChange={(e) => setMessageInput(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '10px',
-                    background: 'rgba(0,0,0,0.5)',
-                    border: '1px solid rgba(255,255,255,0.15)',
+                    padding: '10px 14px',
+                    background: '#FAF8F5',
+                    border: '1px solid rgba(179, 137, 56, 0.3)',
                     borderRadius: '6px',
-                    color: '#fff',
+                    color: 'var(--text)',
                     fontSize: '0.85rem',
+                    outline: 'none',
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-dim)', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text)', fontWeight: 600, marginBottom: '4px' }}>
                   Packing Evidence Video Link (Optional)
                 </label>
                 <input
@@ -476,12 +485,13 @@ export default function AdminOrderTrackingPage() {
                   onChange={(e) => setVideoUrlInput(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '10px',
-                    background: 'rgba(0,0,0,0.5)',
-                    border: '1px solid rgba(255,255,255,0.15)',
+                    padding: '10px 14px',
+                    background: '#FAF8F5',
+                    border: '1px solid rgba(179, 137, 56, 0.3)',
                     borderRadius: '6px',
-                    color: '#fff',
+                    color: 'var(--text)',
                     fontSize: '0.85rem',
+                    outline: 'none',
                   }}
                 />
               </div>
@@ -493,12 +503,13 @@ export default function AdminOrderTrackingPage() {
                   marginTop: '6px',
                   padding: '12px',
                   background: 'var(--gold)',
-                  color: '#110c08',
+                  color: '#FFFFFF',
                   border: 'none',
                   borderRadius: '6px',
                   fontWeight: 700,
                   fontSize: '0.88rem',
                   cursor: isUpdating ? 'wait' : 'pointer',
+                  boxShadow: '0 2px 8px rgba(179, 137, 56, 0.35)',
                 }}
               >
                 {isUpdating ? 'Saving Update...' : 'Commit Milestone &amp; Notify Patron'}
@@ -507,8 +518,8 @@ export default function AdminOrderTrackingPage() {
           </div>
 
           {/* Live Milestone Timeline */}
-          <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '28px' }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', color: '#fff', marginBottom: '20px' }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '28px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.03)' }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', color: 'var(--text)', marginBottom: '20px' }}>
               Milestone Audit Trail
             </h3>
 
@@ -524,22 +535,22 @@ export default function AdminOrderTrackingPage() {
                       width: '12px',
                       height: '12px',
                       borderRadius: '50%',
-                      background: idx === 0 ? 'var(--gold)' : 'rgba(255,255,255,0.3)',
+                      background: idx === 0 ? 'var(--gold)' : 'rgba(179, 137, 56, 0.3)',
                       marginTop: '4px',
                       flexShrink: 0,
                     }}
                   />
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <strong style={{ color: '#fff', fontSize: '0.9rem' }}>{event.status}</strong>
+                      <strong style={{ color: 'var(--text)', fontSize: '0.9rem' }}>{event.status}</strong>
                       {event.location && (
-                        <span style={{ fontSize: '0.78rem', color: 'var(--gold)' }}>📍 {event.location}</span>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--gold-dark, #8A6418)', fontWeight: 600 }}>📍 {event.location}</span>
                       )}
                     </div>
                     <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '2px' }}>
                       {event.message}
                     </p>
-                    <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', marginTop: '2px', display: 'block' }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '2px', display: 'block' }}>
                       {event.timestamp ? new Date(event.timestamp).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : ''}
                     </span>
                   </div>

@@ -247,10 +247,10 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff', textAlign: 'center', padding: '120px 24px' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem' }}>Saree Not Found</h1>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', textAlign: 'center', padding: '120px 24px' }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text)' }}>Saree Not Found</h1>
         <p style={{ color: 'var(--text-dim)', marginTop: '8px' }}>This specific heirloom piece may have been acquired or relocated.</p>
-        <Link href="/catalog" style={{ display: 'inline-block', marginTop: '20px', padding: '12px 24px', background: 'var(--gold)', color: '#110c08', borderRadius: '6px', textDecoration: 'none', fontWeight: 600 }}>
+        <Link href="/catalog" style={{ display: 'inline-block', marginTop: '20px', padding: '12px 24px', background: 'var(--gold)', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: 600 }}>
           ← Return to Curated Catalog
         </Link>
       </div>
@@ -274,7 +274,7 @@ export default function ProductDetailPage() {
           <span>/</span>
           <Link href={`/catalog?craftRegion=${encodeURIComponent(product.craftRegion)}`} style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>{product.craftRegion}</Link>
           <span>/</span>
-          <span style={{ color: 'var(--gold)' }}>{product.sku}</span>
+          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>{product.sku}</span>
         </div>
 
         {/* 2-Column Saree Layout */}
@@ -287,9 +287,9 @@ export default function ProductDetailPage() {
                 height: '560px',
                 borderRadius: '12px',
                 overflow: 'hidden',
-                background: '#0a0602',
-                border: '1px solid rgba(201, 168, 76, 0.25)',
-                boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+                background: '#F4EFEA',
+                border: '1px solid rgba(179, 137, 56, 0.25)',
+                boxShadow: '0 12px 36px rgba(45, 25, 8, 0.08)',
               }}
             >
               <img
@@ -305,14 +305,15 @@ export default function ProductDetailPage() {
                     top: '16px',
                     left: '16px',
                     padding: '6px 14px',
-                    background: 'rgba(26, 20, 14, 0.9)',
+                    background: 'var(--plum, #5C1D6E)',
                     backdropFilter: 'blur(8px)',
-                    border: '1px solid var(--gold)',
+                    border: '1px solid #D4AF37',
                     borderRadius: '6px',
-                    color: 'var(--gold)',
+                    color: '#ffffff',
                     fontSize: '0.75rem',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     letterSpacing: '0.08em',
+                    boxShadow: '0 4px 12px rgba(92, 29, 110, 0.4)',
                   }}
                 >
                   👑 1-OF-1 UNREPEATABLE HEIRLOOM
@@ -332,9 +333,9 @@ export default function ProductDetailPage() {
                       height: '72px',
                       borderRadius: '6px',
                       overflow: 'hidden',
-                      border: activeImage === img ? '2px solid var(--gold)' : '1px solid rgba(255,255,255,0.15)',
+                      border: activeImage === img ? '2px solid var(--gold)' : '1px solid rgba(179, 137, 56, 0.25)',
                       padding: 0,
-                      background: '#000',
+                      background: '#F4EFEA',
                       cursor: 'pointer',
                     }}
                   >
@@ -347,17 +348,17 @@ export default function ProductDetailPage() {
 
           {/* Right Column: Provenance & Purchase Box */}
           <div>
-            <span style={{ fontSize: '0.8rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.8rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase', display: 'block', marginBottom: '8px', fontWeight: 700 }}>
               {product.craftRegion} LOOM CLUSTER • SKU: {product.sku}
             </span>
 
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', color: '#fff', lineHeight: 1.25 }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', color: 'var(--text)', lineHeight: 1.25, fontWeight: 500 }}>
               {product.name}
             </h1>
 
             {/* Price Row */}
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '16px', margin: '20px 0 24px' }}>
-              <span style={{ fontSize: '2rem', color: '#fff', fontWeight: 600 }}>
+              <span style={{ fontSize: '2.2rem', color: 'var(--text)', fontWeight: 700 }}>
                 ₹{product.sellingPrice.toLocaleString('en-IN')}
               </span>
               {product.comparePrice && (
@@ -366,7 +367,7 @@ export default function ProductDetailPage() {
                 </span>
               )}
               <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginLeft: 'auto' }}>
-                Inclusive of all taxes & nationwide insured shipping
+                Inclusive of all taxes &amp; nationwide insured shipping
               </span>
             </div>
 
@@ -374,14 +375,15 @@ export default function ProductDetailPage() {
             {product.isHeirloom1of1 && (
               <div
                 style={{
-                  background: 'rgba(201, 168, 76, 0.1)',
-                  border: '1px solid rgba(201, 168, 76, 0.35)',
+                  background: '#ffffff',
+                  border: '1px solid rgba(179, 137, 56, 0.35)',
                   borderRadius: '8px',
                   padding: '16px',
                   marginBottom: '24px',
+                  boxShadow: '0 4px 14px rgba(45, 25, 8, 0.04)',
                 }}
               >
-                <h4 style={{ color: 'var(--gold)', fontSize: '0.88rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <h4 style={{ color: 'var(--plum, #5C1D6E)', fontSize: '0.88rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
                   👑 Single-Piece Heritage Edition
                 </h4>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px', lineHeight: 1.5 }}>
@@ -396,11 +398,12 @@ export default function ProductDetailPage() {
                 <div
                   style={{
                     padding: '12px 16px',
-                    background: 'rgba(201, 168, 76, 0.15)',
+                    background: 'rgba(179, 137, 56, 0.1)',
                     border: '1px solid var(--gold)',
                     borderRadius: '8px',
-                    color: 'var(--gold)',
+                    color: 'var(--gold-dark, #8c6818)',
                     fontSize: '0.86rem',
+                    fontWeight: 600,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -410,9 +413,9 @@ export default function ProductDetailPage() {
                   <Link
                     href="/bag"
                     style={{
-                      color: '#110c08',
+                      color: '#ffffff',
                       background: 'var(--gold)',
-                      padding: '4px 12px',
+                      padding: '5px 14px',
                       borderRadius: '4px',
                       textDecoration: 'none',
                       fontWeight: 700,
@@ -430,12 +433,12 @@ export default function ProductDetailPage() {
                   style={{
                     width: '100%',
                     padding: '18px',
-                    background: 'rgba(239, 68, 68, 0.15)',
+                    background: '#FEE2E2',
                     border: '1px solid #ef4444',
                     borderRadius: '8px',
-                    color: '#f87171',
+                    color: '#b91c1c',
                     fontSize: '0.95rem',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
                     cursor: 'not-allowed',
@@ -453,10 +456,10 @@ export default function ProductDetailPage() {
                     }}
                     style={{
                       padding: '16px',
-                      background: 'rgba(201, 168, 76, 0.1)',
-                      border: '1px solid var(--gold)',
+                      background: '#ffffff',
+                      border: '1.5px solid var(--gold)',
                       borderRadius: '8px',
-                      color: 'var(--gold)',
+                      color: 'var(--gold-dark, #8c6818)',
                       fontSize: '0.92rem',
                       fontWeight: 700,
                       letterSpacing: '0.06em',
@@ -466,6 +469,7 @@ export default function ProductDetailPage() {
                       justifyContent: 'center',
                       gap: '8px',
                       transition: 'all 0.2s ease',
+                      boxShadow: '0 4px 12px rgba(45, 25, 8, 0.04)',
                     }}
                   >
                     <span>👜</span>
@@ -482,13 +486,13 @@ export default function ProductDetailPage() {
                       background: 'var(--gold)',
                       border: 'none',
                       borderRadius: '8px',
-                      color: '#110c08',
+                      color: '#ffffff',
                       fontSize: '0.92rem',
                       fontWeight: 700,
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
                       cursor: 'pointer',
-                      boxShadow: '0 8px 24px rgba(201, 168, 76, 0.4)',
+                      boxShadow: '0 6px 20px rgba(179, 137, 56, 0.35)',
                       transition: 'all 0.2s ease',
                     }}
                   >
@@ -505,51 +509,52 @@ export default function ProductDetailPage() {
                 gridTemplateColumns: '1fr 1fr',
                 gap: '16px',
                 padding: '20px',
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: '#ffffff',
+                border: '1px solid rgba(179, 137, 56, 0.2)',
                 borderRadius: '8px',
                 marginBottom: '32px',
+                boxShadow: '0 4px 16px rgba(45, 25, 8, 0.04)',
               }}
             >
               <div>
-                <strong style={{ display: 'block', fontSize: '0.82rem', color: '#fff' }}>🏛️ Silk Mark Verified</strong>
+                <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text)' }}>🏛️ Silk Mark Verified</strong>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Tag: {product.silkMarkNumber || 'SM-CSB-2026'}</span>
               </div>
               <div>
-                <strong style={{ display: 'block', fontSize: '0.82rem', color: '#fff' }}>👑 1-of-1 Vault Record</strong>
+                <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text)' }}>👑 1-of-1 Vault Record</strong>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{product.isHeirloom1of1 ? 'Individual Piece' : 'Limited Loom Edition'}</span>
               </div>
               <div>
-                <strong style={{ display: 'block', fontSize: '0.82rem', color: '#fff' }}>📹 20s Inspection Clip</strong>
+                <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text)' }}>📹 20s Inspection Clip</strong>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Pre-dispatch verification</span>
               </div>
               <div>
-                <strong style={{ display: 'block', fontSize: '0.82rem', color: '#fff' }}>📦 Express Delivery</strong>
+                <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text)' }}>📦 Express Delivery</strong>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Complimentary insured air shipping</span>
               </div>
             </div>
 
             {/* Saree Specifications Table */}
-            <div>
-              <h3 style={{ fontSize: '0.9rem', color: 'var(--gold)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>
-                Weave & Fabric Provenance
+            <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.2)', borderRadius: '8px', padding: '20px', boxShadow: '0 4px 16px rgba(45, 25, 8, 0.04)' }}>
+              <h3 style={{ fontSize: '0.9rem', color: 'var(--gold-dark, #8c6818)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px', fontWeight: 700 }}>
+                Weave &amp; Fabric Provenance
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.85rem' }}>
-                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', fontSize: '0.85rem' }}>
+                <div style={{ borderBottom: '1px solid rgba(179, 137, 56, 0.15)', paddingBottom: '8px' }}>
                   <span style={{ color: 'var(--text-dim)' }}>Fabric: </span>
-                  <span style={{ color: '#fff', fontWeight: 500 }}>{product.fabric}</span>
+                  <span style={{ color: 'var(--text)', fontWeight: 600 }}>{product.fabric}</span>
                 </div>
-                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
+                <div style={{ borderBottom: '1px solid rgba(179, 137, 56, 0.15)', paddingBottom: '8px' }}>
                   <span style={{ color: 'var(--text-dim)' }}>Zari Type: </span>
-                  <span style={{ color: '#fff', fontWeight: 500 }}>{product.zariType}</span>
+                  <span style={{ color: 'var(--text)', fontWeight: 600 }}>{product.zariType}</span>
                 </div>
-                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
+                <div style={{ borderBottom: '1px solid rgba(179, 137, 56, 0.15)', paddingBottom: '8px' }}>
                   <span style={{ color: 'var(--text-dim)' }}>Craft Region: </span>
-                  <span style={{ color: '#fff', fontWeight: 500 }}>{product.craftRegion}</span>
+                  <span style={{ color: 'var(--text)', fontWeight: 600 }}>{product.craftRegion}</span>
                 </div>
-                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
+                <div style={{ borderBottom: '1px solid rgba(179, 137, 56, 0.15)', paddingBottom: '8px' }}>
                   <span style={{ color: 'var(--text-dim)' }}>Weave Style: </span>
-                  <span style={{ color: '#fff', fontWeight: 500 }}>{product.weaveStyle || 'Traditional Pit Loom'}</span>
+                  <span style={{ color: 'var(--text)', fontWeight: 600 }}>{product.weaveStyle || 'Traditional Pit Loom'}</span>
                 </div>
               </div>
             </div>
@@ -563,7 +568,7 @@ export default function ProductDetailPage() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.85)',
+            background: 'rgba(26, 19, 13, 0.65)',
             backdropFilter: 'blur(12px)',
             zIndex: 1000,
             display: 'flex',
@@ -576,15 +581,15 @@ export default function ProductDetailPage() {
             style={{
               width: '100%',
               maxWidth: '560px',
-              background: '#150f0a',
-              border: '1px solid var(--gold)',
+              background: '#ffffff',
+              border: '1.5px solid var(--gold)',
               borderRadius: '16px',
               padding: '36px 32px',
               maxHeight: '90vh',
               overflowY: 'auto',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.9)',
+              boxShadow: '0 32px 80px rgba(45, 25, 8, 0.25)',
               position: 'relative',
-              color: '#fff',
+              color: 'var(--text)',
             }}
           >
             {/* Close Button */}
@@ -606,10 +611,10 @@ export default function ProductDetailPage() {
 
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-              <span style={{ fontSize: '0.72rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '0.72rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 700 }}>
                 SUTRAಧಾರ CHECKOUT
               </span>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: '#fff', marginTop: '4px' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: 'var(--text)', marginTop: '4px' }}>
                 Acquiring Saree Piece
               </h2>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>
@@ -626,11 +631,11 @@ export default function ProductDetailPage() {
                       Please enter your email to receive a 6-digit verification code to complete your acquisition.
                     </p>
                     {authError && (
-                      <div style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', borderRadius: '6px', color: '#fca5a5', fontSize: '0.82rem', marginBottom: '16px' }}>
+                      <div style={{ padding: '10px', background: '#FEE2E2', border: '1px solid #ef4444', borderRadius: '6px', color: '#b91c1c', fontSize: '0.82rem', marginBottom: '16px' }}>
                         {authError}
                       </div>
                     )}
-                    <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--gold)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--gold-dark, #8c6818)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
                       Your Email Address
                     </label>
                     <input
@@ -642,10 +647,10 @@ export default function ProductDetailPage() {
                       style={{
                         width: '100%',
                         padding: '12px 16px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(201, 168, 76, 0.3)',
+                        background: '#FAF8F5',
+                        border: '1px solid rgba(179, 137, 56, 0.35)',
                         borderRadius: '6px',
-                        color: '#fff',
+                        color: 'var(--text)',
                         fontSize: '0.9rem',
                         marginBottom: '20px',
                         outline: 'none',
@@ -660,10 +665,11 @@ export default function ProductDetailPage() {
                         background: 'var(--gold)',
                         border: 'none',
                         borderRadius: '6px',
-                        color: '#110c08',
+                        color: '#ffffff',
                         fontWeight: 700,
                         letterSpacing: '0.08em',
                         cursor: 'pointer',
+                        boxShadow: '0 4px 14px rgba(179, 137, 56, 0.3)',
                       }}
                     >
                       {isAuthLoading ? 'Sending Verification Code...' : 'Send 6-Digit Verification Code →'}
@@ -672,16 +678,16 @@ export default function ProductDetailPage() {
                 ) : (
                   <form onSubmit={handleVerifyOtp}>
                     {devOtpCode && (
-                      <div style={{ padding: '12px', background: 'rgba(201, 168, 76, 0.15)', border: '1px solid var(--gold)', borderRadius: '6px', color: 'var(--gold)', fontSize: '0.85rem', marginBottom: '16px' }}>
+                      <div style={{ padding: '12px', background: 'rgba(179, 137, 56, 0.15)', border: '1px solid var(--gold)', borderRadius: '6px', color: 'var(--gold-dark, #8c6818)', fontSize: '0.85rem', marginBottom: '16px', fontWeight: 600 }}>
                         🔑 <strong>Development Verification Code:</strong> {devOtpCode}
                       </div>
                     )}
                     {authError && (
-                      <div style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', borderRadius: '6px', color: '#fca5a5', fontSize: '0.82rem', marginBottom: '16px' }}>
+                      <div style={{ padding: '10px', background: '#FEE2E2', border: '1px solid #ef4444', borderRadius: '6px', color: '#b91c1c', fontSize: '0.82rem', marginBottom: '16px' }}>
                         {authError}
                       </div>
                     )}
-                    <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--gold)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--gold-dark, #8c6818)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
                       Enter 6-Digit Code Sent to {authEmail}
                     </label>
                     <input
@@ -693,10 +699,10 @@ export default function ProductDetailPage() {
                       style={{
                         width: '100%',
                         padding: '12px 16px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(201, 168, 76, 0.3)',
+                        background: '#FAF8F5',
+                        border: '1px solid rgba(179, 137, 56, 0.35)',
                         borderRadius: '6px',
-                        color: '#fff',
+                        color: 'var(--text)',
                         fontSize: '1.2rem',
                         letterSpacing: '0.2em',
                         textAlign: 'center',
@@ -713,10 +719,11 @@ export default function ProductDetailPage() {
                         background: 'var(--gold)',
                         border: 'none',
                         borderRadius: '6px',
-                        color: '#110c08',
+                        color: '#ffffff',
                         fontWeight: 700,
                         letterSpacing: '0.08em',
                         cursor: 'pointer',
+                        boxShadow: '0 4px 14px rgba(179, 137, 56, 0.3)',
                       }}
                     >
                       {isAuthLoading ? 'Verifying...' : 'Verify Code & Continue to Address →'}
@@ -730,8 +737,8 @@ export default function ProductDetailPage() {
             {checkoutStep === 'ADDRESS' && (
               <form onSubmit={handlePlaceOrder}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--gold)', fontWeight: 600 }}>
-                    1. Shipping & Recipient Details
+                  <span style={{ fontSize: '0.82rem', color: 'var(--gold-dark, #8c6818)', fontWeight: 700 }}>
+                    1. Shipping &amp; Recipient Details
                   </span>
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
                     Signed in as: {customerUser?.email}
@@ -748,7 +755,7 @@ export default function ProductDetailPage() {
                       placeholder="e.g. Sunita Verma"
                       value={recipientName}
                       onChange={(e) => setRecipientName(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                      style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                     />
                   </div>
                   <div>
@@ -759,7 +766,7 @@ export default function ProductDetailPage() {
                       placeholder="e.g. +91 98765 43210"
                       value={recipientPhone}
                       onChange={(e) => setRecipientPhone(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                      style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                     />
                   </div>
                 </div>
@@ -772,7 +779,7 @@ export default function ProductDetailPage() {
                     placeholder="e.g. Villa 4, Lotus Heritage Enclave, Outer Ring Road"
                     value={street}
                     onChange={(e) => setStreet(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                    style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                   />
                 </div>
 
@@ -785,7 +792,7 @@ export default function ProductDetailPage() {
                       placeholder="e.g. Bengaluru"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                      style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                     />
                   </div>
                   <div>
@@ -796,7 +803,7 @@ export default function ProductDetailPage() {
                       placeholder="e.g. Karnataka"
                       value={state}
                       onChange={(e) => setState(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                      style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                     />
                   </div>
                   <div>
@@ -807,14 +814,14 @@ export default function ProductDetailPage() {
                       placeholder="6-digit PIN"
                       value={pincode}
                       onChange={(e) => setPincode(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                      style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                     />
                   </div>
                 </div>
 
                 {/* Coupon Code Section */}
-                <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(201, 168, 76, 0.2)', borderRadius: '8px', marginBottom: '20px' }}>
-                  <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--gold)', marginBottom: '6px', textTransform: 'uppercase' }}>
+                <div style={{ padding: '16px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.25)', borderRadius: '8px', marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--gold-dark, #8c6818)', marginBottom: '6px', textTransform: 'uppercase', fontWeight: 600 }}>
                     Apply Royal Privilege Code
                   </label>
                   <div style={{ display: 'flex', gap: '8px' }}>
@@ -823,42 +830,42 @@ export default function ProductDetailPage() {
                       placeholder="e.g. VIRASAT10 or FIRSTHEIRLOOM"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value)}
-                      style={{ flex: 1, padding: '8px 12px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem', textTransform: 'uppercase' }}
+                      style={{ flex: 1, padding: '8px 12px', background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem', textTransform: 'uppercase' }}
                     />
                     <button
                       type="button"
                       onClick={handleApplyCoupon}
-                      style={{ padding: '8px 16px', background: 'rgba(201, 168, 76, 0.2)', border: '1px solid var(--gold)', borderRadius: '6px', color: 'var(--gold)', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                      style={{ padding: '8px 16px', background: 'var(--gold)', border: 'none', borderRadius: '6px', color: '#ffffff', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
                     >
                       Apply
                     </button>
                   </div>
                   {couponMessage && (
-                    <span style={{ fontSize: '0.78rem', color: discountAmount > 0 ? '#4ade80' : '#f87171', display: 'block', marginTop: '6px' }}>
+                    <span style={{ fontSize: '0.78rem', color: discountAmount > 0 ? '#16a34a' : '#dc2626', display: 'block', marginTop: '6px', fontWeight: 600 }}>
                       {couponMessage}
                     </span>
                   )}
                 </div>
 
                 {/* Order Summary & Final Total */}
-                <div style={{ padding: '16px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', marginBottom: '24px' }}>
+                <div style={{ padding: '16px', background: '#F4EFEA', border: '1px solid rgba(179, 137, 56, 0.2)', borderRadius: '8px', marginBottom: '24px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-dim)', marginBottom: '6px' }}>
                     <span>Saree Price:</span>
-                    <span>₹{product.sellingPrice.toLocaleString('en-IN')}</span>
+                    <span style={{ color: 'var(--text)', fontWeight: 600 }}>₹{product.sellingPrice.toLocaleString('en-IN')}</span>
                   </div>
                   {discountAmount > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#4ade80', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#16a34a', marginBottom: '6px', fontWeight: 600 }}>
                       <span>Coupon Discount:</span>
                       <span>-₹{discountAmount.toLocaleString('en-IN')}</span>
                     </div>
                   )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-dim)', marginBottom: '8px' }}>
                     <span>Insured Courier Delivery:</span>
-                    <span style={{ color: '#4ade80' }}>COMPLIMENTARY</span>
+                    <span style={{ color: '#16a34a', fontWeight: 600 }}>COMPLIMENTARY</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', color: '#fff', fontWeight: 700, paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', color: 'var(--text)', fontWeight: 700, paddingTop: '8px', borderTop: '1px solid rgba(179, 137, 56, 0.2)' }}>
                     <span>Total Amount:</span>
-                    <span style={{ color: 'var(--gold)' }}>₹{finalPrice.toLocaleString('en-IN')}</span>
+                    <span style={{ color: 'var(--gold-dark, #8c6818)' }}>₹{finalPrice.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
 
@@ -871,13 +878,13 @@ export default function ProductDetailPage() {
                     background: 'var(--gold)',
                     border: 'none',
                     borderRadius: '8px',
-                    color: '#110c08',
+                    color: '#ffffff',
                     fontSize: '0.95rem',
                     fontWeight: 700,
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
                     cursor: 'pointer',
-                    boxShadow: '0 8px 24px rgba(201, 168, 76, 0.4)',
+                    boxShadow: '0 6px 20px rgba(179, 137, 56, 0.35)',
                   }}
                 >
                   {isPlacingOrder ? 'Confirming Vault Allocation...' : 'Confirm Acquisition & Place Order →'}

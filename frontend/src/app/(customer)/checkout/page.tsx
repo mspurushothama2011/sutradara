@@ -8,6 +8,7 @@ import { apiRequest } from '@/lib/api';
 import LandingNavbar from '@/components/landing/LandingNavbar';
 import TurnstileCaptcha from '@/components/auth/TurnstileCaptcha';
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
+import { launchRazorpayCheckout } from '@/lib/razorpay';
 
 interface LiveProductStock {
   [productId: string]: {
@@ -61,13 +62,11 @@ export default function CommonCheckoutPage() {
   const [isLoadingCoupons, setIsLoadingCoupons] = useState(false);
 
   // Live Stock State & Race Condition Alert
+  // Stock and submission state
   const [stockInfo, setStockInfo] = useState<LiveProductStock>({});
   const [isValidatingStock, setIsValidatingStock] = useState(false);
   const [hasSoldOutItems, setHasSoldOutItems] = useState(false);
   const [raceConditionAlert, setRaceConditionAlert] = useState<string | null>(null);
-
-  // Payment Selection State
-  const [paymentMethod, setPaymentMethod] = useState<'RAZORPAY' | 'BANK_TRANSFER'>('RAZORPAY');
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
 
   // Compute Totals
@@ -366,7 +365,40 @@ export default function CommonCheckoutPage() {
     }
   };
 
-  // Final Order Execution against PostgreSQL with Race Condition Handling
+  // Finalize order upon payment verification
+  const commitPaymentVerification = async (payload: {
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+    items: { productId: string; quantity: number }[];
+    shippingAddress: any;
+    couponCode?: string;
+  }) => {
+    setIsSubmittingOrder(true);
+    try {
+      const verifyRes = await apiRequest('/customer/orders/razorpay/verify-payment', {
+        method: 'POST',
+        data: payload,
+      });
+
+      // Clear bag & buy now session
+      clearBag();
+      setBuyNowItem(null);
+
+      // Redirect to live tracking
+      router.push(verifyRes.trackingUrl || `/track/${verifyRes.order?.orderNumber}`);
+    } catch (e: any) {
+      setIsSubmittingOrder(false);
+      if (e.code === 'OUT_OF_STOCK' || e.message?.includes('STOCK_UNAVAILABLE') || e.message?.includes('acquired by another patron')) {
+        setRaceConditionAlert(`⚠️ Race Condition: ${e.message || 'An item was just acquired by another patron during final payment. Please return to your bag to adjust.'}`);
+        checkLiveStock();
+      } else {
+        alert('Payment verification error: ' + (e.message || 'Failed to record transaction.'));
+      }
+    }
+  };
+
+  // Final Order Execution with Razorpay Payment Gateway
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setRaceConditionAlert(null);
@@ -417,21 +449,46 @@ export default function CommonCheckoutPage() {
     }));
 
     try {
-      const orderRes = await apiRequest('/customer/orders/create', {
+      // 1. Initialize Razorpay Order (validates prices and stock directly from PostgreSQL DB)
+      const rzpInit = await apiRequest('/customer/orders/razorpay/create-order', {
         method: 'POST',
         data: {
           items: itemsPayload,
-          shippingAddress,
           couponCode: appliedCoupon || undefined,
         },
       });
 
-      // Clear bag & buy now session
-      clearBag();
-      setBuyNowItem(null);
+      // 2. Launch Razorpay Standard Checkout SDK modal
+      const launched = await launchRazorpayCheckout({
+        keyId: rzpInit.keyId,
+        amount: rzpInit.amountInPaise,
+        currency: rzpInit.currency || 'INR',
+        orderId: rzpInit.razorpayOrderId,
+        description: `Acquisition of ${totalItemsCount} Handloom Piece(s)`,
+        prefill: {
+          name: recipientName || customerUser.name,
+          email: customerUser.email,
+          contact: recipientPhone || customerUser.phone,
+        },
+        onSuccess: async (rzpResponse) => {
+          await commitPaymentVerification({
+            razorpayOrderId: rzpResponse.razorpay_order_id,
+            razorpayPaymentId: rzpResponse.razorpay_payment_id,
+            razorpaySignature: rzpResponse.razorpay_signature,
+            items: itemsPayload,
+            shippingAddress,
+            couponCode: appliedCoupon || undefined,
+          });
+        },
+        onDismiss: () => {
+          setIsSubmittingOrder(false);
+        },
+      });
 
-      // Redirect to live tracking
-      router.push(orderRes.trackingUrl || `/track/${orderRes.order?.orderNumber}`);
+      if (!launched) {
+        setIsSubmittingOrder(false);
+        alert('Could not initialize Razorpay checkout gateway. Please ensure popups/scripts are enabled.');
+      }
     } catch (e: any) {
       setIsSubmittingOrder(false);
       if (e.message?.includes('token') || e.message?.includes('401') || e.message?.includes('Authentication')) {
@@ -444,26 +501,26 @@ export default function CommonCheckoutPage() {
         setRaceConditionAlert(`⚠️ Race Condition: ${e.message || 'An item was just acquired by another patron during final payment. Please return to your bag to adjust.'}`);
         checkLiveStock();
       } else {
-        alert('Order placement failed: ' + (e.message || 'Database rejected order.'));
+        alert('Payment initialization failed: ' + (e.message || 'Database rejected order.'));
       }
     }
   };
 
   if (activeItems.length === 0) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
         <LandingNavbar />
         <div style={{ paddingTop: '140px', textAlign: 'center', paddingLeft: '20px', paddingRight: '20px' }}>
           <span style={{ fontSize: '3rem', display: 'block', marginBottom: '16px' }}>👑</span>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem' }}>No Items Selected for Acquisition</h1>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text)' }}>No Items Selected for Acquisition</h1>
           <p style={{ color: 'var(--text-dim)', marginTop: '8px', maxWidth: '480px', margin: '8px auto 0' }}>
             Please select an authentic handcrafted saree from our catalog or shopping bag to proceed with checkout.
           </p>
           <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '28px', flexWrap: 'wrap' }}>
-            <Link href="/catalog" style={{ padding: '12px 24px', background: 'var(--gold)', color: '#110c08', borderRadius: '6px', textDecoration: 'none', fontWeight: 700 }}>
+            <Link href="/catalog" style={{ padding: '12px 24px', background: 'var(--gold)', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: 700 }}>
               Explore Master Weaves →
             </Link>
-            <Link href="/bag" style={{ padding: '12px 24px', background: 'transparent', border: '1px solid var(--gold)', color: 'var(--gold)', borderRadius: '6px', textDecoration: 'none', fontWeight: 600 }}>
+            <Link href="/bag" style={{ padding: '12px 24px', background: '#ffffff', border: '1px solid var(--gold)', color: 'var(--gold)', borderRadius: '6px', textDecoration: 'none', fontWeight: 600 }}>
               View Bag
             </Link>
           </div>
@@ -481,10 +538,10 @@ export default function CommonCheckoutPage() {
         {/* Header Breadcrumb */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <span style={{ fontSize: '0.72rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '0.72rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 700 }}>
               HIGH-ASSURANCE HERITAGE ACQUISITION
             </span>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', color: '#fff', marginTop: '4px' }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', color: 'var(--text)', marginTop: '4px' }}>
               Master Checkout Sanctuary
             </h1>
           </div>
@@ -495,8 +552,8 @@ export default function CommonCheckoutPage() {
 
         {/* Race Condition / Stock Alert Banner */}
         {raceConditionAlert && (
-          <div style={{ marginBottom: '24px', padding: '16px 20px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.5)', borderRadius: '10px', color: '#fca5a5', fontSize: '0.9rem', lineHeight: 1.5 }}>
-            <strong style={{ display: 'block', color: '#fff', marginBottom: '4px' }}>Acquisition Notice:</strong>
+          <div style={{ marginBottom: '24px', padding: '16px 20px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '10px', color: '#991b1b', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            <strong style={{ display: 'block', color: '#7f1d1d', marginBottom: '4px' }}>Acquisition Notice:</strong>
             {raceConditionAlert}
           </div>
         )}
@@ -507,36 +564,37 @@ export default function CommonCheckoutPage() {
             {/* LEFT COLUMN: Steps 1 - 4 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               
-              {/* STEP 1: Patron Identity Card */}
+              {/* STEP 1: Customer Details Card */}
               <div
                 style={{
-                  background: 'var(--bg-deep)',
-                  border: '1px solid rgba(201, 168, 76, 0.3)',
+                  background: '#ffffff',
+                  border: '1px solid rgba(179, 137, 56, 0.25)',
                   borderRadius: '12px',
                   padding: '20px 24px',
+                  boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--gold)', color: '#110c08', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85rem' }}>
+                    <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--gold)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85rem' }}>
                       1
                     </span>
-                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', color: '#fff' }}>
-                      Patron Details &amp; Verification
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', color: 'var(--text)' }}>
+                      Customer Details &amp; Verification
                     </h3>
                   </div>
                   {customerUser && (
-                    <span style={{ fontSize: '0.72rem', color: '#4ade80', background: 'rgba(34, 197, 94, 0.15)', padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
-                      ✓ Verified Patron
+                    <span style={{ fontSize: '0.72rem', color: 'var(--olive-deep)', background: 'var(--olive-glow)', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--olive-border)', fontWeight: 600 }}>
+                      ✓ Verified Customer
                     </span>
                   )}
                 </div>
 
                 {customerUser ? (
-                  /* Logged-In Patron Card */
-                  <div style={{ padding: '14px 18px', background: 'rgba(201, 168, 76, 0.08)', borderRadius: '8px', border: '1px solid rgba(201, 168, 76, 0.2)' }}>
-                    <p style={{ fontSize: '0.92rem', color: '#fff', fontWeight: 600 }}>
-                      {customerUser.name || 'Valued Patron'}
+                  /* Logged-In Customer Card */
+                  <div style={{ padding: '14px 18px', background: '#FAF8F5', borderRadius: '8px', border: '1px solid rgba(179, 137, 56, 0.25)' }}>
+                    <p style={{ fontSize: '0.92rem', color: 'var(--text)', fontWeight: 600 }}>
+                      {customerUser.name || 'Valued Customer'}
                     </p>
                     <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '2px' }}>
                       {customerUser.email} • {customerUser.phone || '+91 98201 54321'}
@@ -544,13 +602,13 @@ export default function CommonCheckoutPage() {
                   </div>
                 ) : (
                   /* Inline Guest OTP Verification */
-                  <div style={{ padding: '16px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div style={{ padding: '16px', background: '#FAF8F5', borderRadius: '8px', border: '1px solid rgba(179, 137, 56, 0.2)' }}>
                     <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginBottom: '12px' }}>
                       Enter your email address to receive an instant 6-digit access code for secure checkout:
                     </p>
 
                     {authError && (
-                      <div style={{ padding: '8px 12px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', color: '#fca5a5', fontSize: '0.8rem', marginBottom: '12px' }}>
+                      <div style={{ padding: '8px 12px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', color: '#b91c1c', fontSize: '0.8rem', marginBottom: '12px' }}>
                         {authError}
                       </div>
                     )}
@@ -560,10 +618,10 @@ export default function CommonCheckoutPage() {
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                           <input
                             type="email"
-                            placeholder="patron@sutradara.in"
+                            placeholder="yourname@gmail.com"
                             value={authEmail}
                             onChange={(e) => setAuthEmail(e.target.value)}
-                            style={{ flex: '1 1 200px', padding: '10px 14px', background: '#110c08', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.9rem' }}
+                            style={{ flex: '1 1 200px', padding: '10px 14px', background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.9rem' }}
                           />
                           <button
                             type="button"
@@ -571,8 +629,8 @@ export default function CommonCheckoutPage() {
                             disabled={isAuthLoading || !turnstileToken}
                             style={{
                               padding: '10px 18px',
-                              background: !turnstileToken ? 'rgba(201, 168, 76, 0.3)' : 'var(--gold)',
-                              color: !turnstileToken ? 'var(--text-dim)' : '#110c08',
+                              background: !turnstileToken ? 'rgba(179, 137, 56, 0.3)' : 'var(--gold)',
+                              color: !turnstileToken ? 'var(--text-dim)' : '#ffffff',
                               border: 'none',
                               borderRadius: '6px',
                               fontWeight: 700,
@@ -592,9 +650,9 @@ export default function CommonCheckoutPage() {
                         />
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '4px 0' }}>
-                          <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
+                          <div style={{ flex: 1, height: '1px', background: 'rgba(179, 137, 56, 0.15)' }} />
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>or</span>
-                          <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
+                          <div style={{ flex: 1, height: '1px', background: 'rgba(179, 137, 56, 0.15)' }} />
                         </div>
 
                         {/* Google Auth Button */}
@@ -607,7 +665,7 @@ export default function CommonCheckoutPage() {
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {devOtpCode && (
-                          <div style={{ padding: '8px 12px', background: 'rgba(201, 168, 76, 0.15)', border: '1px dashed var(--gold)', borderRadius: '6px', color: 'var(--gold)', fontSize: '0.8rem', textAlign: 'center' }}>
+                          <div style={{ padding: '8px 12px', background: 'rgba(179, 137, 56, 0.12)', border: '1px dashed var(--gold)', borderRadius: '6px', color: 'var(--gold)', fontSize: '0.8rem', textAlign: 'center', fontWeight: 600 }}>
                             🔑 Instant Local Verification OTP: <strong>{devOtpCode}</strong>
                           </div>
                         )}
@@ -618,13 +676,13 @@ export default function CommonCheckoutPage() {
                             placeholder="6-digit OTP"
                             value={authOtp}
                             onChange={(e) => setAuthOtp(e.target.value)}
-                            style={{ flex: '1 1 160px', padding: '10px 14px', background: '#110c08', border: '1px solid var(--gold)', borderRadius: '6px', color: '#fff', fontSize: '1rem', letterSpacing: '0.2em', textAlign: 'center', fontWeight: 700 }}
+                            style={{ flex: '1 1 160px', padding: '10px 14px', background: '#ffffff', border: '1px solid var(--gold)', borderRadius: '6px', color: 'var(--text)', fontSize: '1rem', letterSpacing: '0.2em', textAlign: 'center', fontWeight: 700 }}
                           />
                           <button
                             type="button"
                             onClick={handleVerifyOtp}
                             disabled={isAuthLoading}
-                            style={{ padding: '10px 18px', background: 'var(--gold)', color: '#110c08', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', flexShrink: 0 }}
+                            style={{ padding: '10px 18px', background: 'var(--gold)', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', flexShrink: 0 }}
                           >
                             {isAuthLoading ? 'Verifying...' : 'Verify OTP'}
                           </button>
@@ -638,18 +696,19 @@ export default function CommonCheckoutPage() {
               {/* STEP 2: Delivery & Shipping Destination */}
               <div
                 style={{
-                  background: 'var(--bg-deep)',
-                  border: '1px solid rgba(201, 168, 76, 0.3)',
+                  background: '#ffffff',
+                  border: '1px solid rgba(179, 137, 56, 0.25)',
                   borderRadius: '12px',
                   padding: '20px 24px',
+                  boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--gold)', color: '#110c08', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85rem' }}>
+                    <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--gold)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85rem' }}>
                       2
                     </span>
-                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', color: '#fff' }}>
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', color: 'var(--text)' }}>
                       Delivery &amp; Shipping Destination
                     </h3>
                   </div>
@@ -659,7 +718,7 @@ export default function CommonCheckoutPage() {
                       type="button"
                       onClick={() => setIsAddingNewAddress(!isAddingNewAddress)}
                       style={{
-                        background: isAddingNewAddress ? 'rgba(255,255,255,0.08)' : 'rgba(201, 168, 76, 0.15)',
+                        background: isAddingNewAddress ? '#FAF8F5' : 'rgba(179, 137, 56, 0.12)',
                         border: '1px solid var(--gold)',
                         color: 'var(--gold)',
                         padding: '6px 14px',
@@ -689,8 +748,8 @@ export default function CommonCheckoutPage() {
                             onClick={() => handleSelectSavedAddress(addr)}
                             style={{
                               padding: '14px 16px',
-                              background: isSelected ? 'rgba(201, 168, 76, 0.15)' : 'rgba(0,0,0,0.4)',
-                              border: isSelected ? '2px solid var(--gold)' : '1px solid rgba(255,255,255,0.1)',
+                              background: isSelected ? 'rgba(179, 137, 56, 0.08)' : '#FAF8F5',
+                              border: isSelected ? '2px solid var(--gold)' : '1px solid rgba(179, 137, 56, 0.2)',
                               borderRadius: '8px',
                               cursor: 'pointer',
                               transition: 'all 0.2s ease',
@@ -702,12 +761,12 @@ export default function CommonCheckoutPage() {
                                 📍 {addr.label || 'Home'}
                               </span>
                               {isSelected && (
-                                <span style={{ fontSize: '0.7rem', color: '#4ade80', fontWeight: 700 }}>
+                                <span style={{ fontSize: '0.7rem', color: '#15803d', fontWeight: 700 }}>
                                   ✓ Selected
                                 </span>
                               )}
                             </div>
-                            <p style={{ fontSize: '0.88rem', color: '#fff', fontWeight: 600 }}>
+                            <p style={{ fontSize: '0.88rem', color: 'var(--text)', fontWeight: 600 }}>
                               {addr.recipientName || customerUser?.name}
                             </p>
                             <p style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px', lineHeight: 1.4 }}>
@@ -731,7 +790,7 @@ export default function CommonCheckoutPage() {
                           background: locationNotice.startsWith('✓') ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
                           border: locationNotice.startsWith('✓') ? '1px solid rgba(34, 197, 94, 0.35)' : '1px solid rgba(239, 68, 68, 0.35)',
                           borderRadius: '8px',
-                          color: locationNotice.startsWith('✓') ? '#86efac' : '#fca5a5',
+                          color: locationNotice.startsWith('✓') ? '#15803d' : '#b91c1c',
                           fontSize: '0.8rem',
                           lineHeight: 1.4,
                           display: 'flex',
@@ -746,7 +805,7 @@ export default function CommonCheckoutPage() {
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600 }}>
                           Recipient Full Name (Self or Gift) *
                         </label>
                         <input
@@ -755,11 +814,11 @@ export default function CommonCheckoutPage() {
                           placeholder="e.g. Sunita Verma"
                           value={recipientName}
                           onChange={(e) => setRecipientName(e.target.value)}
-                          style={{ width: '100%', padding: '10px 12px', background: '#0a0602', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                          style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600 }}>
                           Contact Phone Number (For delivery updates) *
                         </label>
                         <input
@@ -768,13 +827,13 @@ export default function CommonCheckoutPage() {
                           placeholder="+91 98201 54321"
                           value={recipientPhone}
                           onChange={(e) => setRecipientPhone(e.target.value)}
-                          style={{ width: '100%', padding: '10px 12px', background: '#0a0602', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                          style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600 }}>
                         Door / Flat / Building No. &amp; Complete Street Address *
                       </label>
                       <input
@@ -783,12 +842,12 @@ export default function CommonCheckoutPage() {
                         placeholder="Flat 402, Royal Residency, 14th Main Road"
                         value={street}
                         onChange={(e) => setStreet(e.target.value)}
-                        style={{ width: '100%', padding: '10px 12px', background: '#0a0602', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                        style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600 }}>
                         Landmark / Nearby Area (Optional)
                       </label>
                       <input
@@ -796,13 +855,13 @@ export default function CommonCheckoutPage() {
                         placeholder="Near Silk Board Junction / Behind Temple"
                         value={landmark}
                         onChange={(e) => setLandmark(e.target.value)}
-                        style={{ width: '100%', padding: '10px 12px', background: '#0a0602', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                        style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                       />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600 }}>
                           City / District *
                         </label>
                         <input
@@ -811,11 +870,11 @@ export default function CommonCheckoutPage() {
                           placeholder="e.g. Varanasi"
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
-                          style={{ width: '100%', padding: '10px 12px', background: '#0a0602', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                          style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600 }}>
                           State *
                         </label>
                         <input
@@ -824,11 +883,11 @@ export default function CommonCheckoutPage() {
                           placeholder="e.g. Uttar Pradesh"
                           value={state}
                           onChange={(e) => setState(e.target.value)}
-                          style={{ width: '100%', padding: '10px 12px', background: '#0a0602', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                          style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600 }}>
                           6-Digit PIN Code *
                         </label>
                         <input
@@ -838,7 +897,7 @@ export default function CommonCheckoutPage() {
                           placeholder="e.g. 221001"
                           value={pincode}
                           onChange={(e) => handlePincodeChange(e.target.value)}
-                          style={{ width: '100%', padding: '10px 12px', background: '#0a0602', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+                          style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                         />
                       </div>
                     </div>
@@ -850,7 +909,7 @@ export default function CommonCheckoutPage() {
                   style={{
                     marginTop: '16px',
                     padding: '14px 18px',
-                    background: 'rgba(201, 168, 76, 0.08)',
+                    background: '#FAF8F5',
                     border: '1px solid var(--gold)',
                     borderRadius: '8px',
                     display: 'flex',
@@ -859,7 +918,7 @@ export default function CommonCheckoutPage() {
                   }}
                 >
                   <span style={{ fontSize: '1.4rem' }}>📦</span>
-                  <div style={{ fontSize: '0.82rem', color: '#fff', lineHeight: 1.45 }}>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text)', lineHeight: 1.45 }}>
                     <strong style={{ color: 'var(--gold)', display: 'block', marginBottom: '2px' }}>
                       Delivery to this Address:
                     </strong>
@@ -867,102 +926,21 @@ export default function CommonCheckoutPage() {
                   </div>
                 </div>
               </div>
-
-              {/* STEP 3: Sovereign Payment Gateway */}
-              <div
-                style={{
-                  background: 'var(--bg-deep)',
-                  border: '1px solid rgba(201, 168, 76, 0.3)',
-                  borderRadius: '12px',
-                  padding: '20px 24px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                  <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--gold)', color: '#110c08', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85rem' }}>
-                    3
-                  </span>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', color: '#fff' }}>
-                    Sovereign Payment Gateway
-                  </h3>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <label
-                    style={{
-                      padding: '12px 16px',
-                      background: paymentMethod === 'RAZORPAY' ? 'rgba(201, 168, 76, 0.15)' : 'rgba(0,0,0,0.4)',
-                      border: paymentMethod === 'RAZORPAY' ? '2px solid var(--gold)' : '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === 'RAZORPAY'}
-                      onChange={() => setPaymentMethod('RAZORPAY')}
-                    />
-                    <div>
-                      <strong style={{ display: 'block', color: '#fff', fontSize: '0.88rem' }}>
-                        💳 Razorpay Sovereign Checkout (UPI / Cards / NetBanking)
-                      </strong>
-                      <span style={{ fontSize: '0.73rem', color: 'var(--text-dim)' }}>
-                        256-bit encrypted gateway with instant webhook confirmation
-                      </span>
-                    </div>
-                  </label>
-
-                  <label
-                    style={{
-                      padding: '12px 16px',
-                      background: paymentMethod === 'BANK_TRANSFER' ? 'rgba(201, 168, 76, 0.15)' : 'rgba(0,0,0,0.4)',
-                      border: paymentMethod === 'BANK_TRANSFER' ? '2px solid var(--gold)' : '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === 'BANK_TRANSFER'}
-                      onChange={() => setPaymentMethod('BANK_TRANSFER')}
-                    />
-                    <div>
-                      <strong style={{ display: 'block', color: '#fff', fontSize: '0.88rem' }}>
-                        🏛️ Direct Heritage Bank Wire (RTGS / NEFT)
-                      </strong>
-                      <span style={{ fontSize: '0.73rem', color: 'var(--text-dim)' }}>
-                        Direct allocation from Sutraಧಾರ Treasury
-                      </span>
-                    </div>
-                  </label>
-                </div>
-
-                <div style={{ marginTop: '12px', padding: '10px 14px', background: 'rgba(201, 168, 76, 0.08)', borderRadius: '6px', border: '1px dashed rgba(201, 168, 76, 0.3)', fontSize: '0.75rem', color: 'var(--gold)' }}>
-                  ⚡ <strong>Development Bypass Mode:</strong> Instant order placement with atomic PostgreSQL stock decrement and live order number generation.
-                </div>
-              </div>
             </div>
 
             {/* RIGHT COLUMN: Verified Product Details & Summary */}
             <div
               style={{
-                background: 'var(--bg-deep)',
-                border: '1px solid rgba(201, 168, 76, 0.35)',
+                background: '#ffffff',
+                border: '1px solid rgba(179, 137, 56, 0.25)',
                 borderRadius: '16px',
                 padding: '24px 28px',
                 position: 'sticky',
                 top: '110px',
-                boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
+                boxShadow: '0 8px 30px rgba(26, 19, 13, 0.06)',
               }}
             >
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: '#fff', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--text)', marginBottom: '16px', borderBottom: '1px solid rgba(179, 137, 56, 0.15)', paddingBottom: '12px' }}>
                 Acquisition Summary ({totalItemsCount})
               </h2>
 
@@ -978,37 +956,37 @@ export default function CommonCheckoutPage() {
                       <img
                         src={p.images?.[0] || '/frames/ezgif-frame-240.jpg'}
                         alt={p.name}
-                        style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}
+                        style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(179, 137, 56, 0.2)', flexShrink: 0 }}
                       />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: 'var(--gold)' }}>
+                          <span style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: 'var(--gold)', fontWeight: 600 }}>
                             {p.sku}
                           </span>
                           {p.isHeirloom1of1 && (
-                            <span style={{ fontSize: '0.62rem', background: 'rgba(201,168,76,0.2)', color: 'var(--gold)', padding: '1px 4px', borderRadius: '3px' }}>
+                            <span style={{ fontSize: '0.62rem', background: 'rgba(179, 137, 56, 0.15)', color: 'var(--gold)', padding: '1px 4px', borderRadius: '3px', fontWeight: 600 }}>
                               1-of-1
                             </span>
                           )}
                           {/* Live Stock Indicator */}
                           {isSoldOut ? (
-                            <span style={{ fontSize: '0.62rem', background: 'rgba(239, 68, 68, 0.25)', color: '#fca5a5', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.62rem', background: 'rgba(239, 68, 68, 0.15)', color: '#b91c1c', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
                               🔴 Sold Out
                             </span>
                           ) : itemStock <= 2 ? (
-                            <span style={{ fontSize: '0.62rem', background: 'rgba(234, 179, 8, 0.2)', color: '#fef08a', padding: '1px 5px', borderRadius: '3px' }}>
+                            <span style={{ fontSize: '0.62rem', background: 'rgba(201, 101, 23, 0.15)', color: '#c96517', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
                               ⚡ Only {itemStock} left
                             </span>
                           ) : (
-                            <span style={{ fontSize: '0.62rem', background: 'rgba(34, 197, 94, 0.15)', color: '#86efac', padding: '1px 5px', borderRadius: '3px' }}>
+                            <span style={{ fontSize: '0.62rem', background: 'rgba(20, 90, 82, 0.12)', color: '#145a52', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
                               🟢 In Stock
                             </span>
                           )}
                         </div>
-                        <h4 style={{ fontSize: '0.85rem', color: '#fff', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</h4>
+                        <h4 style={{ fontSize: '0.85rem', color: 'var(--text)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</h4>
                         <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Qty: {item.quantity}</span>
                       </div>
-                      <strong style={{ fontSize: '0.92rem', color: '#fff', flexShrink: 0 }}>
+                      <strong style={{ fontSize: '0.92rem', color: 'var(--text)', flexShrink: 0 }}>
                         ₹{(p.sellingPrice * item.quantity).toLocaleString('en-IN')}
                       </strong>
                     </div>
@@ -1017,9 +995,9 @@ export default function CommonCheckoutPage() {
               </div>
 
               {/* Coupon Section + "View Available Coupons" Button */}
-              <div style={{ marginBottom: '20px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '14px' }}>
+              <div style={{ marginBottom: '20px', borderTop: '1px solid rgba(179, 137, 56, 0.15)', paddingTop: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--gold)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--gold)', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700 }}>
                     Privilege Code
                   </span>
                   <button
@@ -1045,41 +1023,41 @@ export default function CommonCheckoutPage() {
                     placeholder="e.g. VIRASAT10"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
-                    style={{ flex: 1, padding: '9px 12px', background: '#110c08', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: '#fff', fontSize: '0.82rem', textTransform: 'uppercase' }}
+                    style={{ flex: 1, padding: '9px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.82rem', textTransform: 'uppercase' }}
                   />
                   <button
                     type="button"
                     onClick={() => handleApplyCoupon()}
-                    style={{ padding: '9px 16px', background: 'rgba(201, 168, 76, 0.2)', border: '1px solid var(--gold)', borderRadius: '6px', color: 'var(--gold)', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', flexShrink: 0 }}
+                    style={{ padding: '9px 16px', background: 'rgba(179, 137, 56, 0.12)', border: '1px solid var(--gold)', borderRadius: '6px', color: 'var(--gold)', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', flexShrink: 0 }}
                   >
                     Apply
                   </button>
                 </div>
 
-                {couponSuccess && <p style={{ color: '#86efac', fontSize: '0.75rem', marginTop: '6px' }}>{couponSuccess}</p>}
-                {couponError && <p style={{ color: '#fca5a5', fontSize: '0.75rem', marginTop: '6px' }}>{couponError}</p>}
+                {couponSuccess && <p style={{ color: '#15803d', fontSize: '0.75rem', marginTop: '6px', fontWeight: 600 }}>{couponSuccess}</p>}
+                {couponError && <p style={{ color: '#b91c1c', fontSize: '0.75rem', marginTop: '6px', fontWeight: 600 }}>{couponError}</p>}
               </div>
 
               {/* Price Calculation */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '14px', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem', borderBottom: '1px solid rgba(179, 137, 56, 0.15)', paddingBottom: '14px', marginBottom: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-dim)' }}>
                   <span>Subtotal</span>
-                  <span style={{ color: '#fff' }}>₹{subtotal.toLocaleString('en-IN')}</span>
+                  <span style={{ color: 'var(--text)', fontWeight: 600 }}>₹{subtotal.toLocaleString('en-IN')}</span>
                 </div>
                 {discountAmount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4ade80' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#15803d', fontWeight: 600 }}>
                     <span>Discount ({appliedCoupon})</span>
                     <span>-₹{discountAmount.toLocaleString('en-IN')}</span>
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-dim)' }}>
                   <span>Express Delivery</span>
-                  <span style={{ color: 'var(--gold)' }}>COMPLIMENTARY</span>
+                  <span style={{ color: 'var(--gold)', fontWeight: 700 }}>COMPLIMENTARY</span>
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '22px' }}>
-                <span style={{ fontSize: '0.95rem', color: '#fff', fontWeight: 600 }}>Total Acquisition</span>
+                <span style={{ fontSize: '0.95rem', color: 'var(--text)', fontWeight: 600 }}>Total Acquisition</span>
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--gold)', fontWeight: 700 }}>
                   ₹{finalTotal.toLocaleString('en-IN')}
                 </span>
@@ -1092,24 +1070,30 @@ export default function CommonCheckoutPage() {
                 style={{
                   width: '100%',
                   padding: '16px',
-                  background: hasSoldOutItems ? 'rgba(255,255,255,0.1)' : 'var(--gold)',
+                  background: hasSoldOutItems ? 'rgba(179, 137, 56, 0.3)' : 'var(--gold)',
                   border: 'none',
                   borderRadius: '8px',
-                  color: hasSoldOutItems ? 'var(--text-dim)' : '#110c08',
+                  color: '#ffffff',
                   fontSize: '0.92rem',
                   fontWeight: 700,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
                   cursor: isSubmittingOrder || hasSoldOutItems ? 'not-allowed' : 'pointer',
-                  boxShadow: hasSoldOutItems ? 'none' : '0 8px 24px rgba(201, 168, 76, 0.4)',
+                  boxShadow: hasSoldOutItems ? 'none' : '0 8px 24px rgba(179, 137, 56, 0.3)',
+                  transition: 'all 0.2s ease',
                 }}
               >
                 {isSubmittingOrder
-                  ? 'Securing Acquisition...'
+                  ? 'Connecting to Razorpay...'
                   : hasSoldOutItems
                   ? '⚠️ Remove Sold Out Pieces'
-                  : '👑 Confirm Acquisition & Place Order'}
+                  : '💳 Confirm & Pay with Razorpay'}
               </button>
+
+              <div style={{ marginTop: '14px', textAlign: 'center', fontSize: '0.73rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <span>🔒</span>
+                <span>256-Bit Encrypted Razorpay Gateway • UPI, Cards &amp; NetBanking</span>
+              </div>
             </div>
           </div>
         </form>
@@ -1121,7 +1105,7 @@ export default function CommonCheckoutPage() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.8)',
+            background: 'rgba(26, 19, 13, 0.65)',
             backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
@@ -1135,23 +1119,23 @@ export default function CommonCheckoutPage() {
             style={{
               width: '100%',
               maxWidth: '520px',
-              background: '#130d07',
-              border: '1px solid var(--gold)',
+              background: '#ffffff',
+              border: '1.5px solid var(--gold)',
               borderRadius: '16px',
               padding: '24px',
-              boxShadow: '0 24px 64px rgba(0, 0, 0, 0.8)',
+              boxShadow: '0 24px 64px rgba(26, 19, 13, 0.2)',
               maxHeight: '90vh',
               overflowY: 'auto',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid rgba(201, 168, 76, 0.3)', paddingBottom: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid rgba(179, 137, 56, 0.2)', paddingBottom: '12px' }}>
               <div>
-                <span style={{ fontSize: '0.7rem', color: 'var(--gold)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-                  PATRON PRIVILEGES
+                <span style={{ fontSize: '0.7rem', color: 'var(--gold)', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700 }}>
+                  OFFERS &amp; COUPONS
                 </span>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: '#fff', marginTop: '2px' }}>
-                  Available Heirloom Coupons
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--text)', marginTop: '2px' }}>
+                  Available Coupons
                 </h3>
               </div>
               <button
@@ -1170,9 +1154,9 @@ export default function CommonCheckoutPage() {
             </div>
 
             {isLoadingCoupons ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '24px' }}>Loading available privileges...</p>
+              <p style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '24px' }}>Loading available coupons...</p>
             ) : availableCoupons.length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '24px' }}>No active privileges found at this time.</p>
+              <p style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '24px' }}>No active coupons available right now.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {availableCoupons.map((coupon) => {
@@ -1185,14 +1169,14 @@ export default function CommonCheckoutPage() {
                       key={coupon.id || coupon.code}
                       style={{
                         padding: '16px',
-                        background: isEligible ? 'rgba(201, 168, 76, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                        background: isEligible ? '#FAF8F5' : '#f9f9f9',
                         border: isEligible
                           ? isCurrentlyApplied
-                            ? '2px solid #4ade80'
+                            ? '2px solid #15803d'
                             : '1px solid var(--gold)'
-                          : '1px solid rgba(255, 255, 255, 0.1)',
+                          : '1px solid rgba(179, 137, 56, 0.15)',
                         borderRadius: '10px',
-                        opacity: isEligible ? 1 : 0.45,
+                        opacity: isEligible ? 1 : 0.55,
                         transition: 'all 0.2s ease',
                       }}
                     >
@@ -1203,17 +1187,17 @@ export default function CommonCheckoutPage() {
                               fontFamily: 'monospace',
                               fontWeight: 700,
                               fontSize: '1rem',
-                              color: isEligible ? 'var(--gold)' : '#fff',
-                              background: 'rgba(0, 0, 0, 0.5)',
+                              color: 'var(--gold)',
+                              background: '#ffffff',
                               padding: '4px 8px',
                               borderRadius: '4px',
-                              border: '1px dashed rgba(201, 168, 76, 0.4)',
+                              border: '1px dashed var(--gold)',
                               display: 'inline-block',
                             }}
                           >
                             {coupon.code}
                           </span>
-                          <p style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 600, marginTop: '6px' }}>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text)', fontWeight: 600, marginTop: '6px' }}>
                             {coupon.discountType === 'PERCENTAGE'
                               ? `${coupon.discountValue}% OFF on Master Weaves`
                               : `₹${coupon.discountValue.toLocaleString('en-IN')} FLAT OFF`}
@@ -1227,9 +1211,9 @@ export default function CommonCheckoutPage() {
                             disabled={isCurrentlyApplied}
                             style={{
                               padding: '6px 14px',
-                              background: isCurrentlyApplied ? 'rgba(34, 197, 94, 0.2)' : 'var(--gold)',
-                              border: isCurrentlyApplied ? '1px solid #4ade80' : 'none',
-                              color: isCurrentlyApplied ? '#4ade80' : '#110c08',
+                              background: isCurrentlyApplied ? 'rgba(34, 197, 94, 0.15)' : 'var(--gold)',
+                              border: isCurrentlyApplied ? '1px solid #15803d' : 'none',
+                              color: isCurrentlyApplied ? '#15803d' : '#ffffff',
                               borderRadius: '6px',
                               fontSize: '0.78rem',
                               fontWeight: 700,
@@ -1239,7 +1223,7 @@ export default function CommonCheckoutPage() {
                             {isCurrentlyApplied ? '✓ Applied' : 'Apply Code'}
                           </button>
                         ) : (
-                          <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: 'rgba(0,0,0,0.4)', padding: '4px 8px', borderRadius: '4px' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: '#F4EFEA', padding: '4px 8px', borderRadius: '4px' }}>
                             Locked
                           </span>
                         )}
@@ -1260,7 +1244,7 @@ export default function CommonCheckoutPage() {
 
                       {/* Greying-out reason notification */}
                       {!isEligible && (
-                        <div style={{ marginTop: '8px', padding: '6px 10px', background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.2)', borderRadius: '4px', color: '#fef08a', fontSize: '0.72rem' }}>
+                        <div style={{ marginTop: '8px', padding: '6px 10px', background: 'rgba(201, 101, 23, 0.1)', border: '1px solid rgba(201, 101, 23, 0.25)', borderRadius: '4px', color: '#c96517', fontSize: '0.72rem' }}>
                           ⚠️ Add ₹{deficit.toLocaleString('en-IN')} more to unlock this privilege
                         </div>
                       )}
@@ -1275,3 +1259,4 @@ export default function CommonCheckoutPage() {
     </div>
   );
 }
+

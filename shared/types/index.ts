@@ -45,6 +45,33 @@ export interface User {
   createdAt: string;
 }
 
+export interface SubCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  categoryId: string;
+  category?: Category;
+  productCount?: number;
+  products?: Product[];
+  createdAt?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  region: string;
+  image?: string;
+  isFeatured?: boolean;
+  displayOrder?: number;
+  subCategories?: SubCategory[];
+  products?: Product[];
+  productCount?: number;
+  createdAt?: string;
+}
+
 export interface Product {
   id: string;
   sku: string;
@@ -62,6 +89,10 @@ export interface Product {
   weaveStyle?: string;
   silkMarkNumber?: string;
   videoUrl?: string;
+  categoryId?: string;
+  category?: Category;
+  subCategoryId?: string;
+  subCategory?: SubCategory;
   isFeatured: boolean;
   isDealOfDay: boolean;
   dealExpiresAt?: string;
@@ -186,6 +217,8 @@ export interface Order {
   courierPartner?: string;
   awbNumber?: string;
   trackingUrl?: string;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
   inspectionVideoUrl?: string;
   isNdrFlagged: boolean;
   ndrReason?: string;
@@ -209,4 +242,39 @@ export interface VerifyOtpPayload {
 export interface GoogleAuthPayload {
   idToken: string;
 }
+
+export interface CreateRazorpayOrderRequest {
+  items: { productId: string; quantity: number }[];
+  couponCode?: string;
+}
+
+export interface CreateRazorpayOrderResponse {
+  success: boolean;
+  razorpayOrderId: string;
+  amount: number;
+  amountInPaise: number;
+  currency: string;
+  keyId: string;
+  isSimulated: boolean;
+  finalTotal: number;
+  subtotal: number;
+  discountAmount: number;
+}
+
+export interface VerifyRazorpayPaymentRequest {
+  razorpayOrderId: string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
+  items: { productId: string; quantity: number }[];
+  shippingAddress: ShippingAddress;
+  couponCode?: string;
+}
+
+export interface VerifyRazorpayPaymentResponse {
+  success: boolean;
+  message: string;
+  order: Order;
+  trackingUrl: string;
+}
+
 

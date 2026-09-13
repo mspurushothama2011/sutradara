@@ -90,6 +90,8 @@ model Category {
   description   String?
   region        String
   image         String?
+  isFeatured    Boolean       @default(false)
+  displayOrder  Int           @default(0)
   createdAt     DateTime      @default(now())
 
   subCategories SubCategory[] // Max 3 enforced via API
@@ -166,8 +168,6 @@ model ProductProcurement {
 model Order {
   id                 String          @id @default(uuid())
   orderNumber        String          @unique
-  userId             String?
-  user               User?           @relation(fields: [userId], references: [id])
   customerId         String?
   customer           Customer?       @relation(fields: [customerId], references: [id])
   
@@ -245,7 +245,6 @@ model User {
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
-  orders            Order[]
   addresses         Address[]
   attendances       Attendance[]
   workLogs          WorkLog[]

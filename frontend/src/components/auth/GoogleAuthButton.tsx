@@ -55,7 +55,7 @@ export default function GoogleAuthButton({
     let isMounted = true;
 
     if (!clientId) {
-      return; // If no client ID is set, rely on clean dev simulator
+      return;
     }
 
     const initGsi = () => {
@@ -72,7 +72,7 @@ export default function GoogleAuthButton({
         });
 
         window.google.accounts.id.renderButton(buttonRef.current, {
-          theme: 'filled_black',
+          theme: 'outline',
           size: 'large',
           text: text,
           shape: 'rectangular',
@@ -113,10 +113,8 @@ export default function GoogleAuthButton({
 
   return (
     <div style={{ width: '100%', marginTop: '16px', marginBottom: '16px' }}>
-      {/* Official Google GSI Button container */}
       {clientId && <div ref={buttonRef} style={{ minHeight: '44px', width: '100%' }} />}
 
-      {/* Styled Luxury Google Button (Universal & Dev Simulator) */}
       {(!clientId || !isGsiLoaded) && (
         <div>
           {!isDevTesting ? (
@@ -131,22 +129,23 @@ export default function GoogleAuthButton({
                 justifyContent: 'center',
                 gap: '12px',
                 padding: '12px 18px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.18)',
+                background: '#ffffff',
+                border: '1px solid rgba(179, 137, 56, 0.35)',
                 borderRadius: '8px',
-                color: '#fff',
+                color: 'var(--text)',
                 fontSize: '0.9rem',
-                fontWeight: 500,
+                fontWeight: 600,
                 cursor: disabled ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease',
+                boxShadow: '0 2px 8px rgba(26, 19, 13, 0.04)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.background = '#FAF8F5';
                 e.currentTarget.style.borderColor = 'var(--gold)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.18)';
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.borderColor = 'rgba(179, 137, 56, 0.35)';
               }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24">
@@ -173,16 +172,17 @@ export default function GoogleAuthButton({
             <form
               onSubmit={handleMockGoogleLogin}
               style={{
-                padding: '14px',
-                background: 'rgba(0, 0, 0, 0.4)',
-                border: '1px solid var(--gold)',
+                padding: '16px',
+                background: '#FAF8F5',
+                border: '1px solid rgba(179, 137, 56, 0.35)',
                 borderRadius: '8px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '10px',
+                gap: '12px',
+                boxShadow: '0 2px 10px rgba(26, 19, 13, 0.05)',
               }}
             >
-              <span style={{ fontSize: '0.78rem', color: 'var(--gold)', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--gold-dark)', letterSpacing: '0.05em', fontWeight: 600 }}>
                 Google Sign-In Simulator
               </span>
               <input
@@ -193,11 +193,12 @@ export default function GoogleAuthButton({
                 onChange={(e) => setDevEmail(e.target.value)}
                 style={{
                   padding: '10px 12px',
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  background: '#ffffff',
+                  border: '1px solid rgba(179, 137, 56, 0.3)',
                   borderRadius: '6px',
-                  color: '#fff',
+                  color: 'var(--text)',
                   fontSize: '0.85rem',
+                  outline: 'none',
                 }}
               />
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -205,13 +206,13 @@ export default function GoogleAuthButton({
                   type="submit"
                   style={{
                     flex: 1,
-                    padding: '8px',
+                    padding: '9px',
                     background: 'var(--gold)',
-                    color: '#110c08',
+                    color: '#ffffff',
                     border: 'none',
                     borderRadius: '6px',
                     fontWeight: 700,
-                    fontSize: '0.8rem',
+                    fontSize: '0.82rem',
                     cursor: 'pointer',
                   }}
                 >
@@ -221,12 +222,12 @@ export default function GoogleAuthButton({
                   type="button"
                   onClick={() => setIsDevTesting(false)}
                   style={{
-                    padding: '8px 12px',
-                    background: 'transparent',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    padding: '9px 14px',
+                    background: '#ffffff',
+                    border: '1px solid rgba(179, 137, 56, 0.25)',
                     borderRadius: '6px',
                     color: 'var(--text-dim)',
-                    fontSize: '0.8rem',
+                    fontSize: '0.82rem',
                     cursor: 'pointer',
                   }}
                 >

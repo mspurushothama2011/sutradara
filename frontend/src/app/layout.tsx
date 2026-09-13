@@ -3,6 +3,7 @@ import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import AppFooterWrapper from "@/components/layout/AppFooterWrapper";
+import InteractiveSilkCanvas from "@/components/shared/ui/InteractiveSilkCanvas";
 
 const playfair = Playfair_Display({
   variable: "--font-display",
@@ -31,9 +32,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body style={{ fontFamily: "var(--font-body)", display: 'flex', flexDirection: 'column', minHeight: '100vh' }} suppressHydrationWarning>
+      <body style={{ fontFamily: "var(--font-body)", display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative' }} suppressHydrationWarning>
+        <InteractiveSilkCanvas />
         <CartProvider>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>
             {children}
           </div>
           <AppFooterWrapper />

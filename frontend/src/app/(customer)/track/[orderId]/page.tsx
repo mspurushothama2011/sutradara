@@ -41,19 +41,19 @@ export default function OrderTrackingPage() {
 
   if (!order) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', color: '#fff' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
         <LandingNavbar />
         <div style={{ paddingTop: '140px', textAlign: 'center', paddingLeft: '24px', paddingRight: '24px' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem' }}>Order Not Found</h1>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text)' }}>Order Not Found</h1>
           <p style={{ color: 'var(--text-dim)', marginTop: '8px' }}>Please verify your Order Reference ID or AWB Tracking Number.</p>
           <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '24px' }}>
             <button
               onClick={() => router.back()}
-              style={{ padding: '12px 24px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', borderRadius: '6px', cursor: 'pointer' }}
+              style={{ padding: '12px 24px', background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.3)', color: 'var(--text)', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
             >
               ← Go Back
             </button>
-            <Link href="/catalog" style={{ padding: '12px 24px', background: 'var(--gold)', color: '#110c08', borderRadius: '6px', textDecoration: 'none', fontWeight: 600 }}>
+            <Link href="/catalog" style={{ padding: '12px 24px', background: 'var(--gold)', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: 600 }}>
               Browse Curated Catalog →
             </Link>
           </div>
@@ -78,8 +78,8 @@ export default function OrderTrackingPage() {
                 alignItems: 'center',
                 gap: '6px',
                 padding: '8px 16px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(201, 168, 76, 0.3)',
+                background: '#ffffff',
+                border: '1px solid rgba(179, 137, 56, 0.3)',
                 borderRadius: '6px',
                 color: 'var(--gold)',
                 fontSize: '0.82rem',
@@ -113,7 +113,7 @@ export default function OrderTrackingPage() {
             </Link>
           </div>
 
-          <span style={{ fontSize: '0.82rem', fontFamily: 'monospace', color: 'var(--gold)', background: 'rgba(201, 168, 76, 0.1)', padding: '4px 10px', borderRadius: '4px', border: '1px solid rgba(201, 168, 76, 0.2)' }}>
+          <span style={{ fontSize: '0.82rem', fontFamily: 'monospace', color: 'var(--gold)', background: '#FAF8F5', padding: '4px 10px', borderRadius: '4px', border: '1px solid rgba(179, 137, 56, 0.25)', fontWeight: 600 }}>
             Ref: {order.orderNumber}
           </span>
         </div>
@@ -121,8 +121,8 @@ export default function OrderTrackingPage() {
         {/* Top Status Banner */}
         <div
           style={{
-            background: 'linear-gradient(135deg, rgba(201, 168, 76, 0.15) 0%, rgba(26, 20, 14, 0.8) 100%)',
-            border: '1px solid rgba(201, 168, 76, 0.3)',
+            background: 'linear-gradient(135deg, #F4EFEA 0%, #FAF8F5 100%)',
+            border: '1px solid rgba(179, 137, 56, 0.3)',
             borderRadius: '12px',
             padding: '24px 28px',
             marginBottom: '32px',
@@ -131,13 +131,14 @@ export default function OrderTrackingPage() {
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: '20px',
+            boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
           }}
         >
           <div>
-            <span style={{ fontSize: '0.72rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '0.72rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 700 }}>
               CURRENT SHIPMENT STATUS
             </span>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: '#fff', marginTop: '4px' }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: 'var(--text)', marginTop: '4px' }}>
               {order.status === 'SHIPPED'
                 ? `🚚 In Transit (${order.courierPartner || 'Express Air'})`
                 : order.status === 'PAID'
@@ -147,7 +148,7 @@ export default function OrderTrackingPage() {
                 : order.status}
             </h1>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-              Courier Partner: <strong style={{ color: '#fff' }}>{order.courierPartner || 'Express Priority Air'}</strong>
+              Courier Partner: <strong style={{ color: 'var(--text)' }}>{order.courierPartner || 'Express Priority Air'}</strong>
               {order.awbNumber && (
                 <>
                   {' '}• AWB: <strong style={{ color: 'var(--gold)', fontFamily: 'monospace' }}>{order.awbNumber}</strong>
@@ -162,8 +163,8 @@ export default function OrderTrackingPage() {
               alignItems: 'center',
               gap: '10px',
               padding: '10px 18px',
-              background: 'rgba(201, 168, 76, 0.1)',
-              border: '1px solid rgba(201, 168, 76, 0.3)',
+              background: '#ffffff',
+              border: '1px solid rgba(179, 137, 56, 0.25)',
               borderRadius: '8px',
             }}
           >
@@ -187,16 +188,17 @@ export default function OrderTrackingPage() {
             {order.inspectionVideoUrl && (
               <div
                 style={{
-                  background: 'var(--bg-deep)',
-                  border: '1px solid rgba(201, 168, 76, 0.3)',
+                  background: '#ffffff',
+                  border: '1px solid rgba(179, 137, 56, 0.25)',
                   borderRadius: '10px',
                   padding: '20px',
+                  boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
                   <span style={{ fontSize: '1.4rem' }}>📹</span>
                   <div>
-                    <h3 style={{ fontSize: '0.95rem', color: 'var(--gold)', fontWeight: 600 }}>
+                    <h3 style={{ fontSize: '0.95rem', color: 'var(--gold)', fontWeight: 700 }}>
                       Pre-Shipment 20s Inspection Log
                     </h3>
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
@@ -210,20 +212,20 @@ export default function OrderTrackingPage() {
                   style={{
                     position: 'relative',
                     aspectRatio: '16/9',
-                    background: '#0a0602',
+                    background: '#F4EFEA',
                     borderRadius: '6px',
                     overflow: 'hidden',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(179, 137, 56, 0.2)',
                   }}
                 >
                   <img
                     src={order.items?.[0]?.image || '/frames/ezgif-frame-240.jpg'}
                     alt="video thumbnail"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
                   />
                   <div
                     style={{
@@ -231,13 +233,14 @@ export default function OrderTrackingPage() {
                       width: '48px',
                       height: '48px',
                       borderRadius: '50%',
-                      background: 'rgba(201, 168, 76, 0.9)',
+                      background: 'rgba(179, 137, 56, 0.9)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#110c08',
+                      color: '#ffffff',
                       fontSize: '1.2rem',
                       fontWeight: 700,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                     }}
                   >
                     ▶
@@ -247,8 +250,8 @@ export default function OrderTrackingPage() {
             )}
 
             {/* Saree Item Card */}
-            <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '20px' }}>
-              <h3 style={{ fontSize: '0.88rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>
+            <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '10px', padding: '20px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)' }}>
+              <h3 style={{ fontSize: '0.88rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px', fontWeight: 700 }}>
                 Acquired Pieces ({order.items?.length || 1})
               </h3>
               {order.items?.map((item: any) => (
@@ -256,11 +259,11 @@ export default function OrderTrackingPage() {
                   <img
                     src={item.image || item.product?.images?.[0] || '/frames/ezgif-frame-240.jpg'}
                     alt={item.productName || item.product?.name}
-                    style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}
+                    style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(179, 137, 56, 0.2)' }}
                   />
                   <div>
-                    <h4 style={{ fontSize: '0.92rem', color: '#fff' }}>{item.productName || item.product?.name}</h4>
-                    <p style={{ fontSize: '0.82rem', color: 'var(--gold)', marginTop: '4px', fontWeight: 600 }}>
+                    <h4 style={{ fontSize: '0.92rem', color: 'var(--text)' }}>{item.productName || item.product?.name}</h4>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--gold)', marginTop: '4px', fontWeight: 700 }}>
                       ₹{item.price.toLocaleString('en-IN')} (Qty: {item.quantity})
                     </p>
                   </div>
@@ -269,11 +272,11 @@ export default function OrderTrackingPage() {
             </div>
 
             {/* Delivery Recipient Box */}
-            <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '20px' }}>
-              <h3 style={{ fontSize: '0.88rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+            <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '10px', padding: '20px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)' }}>
+              <h3 style={{ fontSize: '0.88rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px', fontWeight: 700 }}>
                 Delivery Destination
               </h3>
-              <p style={{ fontSize: '0.88rem', color: '#fff', fontWeight: 600 }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text)', fontWeight: 600 }}>
                 {(order.shippingAddress as any)?.recipientName || (order.shippingAddress as any)?.fullName || 'Valued Patron'}
               </p>
               <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '4px' }}>
@@ -283,8 +286,8 @@ export default function OrderTrackingPage() {
           </div>
 
           {/* Right Column: Live Milestone Timeline */}
-          <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '24px' }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: '#fff', marginBottom: '20px' }}>
+          <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '10px', padding: '24px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)' }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--text)', marginBottom: '20px' }}>
               Live Delivery Milestones
             </h3>
 
@@ -297,7 +300,7 @@ export default function OrderTrackingPage() {
                   top: '8px',
                   bottom: '8px',
                   width: '2px',
-                  background: 'rgba(201, 168, 76, 0.3)',
+                  background: 'rgba(179, 137, 56, 0.25)',
                 }}
               />
 
@@ -312,13 +315,14 @@ export default function OrderTrackingPage() {
                       width: '14px',
                       height: '14px',
                       borderRadius: '50%',
-                      background: idx === 0 ? '#22c55e' : 'var(--gold)',
-                      border: '3px solid var(--bg-deep)',
+                      background: idx === 0 ? '#15803d' : 'var(--gold)',
+                      border: '3px solid #ffffff',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                     }}
                   />
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: idx === 0 ? '#4ade80' : '#fff' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: idx === 0 ? '#15803d' : 'var(--text)' }}>
                         {String(evt.status || '').replace(/_/g, ' ')}
                       </span>
                       <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
@@ -326,7 +330,7 @@ export default function OrderTrackingPage() {
                       </span>
                     </div>
                     {evt.location && (
-                      <span style={{ fontSize: '0.75rem', color: 'var(--gold)', display: 'block', marginTop: '2px' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--gold)', display: 'block', marginTop: '2px', fontWeight: 600 }}>
                         📍 {evt.location}
                       </span>
                     )}
@@ -341,17 +345,18 @@ export default function OrderTrackingPage() {
         </div>
 
         {/* Bottom Quick Return Links */}
-        <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
+        <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
           <Link
             href="/catalog"
             style={{
               padding: '12px 24px',
               background: 'var(--gold)',
-              color: '#110c08',
+              color: '#ffffff',
               borderRadius: '6px',
               textDecoration: 'none',
               fontWeight: 700,
               fontSize: '0.88rem',
+              boxShadow: '0 4px 14px rgba(179, 137, 56, 0.25)',
             }}
           >
             Explore More Master Weaves →
@@ -360,8 +365,8 @@ export default function OrderTrackingPage() {
             href="/account/orders"
             style={{
               padding: '12px 24px',
-              background: 'transparent',
-              border: '1px solid rgba(201, 168, 76, 0.3)',
+              background: '#ffffff',
+              border: '1px solid rgba(179, 137, 56, 0.3)',
               color: 'var(--gold)',
               borderRadius: '6px',
               textDecoration: 'none',

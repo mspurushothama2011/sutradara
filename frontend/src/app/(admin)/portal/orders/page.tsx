@@ -89,10 +89,10 @@ export default function PortalOrdersPage() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <span style={{ fontSize: '0.75rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '0.75rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 600 }}>
             FULFILLMENT &amp; LOGISTICS VAULT
           </span>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: '#fff', marginTop: '4px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text)', marginTop: '4px' }}>
             Orders &amp; Shiprocket Dispatch Queue
           </h1>
         </div>
@@ -100,13 +100,15 @@ export default function PortalOrdersPage() {
         <button
           onClick={loadOrders}
           style={{
-            padding: '8px 16px',
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.15)',
+            padding: '10px 18px',
+            background: '#FFFFFF',
+            border: '1px solid rgba(179, 137, 56, 0.3)',
             borderRadius: '6px',
-            color: '#fff',
-            fontSize: '0.82rem',
+            color: 'var(--text)',
+            fontSize: '0.85rem',
+            fontWeight: 600,
             cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(26, 19, 13, 0.04)',
           }}
         >
           🔄 Refresh Queue
@@ -114,10 +116,10 @@ export default function PortalOrdersPage() {
       </div>
 
       {/* Orders Table */}
-      <div style={{ background: 'var(--bg-deep)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', overflowX: 'auto' }}>
+      <div style={{ background: '#FFFFFF', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', overflowX: 'auto', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.03)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '850px' }}>
           <thead>
-            <tr style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: 'var(--gold)', fontSize: '0.75rem', textTransform: 'uppercase' }}>
+            <tr style={{ background: 'var(--bg-deep)', borderBottom: '1px solid rgba(179, 137, 56, 0.18)', color: 'var(--text)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700 }}>
               <th style={{ padding: '14px 18px' }}>Order #</th>
               <th style={{ padding: '14px 18px' }}>Recipient &amp; Address</th>
               <th style={{ padding: '14px 18px' }}>Total Amount</th>
@@ -142,48 +144,48 @@ export default function PortalOrdersPage() {
                 const isProcessingThis = isDispatching === o.id;
 
                 return (
-                  <tr key={o.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)', fontSize: '0.85rem' }}>
-                    <td style={{ padding: '14px 18px', fontFamily: 'monospace', color: 'var(--gold)', fontWeight: 600 }}>
+                  <tr key={o.id} style={{ borderBottom: '1px solid rgba(179, 137, 56, 0.12)', fontSize: '0.85rem' }}>
+                    <td style={{ padding: '14px 18px', fontFamily: 'monospace', color: 'var(--gold)', fontWeight: 700 }}>
                       {o.orderNumber}
-                      <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-dim)' }}>
+                      <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 500 }}>
                         {new Date(o.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </td>
-                    <td style={{ padding: '14px 18px', color: '#fff' }}>
-                      <strong>{o.customerName || shipping.recipientName || o.customer?.name || 'Valued Patron'}</strong>
-                      <span style={{ display: 'block', fontSize: '0.73rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                    <td style={{ padding: '14px 18px', color: 'var(--text)' }}>
+                      <strong style={{ color: 'var(--text)' }}>{o.customerName || shipping.recipientName || o.customer?.name || 'Valued Patron'}</strong>
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '2px' }}>
                         {shipping.street ? `${shipping.street}, ${shipping.city}` : `${shipping.city || 'India'}, ${shipping.state || ''}`} - {shipping.pincode || ''}
                       </span>
-                      <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                      <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '2px' }}>
                         ✉️ {o.customerEmail || o.customer?.email || '—'} • 📞 {o.customerPhone || shipping.recipientPhone || o.customer?.phone || '—'}
                       </span>
                     </td>
-                    <td style={{ padding: '14px 18px', color: '#fff', fontWeight: 600 }}>
+                    <td style={{ padding: '14px 18px', color: 'var(--text)', fontWeight: 700, fontSize: '0.92rem' }}>
                       ₹{o.totalAmount.toLocaleString('en-IN')}
                     </td>
                     <td style={{ padding: '14px 18px' }}>
                       <span
                         style={{
-                          padding: '4px 8px',
+                          padding: '4px 10px',
                           borderRadius: '4px',
-                          fontSize: '0.72rem',
+                          fontSize: '0.75rem',
                           fontWeight: 700,
                           background: o.status === 'DELIVERED'
-                            ? 'rgba(34, 197, 94, 0.2)'
+                            ? 'rgba(34, 197, 94, 0.12)'
                             : o.status === 'SHIPPED'
-                            ? 'rgba(59, 130, 246, 0.2)'
-                            : 'rgba(201, 168, 76, 0.2)',
+                            ? 'rgba(59, 130, 246, 0.12)'
+                            : 'rgba(179, 137, 56, 0.12)',
                           color: o.status === 'DELIVERED'
-                            ? '#4ade80'
+                            ? '#15803d'
                             : o.status === 'SHIPPED'
-                            ? '#60a5fa'
-                            : 'var(--gold)',
+                            ? '#1d4ed8'
+                            : 'var(--gold-dark, #8A6418)',
                         }}
                       >
                         {o.status}
                       </span>
                       {o.isNdrFlagged && (
-                        <span style={{ display: 'block', marginTop: '4px', color: '#f87171', fontSize: '0.68rem', fontWeight: 700 }}>
+                        <span style={{ display: 'block', marginTop: '4px', color: '#dc2626', fontSize: '0.7rem', fontWeight: 700 }}>
                           ⚠️ NDR EXCEPTION
                         </span>
                       )}
@@ -191,15 +193,15 @@ export default function PortalOrdersPage() {
                     <td style={{ padding: '14px 18px' }}>
                       {o.awbNumber ? (
                         <div>
-                          <span style={{ fontFamily: 'monospace', color: '#fff', fontSize: '0.78rem', fontWeight: 600 }}>
+                          <span style={{ fontFamily: 'monospace', color: 'var(--text)', fontSize: '0.82rem', fontWeight: 700 }}>
                             {o.awbNumber}
                           </span>
-                          <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--gold)' }}>
+                          <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold-dark, #8A6418)', fontWeight: 600 }}>
                             {o.courierPartner || 'Air Express'}
                           </span>
                         </div>
                       ) : (
-                        <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem' }}>Pending AWB</span>
+                        <span style={{ color: 'var(--text-dim)', fontSize: '0.78rem' }}>Pending AWB</span>
                       )}
                     </td>
                     <td style={{ padding: '14px 18px', textAlign: 'right' }}>
@@ -210,14 +212,15 @@ export default function PortalOrdersPage() {
                             onClick={() => handleShiprocketDispatch(o)}
                             disabled={isProcessingThis}
                             style={{
-                              padding: '5px 10px',
+                              padding: '6px 12px',
                               background: 'var(--gold)',
                               border: 'none',
                               borderRadius: '4px',
-                              color: '#110c08',
+                              color: '#FFFFFF',
                               fontSize: '0.75rem',
                               fontWeight: 700,
                               cursor: isProcessingThis ? 'wait' : 'pointer',
+                              boxShadow: '0 2px 6px rgba(179, 137, 56, 0.3)',
                             }}
                           >
                             {isProcessingThis ? 'Booking...' : '🚀 Ship via Shiprocket'}
@@ -228,13 +231,13 @@ export default function PortalOrdersPage() {
                         <Link
                           href={`/portal/orders/${o.orderNumber}/track`}
                           style={{
-                            padding: '5px 10px',
-                            background: 'rgba(201, 168, 76, 0.15)',
-                            border: '1px solid var(--gold)',
+                            padding: '6px 12px',
+                            background: 'rgba(179, 137, 56, 0.12)',
+                            border: '1px solid rgba(179, 137, 56, 0.3)',
                             borderRadius: '4px',
-                            color: 'var(--gold)',
+                            color: 'var(--gold-dark, #8A6418)',
                             fontSize: '0.75rem',
-                            fontWeight: 600,
+                            fontWeight: 700,
                             textDecoration: 'none',
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -250,12 +253,13 @@ export default function PortalOrdersPage() {
                           target="_blank"
                           rel="noreferrer"
                           style={{
-                            padding: '5px 10px',
-                            background: 'rgba(255,255,255,0.06)',
-                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '6px 12px',
+                            background: 'var(--bg-deep)',
+                            border: '1px solid rgba(179, 137, 56, 0.25)',
                             borderRadius: '4px',
-                            color: '#fff',
+                            color: 'var(--text)',
                             fontSize: '0.75rem',
+                            fontWeight: 600,
                             textDecoration: 'none',
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -280,8 +284,8 @@ export default function PortalOrdersPage() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.8)',
-            backdropFilter: 'blur(8px)',
+            background: 'rgba(26, 19, 13, 0.6)',
+            backdropFilter: 'blur(6px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -289,47 +293,47 @@ export default function PortalOrdersPage() {
             padding: '20px',
           }}
         >
-          <div style={{ width: '100%', maxWidth: '520px', background: 'var(--bg-deep)', border: '1px solid rgba(201, 168, 76, 0.35)', borderRadius: '12px', padding: '24px', color: '#fff' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem' }}>
+          <div style={{ width: '100%', maxWidth: '520px', background: '#FFFFFF', border: '1px solid rgba(179, 137, 56, 0.35)', borderRadius: '12px', padding: '28px', color: 'var(--text)', boxShadow: '0 20px 50px rgba(26, 19, 13, 0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid rgba(179, 137, 56, 0.18)', paddingBottom: '12px' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--text)' }}>
                 Fulfillment Desk: {selectedOrder.orderNumber}
               </h2>
-              <button onClick={() => setSelectedOrder(null)} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+              <button onClick={() => setSelectedOrder(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text)', fontSize: '1.2rem', cursor: 'pointer', fontWeight: 700 }}>✕</button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--gold)', marginBottom: '4px' }}>Air Waybill (AWB) #</label>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text)', fontWeight: 600, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Air Waybill (AWB) #</label>
                 <input
                   type="text"
                   placeholder="e.g. BD-778902144IN"
                   value={awbInput || selectedOrder.awbNumber || ''}
                   onChange={(e) => setAwbInput(e.target.value)}
-                  style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#fff', fontFamily: 'monospace' }}
+                  style={{ width: '100%', padding: '10px 14px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontFamily: 'monospace', fontWeight: 600, outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--gold)', marginBottom: '4px' }}>20s Inspection Video URL</label>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text)', fontWeight: 600, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>20s Inspection Video URL</label>
                 <input
                   type="url"
                   placeholder="https://assets.sutradara.in/videos/inspection-001.mp4"
                   value={videoUrlInput || selectedOrder.inspectionVideoUrl || ''}
                   onChange={(e) => setVideoUrlInput(e.target.value)}
-                  style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#fff' }}
+                  style={{ width: '100%', padding: '10px 14px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', outline: 'none' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '10px', flexWrap: 'wrap' }}>
                 <button
                   onClick={() => handleUpdateDispatch(selectedOrder.id, 'SHIPPED')}
-                  style={{ flex: 1, minWidth: '140px', padding: '10px', background: 'var(--gold)', border: 'none', borderRadius: '6px', color: '#110c08', fontWeight: 700, cursor: 'pointer' }}
+                  style={{ flex: 1, minWidth: '140px', padding: '12px', background: 'var(--gold)', border: 'none', borderRadius: '6px', color: '#FFFFFF', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(179, 137, 56, 0.3)' }}
                 >
                   🚀 Confirm Shipped
                 </button>
                 <button
                   onClick={() => handleUpdateDispatch(selectedOrder.id, 'DELIVERED')}
-                  style={{ flex: 1, minWidth: '140px', padding: '10px', background: 'rgba(34, 197, 94, 0.2)', border: '1px solid #22c55e', borderRadius: '6px', color: '#4ade80', fontWeight: 700, cursor: 'pointer' }}
+                  style={{ flex: 1, minWidth: '140px', padding: '12px', background: 'rgba(34, 197, 94, 0.12)', border: '1px solid #16a34a', borderRadius: '6px', color: '#15803d', fontWeight: 700, cursor: 'pointer' }}
                 >
                   ✓ Mark Delivered
                 </button>
@@ -339,13 +343,13 @@ export default function PortalOrdersPage() {
                 onClick={() => handleToggleNdr(selectedOrder)}
                 style={{
                   width: '100%',
-                  padding: '8px',
-                  background: selectedOrder.isNdrFlagged ? '#ef4444' : 'rgba(239, 68, 68, 0.15)',
-                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  padding: '10px',
+                  background: selectedOrder.isNdrFlagged ? '#dc2626' : 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
                   borderRadius: '6px',
-                  color: selectedOrder.isNdrFlagged ? '#fff' : '#fca5a5',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
+                  color: selectedOrder.isNdrFlagged ? '#FFFFFF' : '#b91c1c',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
                   cursor: 'pointer',
                   marginTop: '4px',
                 }}

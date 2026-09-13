@@ -4,6 +4,9 @@ import {
   createOrder,
   getCustomerOrders,
   trackOrder,
+  initiateRazorpayOrder,
+  verifyRazorpayPayment,
+  handleRazorpayWebhook,
 } from '../../controllers/customer/orders.controller';
 import { requireAuth } from '../../middleware/auth.middleware';
 import { compositeRateLimiter } from '../../middleware/rate-limiter.middleware';
@@ -22,6 +25,11 @@ router.post('/validate-cart', validateCart);
 
 // Stage 2: Create Order & 10-min lock (Authentication Mandatory)
 router.post('/create', requireAuth, checkoutRateLimiter, createOrder);
+
+// Razorpay High-Assurance Payment Integration
+router.post('/razorpay/create-order', requireAuth, checkoutRateLimiter, initiateRazorpayOrder);
+router.post('/razorpay/verify-payment', requireAuth, checkoutRateLimiter, verifyRazorpayPayment);
+router.post('/razorpay/webhook', handleRazorpayWebhook);
 
 // Customer order history
 router.get('/my-orders', requireAuth, getCustomerOrders);

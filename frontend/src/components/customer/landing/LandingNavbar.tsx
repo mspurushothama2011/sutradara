@@ -35,9 +35,10 @@ export default function LandingNavbar() {
         left: 0,
         right: 0,
         zIndex: 100,
-        background: 'linear-gradient(180deg, rgba(17, 12, 8, 0.96) 0%, rgba(17, 12, 8, 0.88) 100%)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(201, 168, 76, 0.2)',
+        background: 'rgba(250, 248, 245, 0.92)',
+        backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid var(--border-light)',
+        boxShadow: '0 4px 20px rgba(45, 25, 8, 0.04)',
       }}
     >
       {/* Real-time Deal Countdown Ribbon */}
@@ -49,7 +50,7 @@ export default function LandingNavbar() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '16px 36px',
+          padding: '14px 36px',
           maxWidth: '1400px',
           margin: '0 auto',
         }}
@@ -62,50 +63,58 @@ export default function LandingNavbar() {
                 fontFamily: 'var(--font-display)',
                 fontSize: '1.45rem',
                 letterSpacing: '0.18em',
-                color: '#fff',
+                color: '#1a130d',
+                fontWeight: 700,
                 display: 'block',
               }}
             >
-              SUTRA<span style={{ color: 'var(--gold)', fontWeight: 600 }}>ಧಾರ</span>
+              SUTRA<span style={{ color: 'var(--gold)', fontWeight: 800 }}>ಧಾರ</span>
             </span>
             <span
               style={{
                 fontSize: '0.62rem',
-                letterSpacing: '0.35em',
+                letterSpacing: '0.28em',
                 color: 'var(--gold)',
                 textTransform: 'uppercase',
                 display: 'block',
                 marginTop: '-2px',
+                fontWeight: 600,
               }}
             >
-              The Handloom Sanctuary
+              Authentic Handloom Sarees
             </span>
           </div>
         </Link>
 
         {/* Navigation Links */}
-        <div style={{ display: 'flex', gap: '24px', alignItems: 'center', fontSize: '0.86rem' }}>
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'center', fontSize: '0.88rem' }}>
+          <Link
+            href="/"
+            style={{ color: '#2d2218', textDecoration: 'none', letterSpacing: '0.04em', fontWeight: 600 }}
+          >
+            Home
+          </Link>
           <Link
             href="/catalog"
-            style={{ color: '#e0d8cc', textDecoration: 'none', letterSpacing: '0.04em' }}
+            style={{ color: '#2d2218', textDecoration: 'none', letterSpacing: '0.04em', fontWeight: 500 }}
           >
-            Curated Sarees
+            All Sarees
           </Link>
           <Link
             href="/categories"
-            style={{ color: '#e0d8cc', textDecoration: 'none', letterSpacing: '0.04em' }}
+            style={{ color: '#2d2218', textDecoration: 'none', letterSpacing: '0.04em', fontWeight: 500 }}
           >
-            Craft Clusters
+            Categories
           </Link>
           <Link
             href="/collections"
-            style={{ color: '#e0d8cc', textDecoration: 'none', letterSpacing: '0.04em' }}
+            style={{ color: '#2d2218', textDecoration: 'none', letterSpacing: '0.04em', fontWeight: 500 }}
           >
             Collections
           </Link>
           <Link
             href="/about"
-            style={{ color: '#e0d8cc', textDecoration: 'none', letterSpacing: '0.04em' }}
+            style={{ color: '#2d2218', textDecoration: 'none', letterSpacing: '0.04em', fontWeight: 500 }}
           >
             Our Story
           </Link>
@@ -118,13 +127,14 @@ export default function LandingNavbar() {
               alignItems: 'center',
               gap: '6px',
               padding: '6px 14px',
-              background: totalCount > 0 ? 'rgba(201, 168, 76, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-              border: totalCount > 0 ? '1px solid var(--gold)' : '1px solid rgba(255, 255, 255, 0.15)',
+              background: totalCount > 0 ? 'rgba(179, 137, 56, 0.15)' : '#ffffff',
+              border: totalCount > 0 ? '1.5px solid var(--gold)' : '1px solid rgba(179, 137, 56, 0.25)',
               borderRadius: '20px',
-              color: totalCount > 0 ? 'var(--gold)' : '#e0d8cc',
+              color: totalCount > 0 ? 'var(--gold)' : '#1a130d',
               textDecoration: 'none',
               fontWeight: 600,
               fontSize: '0.84rem',
+              boxShadow: '0 2px 8px rgba(45, 25, 8, 0.04)',
               transition: 'all 0.2s ease',
             }}
           >
@@ -132,8 +142,8 @@ export default function LandingNavbar() {
             <span>Bag</span>
             <span
               style={{
-                background: totalCount > 0 ? 'var(--gold)' : 'rgba(255,255,255,0.2)',
-                color: totalCount > 0 ? '#110c08' : '#fff',
+                background: totalCount > 0 ? 'var(--gold)' : 'rgba(0,0,0,0.08)',
+                color: totalCount > 0 ? '#ffffff' : '#1a130d',
                 borderRadius: '50%',
                 width: '18px',
                 height: '18px',
@@ -148,7 +158,7 @@ export default function LandingNavbar() {
             </span>
           </Link>
 
-          {/* Customer Auth State: Sign In vs Account Sanctuary */}
+          {/* Customer Auth State */}
           {customer ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Link
@@ -160,10 +170,10 @@ export default function LandingNavbar() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: 'rgba(201, 168, 76, 0.1)',
+                  background: 'rgba(179, 137, 56, 0.1)',
                   padding: '5px 12px',
                   borderRadius: '20px',
-                  border: '1px solid rgba(201, 168, 76, 0.3)',
+                  border: '1px solid rgba(179, 137, 56, 0.3)',
                 }}
               >
                 <span>👤</span>
@@ -187,12 +197,17 @@ export default function LandingNavbar() {
             <Link
               href="/login"
               style={{
-                color: 'var(--gold)',
+                color: '#ffffff',
+                background: 'var(--gold)',
                 textDecoration: 'none',
                 fontWeight: 600,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '6px',
+                padding: '7px 16px',
+                borderRadius: '20px',
+                fontSize: '0.82rem',
+                boxShadow: '0 2px 10px rgba(179, 137, 56, 0.3)',
               }}
             >
               <span>👤</span>

@@ -103,10 +103,10 @@ export default function CustomerLoginPage() {
     <div
       style={{
         minHeight: '100vh',
-        background: 'radial-gradient(ellipse at center, #1a140e 0%, #0d0906 100%)',
+        background: 'radial-gradient(ellipse at center, #FAF8F5 0%, #F4EFEA 100%)',
         display: 'flex',
         flexDirection: 'column',
-        color: '#fff',
+        color: 'var(--text)',
       }}
     >
       <LandingNavbar />
@@ -124,12 +124,11 @@ export default function CustomerLoginPage() {
           style={{
             width: '100%',
             maxWidth: '480px',
-            background: 'rgba(17, 12, 8, 0.95)',
-            border: '1px solid var(--gold)',
+            background: '#ffffff',
+            border: '1.5px solid var(--gold)',
             borderRadius: '16px',
             padding: '40px 36px',
-            boxShadow: '0 32px 80px rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(16px)',
+            boxShadow: '0 16px 48px rgba(26, 19, 13, 0.08)',
           }}
         >
           {/* Header */}
@@ -140,7 +139,7 @@ export default function CustomerLoginPage() {
                 letterSpacing: '0.3em',
                 color: 'var(--gold)',
                 textTransform: 'uppercase',
-                fontWeight: 600,
+                fontWeight: 700,
               }}
             >
               SUTRAಧಾರ
@@ -149,7 +148,7 @@ export default function CustomerLoginPage() {
               style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: '2.1rem',
-                color: '#fff',
+                color: 'var(--text)',
                 marginTop: '6px',
               }}
             >
@@ -168,16 +167,16 @@ export default function CustomerLoginPage() {
               style={{
                 marginBottom: '20px',
                 padding: '12px 16px',
-                background: 'rgba(201, 168, 76, 0.15)',
-                border: '1px solid var(--gold)',
+                background: '#FAF8F5',
+                border: '1px dashed var(--gold)',
                 borderRadius: '8px',
                 textAlign: 'center',
               }}
             >
-              <span style={{ fontSize: '0.75rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>
                 🔑 Developer Test Code:
               </span>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', letterSpacing: '4px', marginTop: '2px' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text)', letterSpacing: '4px', marginTop: '2px' }}>
                 {devOtp}
               </div>
             </div>
@@ -189,12 +188,13 @@ export default function CustomerLoginPage() {
               style={{
                 marginBottom: '20px',
                 padding: '12px 16px',
-                background: 'rgba(239, 68, 68, 0.15)',
+                background: 'rgba(239, 68, 68, 0.12)',
                 border: '1px solid #ef4444',
                 borderRadius: '8px',
-                color: '#fca5a5',
+                color: '#b91c1c',
                 fontSize: '0.85rem',
                 textAlign: 'center',
+                fontWeight: 600,
               }}
             >
               {error}
@@ -204,7 +204,7 @@ export default function CustomerLoginPage() {
           {step === 'EMAIL' ? (
             <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--gold)', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--gold)', marginBottom: '6px', fontWeight: 600 }}>
                   Email Address
                 </label>
                 <input
@@ -216,10 +216,10 @@ export default function CustomerLoginPage() {
                   style={{
                     width: '100%',
                     padding: '12px 16px',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    background: '#FAF8F5',
+                    border: '1px solid rgba(179, 137, 56, 0.3)',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text)',
                     fontSize: '0.95rem',
                   }}
                 />
@@ -242,8 +242,8 @@ export default function CustomerLoginPage() {
                 style={{
                   width: '100%',
                   padding: '14px',
-                  background: !turnstileToken ? 'rgba(201, 168, 76, 0.3)' : 'var(--gold)',
-                  color: !turnstileToken ? 'var(--text-dim)' : '#110c08',
+                  background: !turnstileToken ? 'rgba(179, 137, 56, 0.3)' : 'var(--gold)',
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: '8px',
                   fontWeight: 700,
@@ -252,15 +252,16 @@ export default function CustomerLoginPage() {
                   cursor: !turnstileToken || isLoading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
                   marginTop: '4px',
+                  boxShadow: '0 4px 14px rgba(179, 137, 56, 0.25)',
                 }}
               >
                 {isLoading ? 'Generating OTP...' : 'Send Verification Code'}
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '4px 0' }}>
-                <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
+                <div style={{ flex: 1, height: '1px', background: 'rgba(179, 137, 56, 0.15)' }} />
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>or</span>
-                <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
+                <div style={{ flex: 1, height: '1px', background: 'rgba(179, 137, 56, 0.15)' }} />
               </div>
 
               {/* Google Sign-in */}
@@ -273,7 +274,7 @@ export default function CustomerLoginPage() {
           ) : (
             <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--gold)', marginBottom: '8px', textAlign: 'center' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--gold)', marginBottom: '8px', textAlign: 'center', fontWeight: 600 }}>
                   Enter 6-Digit Code
                 </label>
                 <input
@@ -287,14 +288,15 @@ export default function CustomerLoginPage() {
                   style={{
                     width: '100%',
                     padding: '16px',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid var(--gold)',
+                    background: '#FAF8F5',
+                    border: '1.5px solid var(--gold)',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text)',
                     fontSize: '1.6rem',
                     textAlign: 'center',
                     letterSpacing: '8px',
                     fontFamily: 'monospace',
+                    fontWeight: 700,
                   }}
                 />
               </div>
@@ -305,8 +307,8 @@ export default function CustomerLoginPage() {
                 style={{
                   width: '100%',
                   padding: '14px',
-                  background: otp.length < 6 ? 'rgba(201, 168, 76, 0.3)' : 'var(--gold)',
-                  color: otp.length < 6 ? 'var(--text-dim)' : '#110c08',
+                  background: otp.length < 6 ? 'rgba(179, 137, 56, 0.3)' : 'var(--gold)',
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: '8px',
                   fontWeight: 700,
@@ -314,6 +316,7 @@ export default function CustomerLoginPage() {
                   letterSpacing: '0.05em',
                   cursor: otp.length < 6 || isLoading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 14px rgba(179, 137, 56, 0.25)',
                 }}
               >
                 {isLoading ? 'Verifying...' : 'Sign In'}
@@ -325,11 +328,12 @@ export default function CustomerLoginPage() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'var(--text-dim)',
-                  fontSize: '0.8rem',
+                  color: 'var(--gold)',
+                  fontSize: '0.85rem',
                   cursor: 'pointer',
                   textDecoration: 'underline',
                   textAlign: 'center',
+                  fontWeight: 600,
                 }}
               >
                 ← Change Email Address
@@ -342,7 +346,7 @@ export default function CustomerLoginPage() {
             style={{
               marginTop: '28px',
               paddingTop: '20px',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              borderTop: '1px solid rgba(179, 137, 56, 0.15)',
               textAlign: 'center',
               fontSize: '0.85rem',
               color: 'var(--text-dim)',

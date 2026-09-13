@@ -1,21 +1,51 @@
 /* ==========================================================================
-   SUTRADARA — Global Design Tokens & Reset
-   Exaggerated Minimalism · Playfair Display + Inter
+   SUTRADARA — Royal Ivory & Jewel-Tone Design Tokens & Reset
+   Regal Indian Luxury · Playfair Display + Inter
    ========================================================================== */
 
 /* ── Tokens ─────────────────────────────────────────────────────────── */
 :root {
-  --bg: #1a140e;
-  --bg-deep: #110c08;
+  /* Royal Ivory & Sandalwood Light Theme Canvas */
+  --bg: #faf8f5;
+  --bg-deep: #f4efea;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-overlay: rgba(250, 248, 245, 0.88);
 
-  --gold: #c9a84c;
-  --gold-soft: rgba(201, 168, 76, 0.55);
-  --gold-dim: rgba(201, 168, 76, 0.2);
+  /* Royal Antique Gold & Zari Accents */
+  --gold: #b38938;
+  --gold-soft: rgba(179, 137, 56, 0.45);
+  --gold-dim: rgba(179, 137, 56, 0.18);
+  --gold-border: rgba(179, 137, 56, 0.24);
 
-  --text: #f5f0e8;
-  --text-dim: #a8a093;
-  --text-bright: #ffffff;
-  --text-cream: #e0d8cc;
+  /* Regal Indian Heritage Jewel Tones & Olive Provenance */
+  --ruby: #8c1d2f;
+  --ruby-soft: rgba(140, 29, 47, 0.12);
+  --emerald: #145a52;
+  --emerald-soft: rgba(20, 90, 82, 0.12);
+  --plum: #5c1d6e;
+  --plum-soft: rgba(92, 29, 110, 0.12);
+  --saffron: #c96517;
+  --saffron-soft: rgba(201, 101, 23, 0.14);
+  --sapphire: #103b75;
+
+  /* Curated Organic Sericulture Olive Accents */
+  --olive-base: #5a6844;
+  --olive-light: #7e8d65;
+  --olive-deep: #3a4529;
+  --olive-glow: rgba(90, 104, 68, 0.12);
+  --olive-hover: rgba(90, 104, 68, 0.08);
+  --olive-border: rgba(90, 104, 68, 0.22);
+  --gradient-gold-olive: linear-gradient(135deg, rgba(179, 137, 56, 0.18) 0%, rgba(90, 104, 68, 0.12) 100%);
+  --gradient-olive-subtle: radial-gradient(circle at 50% 50%, rgba(90, 104, 68, 0.14) 0%, transparent 70%);
+
+  /* High-Contrast Deep Imperial Espresso Typography (14.2:1 AAA) */
+  --text: #1a130d;
+  --text-dim: #5a4838;
+  --text-bright: #0f0b07;
+  --text-cream: #382c20;
+  --border-light: rgba(179, 137, 56, 0.2);
+  --shadow-warm: 0 10px 30px rgba(45, 25, 8, 0.06);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
@@ -47,13 +77,30 @@ html {
 
 body {
   overflow-x: hidden;
-  background: var(--bg);
+  background: transparent;
+  color: var(--text);
+}
+
+/* ── Luxury Glassmorphic Surface Utilities ─────────────────────────── */
+.glass-card-luxury {
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(179, 137, 56, 0.22);
+  box-shadow: 0 8px 32px rgba(26, 19, 13, 0.04), 0 0 16px var(--olive-glow);
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.glass-card-luxury:hover {
+  border-color: var(--olive-border);
+  box-shadow: 0 14px 40px rgba(45, 25, 8, 0.08), 0 0 24px var(--olive-glow);
 }
 
 /* Minimal scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--gold-soft); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 
 /* ── Preloader ──────────────────────────────────────────────────────── */
 .preloader {
@@ -255,7 +302,7 @@ body {
   text-align: center;
   padding: var(--space-xl) var(--space-m) var(--space-l);
   background: var(--bg-deep);
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid var(--border-light);
 }
 
 .footer-brand {
@@ -263,6 +310,7 @@ body {
   letter-spacing: 0.3em;
   color: var(--gold);
   margin-bottom: var(--space-xs);
+  font-weight: 700;
 }
 
 .footer-line {
@@ -273,7 +321,8 @@ body {
 
 .footer-copy {
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--text-dim);
+  opacity: 0.75;
 }
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
@@ -297,9 +346,15 @@ body {
   .ov-body { margin-left: 0 !important; }
 }
 
-/* ── Reduced motion ─────────────────────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .ov { transition: opacity 0.3s ease; transform: none !important; }
-  .ov.active { transform: none !important; }
-  .scroll-dot { animation: none; }
+/* ── Barcode Scanner & Spinner Animations ────────────────────────── */
+@keyframes scanLaser {
+  0% { transform: translateY(-70px); opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { transform: translateY(70px); opacity: 0.6; }
 }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
