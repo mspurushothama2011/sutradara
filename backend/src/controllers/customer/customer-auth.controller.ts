@@ -5,6 +5,7 @@ import { signAccessToken, signRefreshToken } from '../../utils/jwt';
 import { AuthRequest } from '../../middleware/auth.middleware';
 import { verifyTurnstileToken } from '../../utils/turnstile';
 import { verifyGoogleIdToken } from '../../utils/google-auth';
+import { sendOtpEmail, sendAccountDeletionOtpEmail } from '../../services/email.service';
 
 const prisma = new PrismaClient();
 
@@ -21,10 +22,10 @@ const OTP_STORE = new Map<string, OtpRecord>();
 const DELETION_OTP_STORE = new Map<string, OtpRecord>();
 
 /**
- * Send 6-Digit Email OTP with 10-minute TTL (Guarded by Cloudflare Turnstile CAPTCHA)
+ * Send 6-Digit Email OTP with 10-minute TTL (Delivered via Gmail SMTP & guarded by Cloudflare Turnstile)
  */
 export async function sendEmailOtp(req: Request, res: Response) {
-  const { email, turnstileToken } = req.body;
+  const { email, phone, intent, turnstileToken } = req.body;
 
   if (!email || !email.includes('@') || !email.includes('.')) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
@@ -41,6 +42,42 @@ export async function sendEmailOtp(req: Request, res: Response) {
 
   const normalizedEmail = email.toLowerCase().trim();
 
+  // If registering, verify that email or mobile number is not already registered
+  if (intent === 'register') {
+    const existingEmailCustomer = await prisma.customer.findFirst({
+      where: {
+        email: normalizedEmail,
+        deletedAt: null,
+      },
+    });
+
+    if (existingEmailCustomer) {
+      return res.status(409).json({
+        error: 'This email address is already registered. Please sign in to your account.',
+        code: 'EMAIL_ALREADY_REGISTERED',
+      });
+    }
+
+    if (phone) {
+      const phoneDigits = String(phone).replace(/\D/g, '').slice(-10);
+      if (phoneDigits.length === 10) {
+        const existingPhoneCustomer = await prisma.customer.findFirst({
+          where: {
+            phone: { contains: phoneDigits },
+            deletedAt: null,
+          },
+        });
+
+        if (existingPhoneCustomer) {
+          return res.status(409).json({
+            error: 'This mobile number is already registered with an existing account. Please sign in or use another number.',
+            code: 'PHONE_ALREADY_REGISTERED',
+          });
+        }
+      }
+    }
+  }
+
   // Generate cryptographically secure 6-digit numeric OTP
   const otp = crypto.randomInt(100000, 999999).toString();
   const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
@@ -56,10 +93,15 @@ export async function sendEmailOtp(req: Request, res: Response) {
   console.log(`🔑 Verification Code: ${otp} (Valid for 10 minutes)`);
   console.log(`======================================================\n`);
 
+  // Dispatch real email via Gmail SMTP
+  const emailResult = await sendOtpEmail(normalizedEmail, otp);
+
   return res.json({
     success: true,
-    message: `A 6-digit verification code has been generated for ${normalizedEmail}`,
-    devOtp: otp, // Always provided for instant local verification
+    message: emailResult.success
+      ? `A 6-digit verification code has been sent to ${normalizedEmail}. Please check your inbox.`
+      : `Verification code sent to ${normalizedEmail}.`,
+    emailDelivered: emailResult.success,
   });
 }
 
@@ -67,7 +109,7 @@ export async function sendEmailOtp(req: Request, res: Response) {
  * Verify Email OTP and Sign In / Register Customer in PostgreSQL
  */
 export async function verifyEmailOtp(req: Request, res: Response) {
-  const { email, otp, name, phone } = req.body;
+  const { email, otp, name, phone, intent } = req.body;
 
   if (!email || !otp) {
     return res.status(400).json({ error: 'Email and 6-digit OTP code are required.' });
@@ -76,11 +118,9 @@ export async function verifyEmailOtp(req: Request, res: Response) {
   const normalizedEmail = email.toLowerCase().trim();
   const record = OTP_STORE.get(normalizedEmail);
 
-  // Allow master test code 123456 in development or verify record
-  const isMasterOtp = otp.trim() === '123456';
   const isValidOtp = record && record.code === otp.trim() && Date.now() <= record.expiresAt;
 
-  if (!isMasterOtp && !isValidOtp) {
+  if (!isValidOtp) {
     if (record && Date.now() > record.expiresAt) {
       OTP_STORE.delete(normalizedEmail);
       return res.status(400).json({ error: 'OTP has expired. Please request a fresh code.' });
@@ -100,19 +140,27 @@ export async function verifyEmailOtp(req: Request, res: Response) {
   OTP_STORE.delete(normalizedEmail);
 
   try {
+    let formattedPhone = phone ? String(phone).trim() : undefined;
+    if (formattedPhone) {
+      const digits = formattedPhone.replace(/\D/g, '').slice(-10);
+      if (digits.length === 10) {
+        formattedPhone = `+91 ${digits}`;
+      }
+    }
+
     // 1. Upsert Customer record in PostgreSQL
     const customer = await prisma.customer.upsert({
       where: { email: normalizedEmail },
       update: {
         isVerified: true,
         name: name || undefined,
-        phone: phone || undefined,
+        phone: formattedPhone || undefined,
         deletedAt: null, // Reactivate if was soft-deleted
       },
       create: {
         email: normalizedEmail,
         name: name || normalizedEmail.split('@')[0],
-        phone: phone || null,
+        phone: formattedPhone || null,
         isVerified: true,
       },
       include: {
@@ -245,15 +293,15 @@ export async function requestAccountDeletionOtp(req: AuthRequest, res: Response)
     attempts: 0,
   });
 
-  console.log(`\n======================================================`);
-  console.log(`⚠️ [SUTRAಧಾರ ACCOUNT DELETION OTP] To: ${normalizedEmail}`);
-  console.log(`🔑 Deletion Confirmation Code: ${otp} (Valid for 10 minutes)`);
-  console.log(`======================================================\n`);
+  // Dispatch email via Gmail SMTP
+  const emailResult = await sendAccountDeletionOtpEmail(normalizedEmail, otp);
 
   return res.json({
     success: true,
-    message: `Account deletion verification code sent to ${normalizedEmail}`,
-    devOtp: otp,
+    message: emailResult.success
+      ? `Account deletion confirmation code has been sent to ${normalizedEmail}`
+      : `Account deletion verification code generated for ${normalizedEmail}`,
+    emailDelivered: emailResult.success,
   });
 }
 
@@ -280,10 +328,9 @@ export async function deleteCustomerAccount(req: AuthRequest, res: Response) {
   const normalizedEmail = req.user.email.toLowerCase().trim();
   const record = DELETION_OTP_STORE.get(normalizedEmail);
 
-  const isMasterOtp = otp.trim() === '123456';
   const isValidOtp = record && record.code === otp.trim() && Date.now() <= record.expiresAt;
 
-  if (!isMasterOtp && !isValidOtp) {
+  if (!isValidOtp) {
     return res.status(400).json({ error: 'Invalid or expired deletion verification code.' });
   }
 

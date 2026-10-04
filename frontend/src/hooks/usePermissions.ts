@@ -24,8 +24,9 @@ export function usePermissions() {
 
   const syncUser = useCallback(() => {
     try {
+      const token = localStorage.getItem('sutradara_token');
       const storedUser = localStorage.getItem('sutradara_user');
-      if (storedUser) {
+      if (token && storedUser) {
         setUser(JSON.parse(storedUser));
       } else {
         setUser(null);

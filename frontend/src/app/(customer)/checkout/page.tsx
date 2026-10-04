@@ -3,12 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Award, Truck, ShieldCheck, Ticket, AlertTriangle, Lock, CreditCard, ArrowRight, CheckCircle2, MapPin, Phone, X, AlertCircle } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { apiRequest } from '@/lib/api';
 import LandingNavbar from '@/components/landing/LandingNavbar';
 import TurnstileCaptcha from '@/components/auth/TurnstileCaptcha';
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
 import { launchRazorpayCheckout } from '@/lib/razorpay';
+import { INDIAN_STATES, getCitiesForState, getStateForCity, searchStandardCities, standardizeCityName } from '@/lib/india-locations';
+import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
 
 interface LiveProductStock {
   [productId: string]: {
@@ -34,7 +37,6 @@ export default function CommonCheckoutPage() {
   // Auth Inputs (for guest patron verification)
   const [authEmail, setAuthEmail] = useState('');
   const [authOtp, setAuthOtp] = useState('');
-  const [devOtpCode, setDevOtpCode] = useState<string | null>(null);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
@@ -225,9 +227,6 @@ export default function CommonCheckoutPage() {
         data: { email: authEmail, turnstileToken },
       });
       setIsOtpSent(true);
-      if (res.devOtp) {
-        setDevOtpCode(res.devOtp);
-      }
     } catch (e: any) {
       setAuthError(e.message || 'Failed to send verification code.');
     } finally {
@@ -390,7 +389,7 @@ export default function CommonCheckoutPage() {
     } catch (e: any) {
       setIsSubmittingOrder(false);
       if (e.code === 'OUT_OF_STOCK' || e.message?.includes('STOCK_UNAVAILABLE') || e.message?.includes('acquired by another patron')) {
-        setRaceConditionAlert(`⚠️ Race Condition: ${e.message || 'An item was just acquired by another patron during final payment. Please return to your bag to adjust.'}`);
+        setRaceConditionAlert(`Inventory Notice: ${e.message || 'An item was just acquired by another patron during final payment. Please return to your bag to adjust.'}`);
         checkLiveStock();
       } else {
         alert('Payment verification error: ' + (e.message || 'Failed to record transaction.'));
@@ -498,7 +497,7 @@ export default function CommonCheckoutPage() {
         setAuthError('Your verification session expired. Please enter your email and 6-digit code in Step 1 to complete your order.');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (e.code === 'OUT_OF_STOCK' || e.message?.includes('STOCK_UNAVAILABLE') || e.message?.includes('acquired by another patron')) {
-        setRaceConditionAlert(`⚠️ Race Condition: ${e.message || 'An item was just acquired by another patron during final payment. Please return to your bag to adjust.'}`);
+        setRaceConditionAlert(`Inventory Notice: ${e.message || 'An item was just acquired by another patron during final payment. Please return to your bag to adjust.'}`);
         checkLiveStock();
       } else {
         alert('Payment initialization failed: ' + (e.message || 'Database rejected order.'));
@@ -511,16 +510,18 @@ export default function CommonCheckoutPage() {
       <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
         <LandingNavbar />
         <div style={{ paddingTop: '140px', textAlign: 'center', paddingLeft: '20px', paddingRight: '20px' }}>
-          <span style={{ fontSize: '3rem', display: 'block', marginBottom: '16px' }}>👑</span>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text)' }}>No Items Selected for Acquisition</h1>
+          <div style={{ color: 'var(--gold)', marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+            <Award size={48} strokeWidth={1.25} />
+          </div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text)', fontWeight: 500 }}>No Items Selected for Acquisition</h1>
           <p style={{ color: 'var(--text-dim)', marginTop: '8px', maxWidth: '480px', margin: '8px auto 0' }}>
             Please select an authentic handcrafted saree from our catalog or shopping bag to proceed with checkout.
           </p>
           <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '28px', flexWrap: 'wrap' }}>
-            <Link href="/catalog" style={{ padding: '12px 24px', background: 'var(--gold)', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: 700 }}>
+            <Link href="/catalog" style={{ padding: '12px 24px', background: 'var(--gold)', color: '#ffffff', borderRadius: '3px', textDecoration: 'none', fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               Explore Master Weaves →
             </Link>
-            <Link href="/bag" style={{ padding: '12px 24px', background: '#ffffff', border: '1px solid var(--gold)', color: 'var(--gold)', borderRadius: '6px', textDecoration: 'none', fontWeight: 600 }}>
+            <Link href="/bag" style={{ padding: '12px 24px', background: '#ffffff', border: '1px solid var(--gold)', color: 'var(--gold)', borderRadius: '3px', textDecoration: 'none', fontWeight: 600, fontSize: '0.82rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               View Bag
             </Link>
           </div>
@@ -580,12 +581,12 @@ export default function CommonCheckoutPage() {
                       1
                     </span>
                     <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', color: 'var(--text)' }}>
-                      Customer Details &amp; Verification
+                      Customer Details & Verification
                     </h3>
                   </div>
                   {customerUser && (
-                    <span style={{ fontSize: '0.72rem', color: 'var(--olive-deep)', background: 'var(--olive-glow)', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--olive-border)', fontWeight: 600 }}>
-                      ✓ Verified Customer
+                    <span style={{ fontSize: '0.72rem', color: 'var(--olive-deep)', background: 'var(--olive-glow)', padding: '3px 8px', borderRadius: '3px', border: '1px solid var(--olive-border)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <CheckCircle2 size={12} strokeWidth={1.5} /> Verified Customer
                     </span>
                   )}
                 </div>
@@ -664,11 +665,6 @@ export default function CommonCheckoutPage() {
                       </div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {devOtpCode && (
-                          <div style={{ padding: '8px 12px', background: 'rgba(179, 137, 56, 0.12)', border: '1px dashed var(--gold)', borderRadius: '6px', color: 'var(--gold)', fontSize: '0.8rem', textAlign: 'center', fontWeight: 600 }}>
-                            🔑 Instant Local Verification OTP: <strong>{devOtpCode}</strong>
-                          </div>
-                        )}
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                           <input
                             type="text"
@@ -709,7 +705,7 @@ export default function CommonCheckoutPage() {
                       2
                     </span>
                     <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', color: 'var(--text)' }}>
-                      Delivery &amp; Shipping Destination
+                      Delivery & Shipping Destination
                     </h3>
                   </div>
 
@@ -722,13 +718,13 @@ export default function CommonCheckoutPage() {
                         border: '1px solid var(--gold)',
                         color: 'var(--gold)',
                         padding: '6px 14px',
-                        borderRadius: '6px',
+                        borderRadius: '3px',
                         fontSize: '0.78rem',
                         cursor: 'pointer',
                         fontWeight: 600,
                       }}
                     >
-                      {isAddingNewAddress ? '📋 Choose Saved Address' : '+ Add New Address'}
+                      {isAddingNewAddress ? 'Choose Saved Address' : '+ Add New Address'}
                     </button>
                   )}
                 </div>
@@ -750,19 +746,19 @@ export default function CommonCheckoutPage() {
                               padding: '14px 16px',
                               background: isSelected ? 'rgba(179, 137, 56, 0.08)' : '#FAF8F5',
                               border: isSelected ? '2px solid var(--gold)' : '1px solid rgba(179, 137, 56, 0.2)',
-                              borderRadius: '8px',
+                              borderRadius: '3px',
                               cursor: 'pointer',
                               transition: 'all 0.2s ease',
                               position: 'relative',
                             }}
                           >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold)', textTransform: 'uppercase' }}>
-                                📍 {addr.label || 'Home'}
+                              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <MapPin size={12} strokeWidth={1.5} /> {addr.label || 'Home'}
                               </span>
                               {isSelected && (
-                                <span style={{ fontSize: '0.7rem', color: '#15803d', fontWeight: 700 }}>
-                                  ✓ Selected
+                                <span style={{ fontSize: '0.7rem', color: '#15803d', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                                  <CheckCircle2 size={12} strokeWidth={1.5} /> Selected
                                 </span>
                               )}
                             </div>
@@ -770,10 +766,10 @@ export default function CommonCheckoutPage() {
                               {addr.recipientName || customerUser?.name}
                             </p>
                             <p style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px', lineHeight: 1.4 }}>
-                              {addr.street}, {addr.city}, {addr.state} - <strong>{addr.pincode}</strong>
+                              {addr.street}, {addr.city}, {addr.state} (PIN: {addr.pincode})
                             </p>
-                            <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                              📞 {addr.recipientPhone || customerUser?.phone}
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Phone size={11} strokeWidth={1.5} /> {addr.recipientPhone || customerUser?.phone}
                             </p>
                           </div>
                         );
@@ -789,7 +785,7 @@ export default function CommonCheckoutPage() {
                           padding: '10px 14px',
                           background: locationNotice.startsWith('✓') ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
                           border: locationNotice.startsWith('✓') ? '1px solid rgba(34, 197, 94, 0.35)' : '1px solid rgba(239, 68, 68, 0.35)',
-                          borderRadius: '8px',
+                          borderRadius: '3px',
                           color: locationNotice.startsWith('✓') ? '#15803d' : '#b91c1c',
                           fontSize: '0.8rem',
                           lineHeight: 1.4,
@@ -798,7 +794,7 @@ export default function CommonCheckoutPage() {
                           gap: '8px',
                         }}
                       >
-                        <span>{locationNotice.startsWith('✓') ? '✅' : '📌'}</span>
+                        {locationNotice.startsWith('✓') ? <CheckCircle2 size={14} strokeWidth={1.5} /> : <MapPin size={14} strokeWidth={1.5} />}
                         <span>{locationNotice}</span>
                       </div>
                     )}
@@ -834,7 +830,7 @@ export default function CommonCheckoutPage() {
 
                     <div>
                       <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600 }}>
-                        Door / Flat / Building No. &amp; Complete Street Address *
+                        Door / Flat / Building No. & Complete Street Address *
                       </label>
                       <input
                         type="text"
@@ -859,45 +855,57 @@ export default function CommonCheckoutPage() {
                       />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600 }}>
-                          City / District *
-                        </label>
-                        <input
-                          type="text"
+                        <AddressAutocomplete
+                          id="checkout-city-input"
+                          label="City / District *"
+                          placeholder="e.g. Bangalore / Varanasi"
                           required
-                          placeholder="e.g. Varanasi"
                           value={city}
-                          onChange={(e) => setCity(e.target.value)}
-                          style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
+                          searchFn={(query) => searchStandardCities(query, state)}
+                          onChange={(val) => {
+                            setCity(val);
+                            const resolved = standardizeCityName(val);
+                            if (resolved && resolved.state) {
+                              setState(resolved.state);
+                              setLocationNotice(`✓ Standard location matched: ${resolved.canonical}, ${resolved.state}`);
+                            }
+                          }}
+                          onSelectOption={(selectedCity, rawOption) => {
+                            setCity(selectedCity);
+                            const targetState = rawOption?.state || getStateForCity(selectedCity);
+                            if (targetState) {
+                              setState(targetState);
+                              setLocationNotice(`✓ Standard location matched: ${selectedCity}, ${targetState}`);
+                            }
+                          }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600 }}>
-                          State *
-                        </label>
-                        <input
-                          type="text"
+                        <AddressAutocomplete
+                          id="checkout-state-input"
+                          label="State *"
+                          placeholder="e.g. Karnataka / Uttar Pradesh"
                           required
-                          placeholder="e.g. Uttar Pradesh"
                           value={state}
-                          onChange={(e) => setState(e.target.value)}
-                          style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
+                          options={INDIAN_STATES}
+                          onChange={(val) => setState(val)}
+                          onSelectOption={(selectedState) => setState(selectedState)}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600 }}>
+                        <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600, letterSpacing: '0.04em' }}>
                           6-Digit PIN Code *
                         </label>
                         <input
                           type="text"
                           required
                           maxLength={6}
-                          placeholder="e.g. 221001"
+                          placeholder="e.g. 560075"
                           value={pincode}
                           onChange={(e) => handlePincodeChange(e.target.value)}
-                          style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
+                          style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem', fontFamily: 'monospace' }}
                         />
                       </div>
                     </div>
@@ -911,15 +919,15 @@ export default function CommonCheckoutPage() {
                     padding: '14px 18px',
                     background: '#FAF8F5',
                     border: '1px solid var(--gold)',
-                    borderRadius: '8px',
+                    borderRadius: '3px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
                   }}
                 >
-                  <span style={{ fontSize: '1.4rem' }}>📦</span>
+                  <Truck size={22} color="var(--gold)" />
                   <div style={{ fontSize: '0.82rem', color: 'var(--text)', lineHeight: 1.45 }}>
-                    <strong style={{ color: 'var(--gold)', display: 'block', marginBottom: '2px' }}>
+                    <strong style={{ color: 'var(--gold)', display: 'block', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       Delivery to this Address:
                     </strong>
                     Your order will be safely packaged and delivered directly to this address with complimentary insured express shipping.
@@ -933,7 +941,7 @@ export default function CommonCheckoutPage() {
               style={{
                 background: '#ffffff',
                 border: '1px solid rgba(179, 137, 56, 0.25)',
-                borderRadius: '16px',
+                borderRadius: '3px',
                 padding: '24px 28px',
                 position: 'sticky',
                 top: '110px',
@@ -956,7 +964,7 @@ export default function CommonCheckoutPage() {
                       <img
                         src={p.images?.[0] || '/frames/ezgif-frame-240.jpg'}
                         alt={p.name}
-                        style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(179, 137, 56, 0.2)', flexShrink: 0 }}
+                        style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '2px', border: '1px solid rgba(179, 137, 56, 0.2)', flexShrink: 0 }}
                       />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -964,22 +972,22 @@ export default function CommonCheckoutPage() {
                             {p.sku}
                           </span>
                           {p.isHeirloom1of1 && (
-                            <span style={{ fontSize: '0.62rem', background: 'rgba(179, 137, 56, 0.15)', color: 'var(--gold)', padding: '1px 4px', borderRadius: '3px', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.62rem', background: 'rgba(179, 137, 56, 0.15)', color: 'var(--gold)', padding: '1px 4px', borderRadius: '2px', fontWeight: 600, textTransform: 'uppercase' }}>
                               1-of-1
                             </span>
                           )}
                           {/* Live Stock Indicator */}
                           {isSoldOut ? (
-                            <span style={{ fontSize: '0.62rem', background: 'rgba(239, 68, 68, 0.15)', color: '#b91c1c', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
-                              🔴 Sold Out
+                            <span style={{ fontSize: '0.62rem', background: 'rgba(239, 68, 68, 0.15)', color: '#b91c1c', padding: '1px 5px', borderRadius: '2px', fontWeight: 600, textTransform: 'uppercase' }}>
+                              Sold Out
                             </span>
                           ) : itemStock <= 2 ? (
-                            <span style={{ fontSize: '0.62rem', background: 'rgba(201, 101, 23, 0.15)', color: '#c96517', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
-                              ⚡ Only {itemStock} left
+                            <span style={{ fontSize: '0.62rem', background: 'rgba(201, 101, 23, 0.15)', color: '#c96517', padding: '1px 5px', borderRadius: '2px', fontWeight: 600, textTransform: 'uppercase' }}>
+                              {itemStock === 1 ? 'Single piece in vault' : `${itemStock} pieces available`}
                             </span>
                           ) : (
-                            <span style={{ fontSize: '0.62rem', background: 'rgba(20, 90, 82, 0.12)', color: '#145a52', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
-                              🟢 In Stock
+                            <span style={{ fontSize: '0.62rem', background: 'rgba(20, 90, 82, 0.12)', color: '#145a52', padding: '1px 5px', borderRadius: '2px', fontWeight: 600, textTransform: 'uppercase' }}>
+                              In Stock
                             </span>
                           )}
                         </div>
@@ -1011,9 +1019,13 @@ export default function CommonCheckoutPage() {
                       cursor: 'pointer',
                       textDecoration: 'underline',
                       fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
                     }}
                   >
-                    🎟️ View Available Coupons
+                    <Ticket size={12} />
+                    <span>View Available Coupons</span>
                   </button>
                 </div>
 
@@ -1023,12 +1035,12 @@ export default function CommonCheckoutPage() {
                     placeholder="e.g. VIRASAT10"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
-                    style={{ flex: 1, padding: '9px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.82rem', textTransform: 'uppercase' }}
+                    style={{ flex: 1, padding: '9px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '2px', color: 'var(--text)', fontSize: '0.82rem', textTransform: 'uppercase' }}
                   />
                   <button
                     type="button"
                     onClick={() => handleApplyCoupon()}
-                    style={{ padding: '9px 16px', background: 'rgba(179, 137, 56, 0.12)', border: '1px solid var(--gold)', borderRadius: '6px', color: 'var(--gold)', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', flexShrink: 0 }}
+                    style={{ padding: '9px 16px', background: 'rgba(179, 137, 56, 0.12)', border: '1px solid var(--gold)', borderRadius: '2px', color: 'var(--gold)', fontWeight: 700, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.04em', cursor: 'pointer', flexShrink: 0 }}
                   >
                     Apply
                   </button>
@@ -1072,27 +1084,39 @@ export default function CommonCheckoutPage() {
                   padding: '16px',
                   background: hasSoldOutItems ? 'rgba(179, 137, 56, 0.3)' : 'var(--gold)',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '3px',
                   color: '#ffffff',
-                  fontSize: '0.92rem',
+                  fontSize: '0.88rem',
                   fontWeight: 700,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
                   cursor: isSubmittingOrder || hasSoldOutItems ? 'not-allowed' : 'pointer',
                   boxShadow: hasSoldOutItems ? 'none' : '0 8px 24px rgba(179, 137, 56, 0.3)',
                   transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
                 }}
               >
-                {isSubmittingOrder
-                  ? 'Connecting to Razorpay...'
-                  : hasSoldOutItems
-                  ? '⚠️ Remove Sold Out Pieces'
-                  : '💳 Confirm & Pay with Razorpay'}
+                {isSubmittingOrder ? (
+                  <span>Connecting to Gateway...</span>
+                ) : hasSoldOutItems ? (
+                  <>
+                    <AlertTriangle size={15} />
+                    <span>Remove Sold Out Pieces</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock size={15} />
+                    <span>Confirm & Pay with Razorpay</span>
+                  </>
+                )}
               </button>
 
               <div style={{ marginTop: '14px', textAlign: 'center', fontSize: '0.73rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                <span>🔒</span>
-                <span>256-Bit Encrypted Razorpay Gateway • UPI, Cards &amp; NetBanking</span>
+                <Lock size={12} color="var(--gold)" />
+                <span>256-Bit Encrypted Razorpay Gateway • UPI, Cards & NetBanking</span>
               </div>
             </div>
           </div>
@@ -1132,7 +1156,7 @@ export default function CommonCheckoutPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid rgba(179, 137, 56, 0.2)', paddingBottom: '12px' }}>
               <div>
                 <span style={{ fontSize: '0.7rem', color: 'var(--gold)', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700 }}>
-                  OFFERS &amp; COUPONS
+                  OFFERS & COUPONS
                 </span>
                 <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--text)', marginTop: '2px' }}>
                   Available Coupons
@@ -1144,12 +1168,13 @@ export default function CommonCheckoutPage() {
                   background: 'transparent',
                   border: 'none',
                   color: 'var(--text-dim)',
-                  fontSize: '1.4rem',
                   cursor: 'pointer',
                   padding: '4px 8px',
+                  display: 'flex',
+                  alignItems: 'center',
                 }}
               >
-                ✕
+                <X size={18} strokeWidth={1.5} />
               </button>
             </div>
 
@@ -1175,7 +1200,7 @@ export default function CommonCheckoutPage() {
                             ? '2px solid #15803d'
                             : '1px solid var(--gold)'
                           : '1px solid rgba(179, 137, 56, 0.15)',
-                        borderRadius: '10px',
+                        borderRadius: '3px',
                         opacity: isEligible ? 1 : 0.55,
                         transition: 'all 0.2s ease',
                       }}
@@ -1190,7 +1215,7 @@ export default function CommonCheckoutPage() {
                               color: 'var(--gold)',
                               background: '#ffffff',
                               padding: '4px 8px',
-                              borderRadius: '4px',
+                              borderRadius: '3px',
                               border: '1px dashed var(--gold)',
                               display: 'inline-block',
                             }}
@@ -1214,7 +1239,7 @@ export default function CommonCheckoutPage() {
                               background: isCurrentlyApplied ? 'rgba(34, 197, 94, 0.15)' : 'var(--gold)',
                               border: isCurrentlyApplied ? '1px solid #15803d' : 'none',
                               color: isCurrentlyApplied ? '#15803d' : '#ffffff',
-                              borderRadius: '6px',
+                              borderRadius: '3px',
                               fontSize: '0.78rem',
                               fontWeight: 700,
                               cursor: isCurrentlyApplied ? 'default' : 'pointer',
@@ -1223,7 +1248,7 @@ export default function CommonCheckoutPage() {
                             {isCurrentlyApplied ? '✓ Applied' : 'Apply Code'}
                           </button>
                         ) : (
-                          <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: '#F4EFEA', padding: '4px 8px', borderRadius: '4px' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: '#F4EFEA', padding: '4px 8px', borderRadius: '3px' }}>
                             Locked
                           </span>
                         )}
@@ -1244,8 +1269,8 @@ export default function CommonCheckoutPage() {
 
                       {/* Greying-out reason notification */}
                       {!isEligible && (
-                        <div style={{ marginTop: '8px', padding: '6px 10px', background: 'rgba(201, 101, 23, 0.1)', border: '1px solid rgba(201, 101, 23, 0.25)', borderRadius: '4px', color: '#c96517', fontSize: '0.72rem' }}>
-                          ⚠️ Add ₹{deficit.toLocaleString('en-IN')} more to unlock this privilege
+                        <div style={{ marginTop: '8px', padding: '6px 10px', background: 'rgba(201, 101, 23, 0.1)', border: '1px solid rgba(201, 101, 23, 0.25)', borderRadius: '3px', color: '#c96517', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <AlertCircle size={13} strokeWidth={1.5} /> Add ₹{deficit.toLocaleString('en-IN')} more to unlock this privilege
                         </div>
                       )}
                     </div>

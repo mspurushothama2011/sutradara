@@ -1,25 +1,35 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { apiRequest } from '@/lib/api';
 import TurnstileCaptcha from '@/components/auth/TurnstileCaptcha';
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
 import LandingNavbar from '@/components/landing/LandingNavbar';
+import Footer from '@/components/shared/ui/Footer';
+import { Key, ArrowLeft, ArrowRight } from 'lucide-react';
 
-export default function CustomerLoginPage() {
+function CustomerLoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const searchParams = useSearchParams();
+  const initialEmail = searchParams.get('email') || '';
+
+  const [email, setEmail] = useState(initialEmail);
   const [otp, setOtp] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (initialEmail) {
+      setEmail(initialEmail);
+    }
+  }, [initialEmail]);
+
   const [step, setStep] = useState<'EMAIL' | 'OTP'>('EMAIL');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [devOtp, setDevOtp] = useState<string | null>(null);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,14 +48,11 @@ export default function CustomerLoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await apiRequest('/customer/auth/send-otp', {
+      await apiRequest('/customer/auth/send-otp', {
         method: 'POST',
         data: { email, turnstileToken },
       });
 
-      if (res.devOtp) {
-        setDevOtp(res.devOtp);
-      }
       setStep('OTP');
     } catch (err: any) {
       setError(err.message || 'Failed to send OTP. Please check your email.');
@@ -103,7 +110,7 @@ export default function CustomerLoginPage() {
     <div
       style={{
         minHeight: '100vh',
-        background: 'radial-gradient(ellipse at center, #FAF8F5 0%, #F4EFEA 100%)',
+        background: '#FAF8F5',
         display: 'flex',
         flexDirection: 'column',
         color: 'var(--text)',
@@ -117,7 +124,7 @@ export default function CustomerLoginPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '120px 16px 60px 16px',
+          padding: '140px 16px 80px 16px',
         }}
       >
         <div
@@ -125,10 +132,10 @@ export default function CustomerLoginPage() {
             width: '100%',
             maxWidth: '480px',
             background: '#ffffff',
-            border: '1.5px solid var(--gold)',
-            borderRadius: '16px',
+            border: '1px solid rgba(179, 137, 56, 0.35)',
+            borderRadius: '3px',
             padding: '40px 36px',
-            boxShadow: '0 16px 48px rgba(26, 19, 13, 0.08)',
+            boxShadow: '0 8px 32px rgba(26, 19, 13, 0.06)',
           }}
         >
           {/* Header */}
@@ -161,27 +168,6 @@ export default function CustomerLoginPage() {
             </p>
           </div>
 
-          {/* Dev OTP Display */}
-          {devOtp && (
-            <div
-              style={{
-                marginBottom: '20px',
-                padding: '12px 16px',
-                background: '#FAF8F5',
-                border: '1px dashed var(--gold)',
-                borderRadius: '8px',
-                textAlign: 'center',
-              }}
-            >
-              <span style={{ fontSize: '0.75rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>
-                🔑 Developer Test Code:
-              </span>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text)', letterSpacing: '4px', marginTop: '2px' }}>
-                {devOtp}
-              </div>
-            </div>
-          )}
-
           {/* Error Banner */}
           {error && (
             <div
@@ -190,7 +176,7 @@ export default function CustomerLoginPage() {
                 padding: '12px 16px',
                 background: 'rgba(239, 68, 68, 0.12)',
                 border: '1px solid #ef4444',
-                borderRadius: '8px',
+                borderRadius: '3px',
                 color: '#b91c1c',
                 fontSize: '0.85rem',
                 textAlign: 'center',
@@ -218,7 +204,7 @@ export default function CustomerLoginPage() {
                     padding: '12px 16px',
                     background: '#FAF8F5',
                     border: '1px solid rgba(179, 137, 56, 0.3)',
-                    borderRadius: '8px',
+                    borderRadius: '3px',
                     color: 'var(--text)',
                     fontSize: '0.95rem',
                   }}
@@ -245,7 +231,7 @@ export default function CustomerLoginPage() {
                   background: !turnstileToken ? 'rgba(179, 137, 56, 0.3)' : 'var(--gold)',
                   color: '#ffffff',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '3px',
                   fontWeight: 700,
                   fontSize: '0.95rem',
                   letterSpacing: '0.05em',
@@ -282,7 +268,7 @@ export default function CustomerLoginPage() {
                   required
                   autoFocus
                   maxLength={6}
-                  placeholder="• • • • • •"
+                  placeholder="••••••"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
                   style={{
@@ -290,7 +276,7 @@ export default function CustomerLoginPage() {
                     padding: '16px',
                     background: '#FAF8F5',
                     border: '1.5px solid var(--gold)',
-                    borderRadius: '8px',
+                    borderRadius: '3px',
                     color: 'var(--text)',
                     fontSize: '1.6rem',
                     textAlign: 'center',
@@ -310,7 +296,7 @@ export default function CustomerLoginPage() {
                   background: otp.length < 6 ? 'rgba(179, 137, 56, 0.3)' : 'var(--gold)',
                   color: '#ffffff',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '3px',
                   fontWeight: 700,
                   fontSize: '0.95rem',
                   letterSpacing: '0.05em',
@@ -334,9 +320,13 @@ export default function CustomerLoginPage() {
                   textDecoration: 'underline',
                   textAlign: 'center',
                   fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
                 }}
               >
-                ← Change Email Address
+                <ArrowLeft size={14} strokeWidth={1.5} /> Change Email Address
               </button>
             </form>
           )}
@@ -359,13 +349,25 @@ export default function CustomerLoginPage() {
                 color: 'var(--gold)',
                 fontWeight: 600,
                 textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
               }}
             >
-              Create Account here →
+              Create Account here <ArrowRight size={14} strokeWidth={1.5} />
             </Link>
           </div>
         </div>
       </div>
+      <Footer />
     </div>
+  );
+}
+
+export default function CustomerLoginPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#FAF8F5' }} />}>
+      <CustomerLoginForm />
+    </Suspense>
   );
 }

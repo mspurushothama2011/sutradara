@@ -15,8 +15,11 @@ export default function WorkLogsPage() {
       setIsLoading(true);
       const res = await apiRequest('/staff/work-logs');
       setLogs(res.workLogs || []);
-    } catch (e) {
-      console.error('Failed to load work logs:', e);
+    } catch (e: any) {
+      if (e?.status !== 401) {
+        console.warn('Work logs notice:', e?.message || e);
+      }
+      setLogs([]);
     } finally {
       setIsLoading(false);
     }

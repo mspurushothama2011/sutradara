@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ShoppingBag, Award, AlertTriangle, Trash2, Ticket, Lock, ArrowRight, X, AlertCircle } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { apiRequest } from '@/lib/api';
 import LandingNavbar from '@/components/landing/LandingNavbar';
@@ -139,7 +140,9 @@ export default function BagPage() {
       <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
         <LandingNavbar />
         <div style={{ paddingTop: '140px', textAlign: 'center', paddingLeft: '20px', paddingRight: '20px' }}>
-          <span style={{ fontSize: '3.5rem', display: 'block', marginBottom: '16px' }}>🛍️</span>
+          <div style={{ color: 'var(--gold)', marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+            <ShoppingBag size={48} strokeWidth={1.25} />
+          </div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: 'var(--text)', fontWeight: 500 }}>
             Your Acquisition Bag is Empty
           </h1>
@@ -150,17 +153,23 @@ export default function BagPage() {
             <Link
               href="/catalog"
               style={{
-                display: 'inline-block',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
                 padding: '14px 32px',
                 background: 'var(--gold)',
                 color: '#ffffff',
-                borderRadius: '8px',
+                borderRadius: '3px',
                 fontWeight: 700,
+                fontSize: '0.82rem',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
                 textDecoration: 'none',
-                boxShadow: '0 4px 16px rgba(179, 137, 56, 0.35)',
+                boxShadow: '0 4px 16px rgba(179, 137, 56, 0.3)',
               }}
             >
-              Explore Master Catalog →
+              <span>Explore Heirloom Catalog</span>
+              <ArrowRight size={14} />
             </Link>
           </div>
         </div>
@@ -169,19 +178,19 @@ export default function BagPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', paddingBottom: '100px' }}>
       {/* Universal Storefront Navigation */}
       <LandingNavbar />
 
-      <main style={{ maxWidth: '1280px', margin: '0 auto', paddingTop: '110px', paddingBottom: '80px', paddingLeft: '16px', paddingRight: '16px' }}>
-        {/* Header Breadcrumb */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+      <main style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '120px', paddingLeft: '24px', paddingRight: '24px' }}>
+        {/* Header Strip */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderBottom: '1px solid rgba(179, 137, 56, 0.2)', paddingBottom: '16px', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <span style={{ fontSize: '0.72rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 700 }}>
+            <span style={{ fontSize: '0.78rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 700 }}>
               YOUR SELECTIONS
             </span>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', color: 'var(--text)', marginTop: '4px', fontWeight: 500 }}>
-              Shopping Bag ({totalCount} {totalCount === 1 ? 'Piece' : 'Pieces'})
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: 'var(--text)', margin: '4px 0 0', fontWeight: 500 }}>
+              Acquisition Bag ({totalCount} {totalCount === 1 ? 'Piece' : 'Pieces'})
             </h1>
           </div>
           <button
@@ -190,10 +199,11 @@ export default function BagPage() {
               background: 'transparent',
               border: 'none',
               color: 'var(--text-dim)',
-              fontSize: '0.82rem',
+              fontSize: '0.78rem',
               cursor: 'pointer',
-              textDecoration: 'underline',
-              fontWeight: 500,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              fontWeight: 600,
             }}
           >
             Clear Entire Bag
@@ -202,8 +212,9 @@ export default function BagPage() {
 
         {/* Sold out Alert notice */}
         {hasSoldOutItems && (
-          <div style={{ marginBottom: '24px', padding: '14px 18px', background: '#FEE2E2', border: '1px solid #ef4444', borderRadius: '10px', color: '#b91c1c', fontSize: '0.88rem' }}>
-            ⚠️ <strong>Notice:</strong> One or more items in your bag were just purchased by another customer and are sold out. Please remove them to proceed.
+          <div style={{ marginBottom: '24px', padding: '14px 18px', background: '#FEE2E2', border: '1px solid #ef4444', borderRadius: '3px', color: '#b91c1c', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertTriangle size={18} />
+            <span><strong>Notice:</strong> One or more items in your bag were just acquired by another customer. Please remove them to proceed.</span>
           </div>
         )}
 
@@ -225,7 +236,7 @@ export default function BagPage() {
                     padding: '20px',
                     background: '#ffffff',
                     border: isSoldOut ? '1px solid #ef4444' : '1px solid rgba(179, 137, 56, 0.22)',
-                    borderRadius: '12px',
+                    borderRadius: '3px',
                     alignItems: 'center',
                     flexWrap: 'wrap',
                     opacity: isSoldOut ? 0.75 : 1,
@@ -236,7 +247,7 @@ export default function BagPage() {
                     <img
                       src={p.images?.[0] || '/frames/ezgif-frame-240.jpg'}
                       alt={p.name}
-                      style={{ width: '90px', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(179, 137, 56, 0.25)', flexShrink: 0 }}
+                      style={{ width: '90px', height: '100px', objectFit: 'cover', borderRadius: '2px', border: '1px solid rgba(179, 137, 56, 0.25)', flexShrink: 0 }}
                     />
                   </Link>
 
@@ -246,22 +257,23 @@ export default function BagPage() {
                         {p.sku}
                       </span>
                       {p.isHeirloom1of1 && (
-                        <span style={{ fontSize: '0.65rem', padding: '2px 6px', background: 'rgba(179, 137, 56, 0.15)', color: 'var(--gold-dark, #8c6818)', borderRadius: '4px', fontWeight: 600 }}>
-                          👑 1-of-1 Heirloom
+                        <span style={{ fontSize: '0.65rem', padding: '2px 6px', background: 'rgba(179, 137, 56, 0.15)', color: 'var(--gold-dark, #8c6818)', borderRadius: '2px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase' }}>
+                          <Award size={10} />
+                          <span>1-of-1 Heirloom</span>
                         </span>
                       )}
                       {/* Live Stock Indicator */}
                       {isSoldOut ? (
-                        <span style={{ fontSize: '0.65rem', background: '#FEE2E2', color: '#b91c1c', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                          🔴 Sold Out
+                        <span style={{ fontSize: '0.65rem', background: '#FEE2E2', color: '#b91c1c', padding: '2px 6px', borderRadius: '2px', fontWeight: 700, textTransform: 'uppercase' }}>
+                          Sold Out
                         </span>
                       ) : itemStock <= 2 ? (
-                        <span style={{ fontSize: '0.65rem', background: '#FEF3C7', color: '#92400e', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                          ⚡ Only {itemStock} left in vault
+                        <span style={{ fontSize: '0.65rem', background: '#FEF3C7', color: '#92400e', padding: '2px 6px', borderRadius: '2px', fontWeight: 600, textTransform: 'uppercase' }}>
+                          {itemStock === 1 ? 'Single piece in vault' : `${itemStock} pieces available`}
                         </span>
                       ) : (
-                        <span style={{ fontSize: '0.65rem', background: '#DCFCE7', color: '#166534', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                          🟢 In Stock
+                        <span style={{ fontSize: '0.65rem', background: '#DCFCE7', color: '#166534', padding: '2px 6px', borderRadius: '2px', fontWeight: 600, textTransform: 'uppercase' }}>
+                          In Stock
                         </span>
                       )}
                     </div>
@@ -283,7 +295,7 @@ export default function BagPage() {
 
                   {/* Quantity & Delete Controls */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px', marginLeft: 'auto' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#FAF8F5', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(179, 137, 56, 0.3)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#FAF8F5', padding: '4px 8px', borderRadius: '2px', border: '1px solid rgba(179, 137, 56, 0.3)' }}>
                       <button
                         onClick={() => updateQuantity(p.id, item.quantity - 1)}
                         style={{ width: '26px', height: '26px', background: 'transparent', border: 'none', color: 'var(--text)', fontSize: '1.1rem', cursor: 'pointer', fontWeight: 600 }}
@@ -320,9 +332,15 @@ export default function BagPage() {
                         fontSize: '0.75rem',
                         cursor: 'pointer',
                         fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
                       }}
                     >
-                      🗑️ Remove
+                      <Trash2 size={12} />
+                      <span>Remove</span>
                     </button>
                   </div>
                 </div>
@@ -335,7 +353,7 @@ export default function BagPage() {
             style={{
               background: '#ffffff',
               border: '1px solid rgba(179, 137, 56, 0.25)',
-              borderRadius: '16px',
+              borderRadius: '3px',
               padding: '24px 28px',
               boxShadow: '0 8px 30px rgba(45, 25, 8, 0.06)',
               position: 'sticky',
@@ -363,9 +381,13 @@ export default function BagPage() {
                     cursor: 'pointer',
                     textDecoration: 'underline',
                     fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
                   }}
                 >
-                  🎟️ View Available Coupons
+                  <Ticket size={12} />
+                  <span>View Available Coupons</span>
                 </button>
               </div>
 
@@ -380,7 +402,7 @@ export default function BagPage() {
                     padding: '9px 12px',
                     background: '#FAF8F5',
                     border: '1px solid rgba(179, 137, 56, 0.3)',
-                    borderRadius: '6px',
+                    borderRadius: '2px',
                     color: 'var(--text)',
                     fontSize: '0.82rem',
                     textTransform: 'uppercase',
@@ -392,10 +414,12 @@ export default function BagPage() {
                     padding: '9px 16px',
                     background: 'var(--gold)',
                     border: 'none',
-                    borderRadius: '6px',
+                    borderRadius: '2px',
                     color: '#ffffff',
                     fontWeight: 700,
-                    fontSize: '0.8rem',
+                    fontSize: '0.78rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
                     cursor: 'pointer',
                     flexShrink: 0,
                   }}
@@ -442,17 +466,31 @@ export default function BagPage() {
                 padding: '16px',
                 background: hasSoldOutItems ? 'rgba(0,0,0,0.1)' : 'var(--gold)',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '3px',
                 color: hasSoldOutItems ? 'var(--text-dim)' : '#ffffff',
-                fontSize: '0.92rem',
+                fontSize: '0.88rem',
                 fontWeight: 700,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 cursor: hasSoldOutItems ? 'not-allowed' : 'pointer',
                 boxShadow: hasSoldOutItems ? 'none' : '0 4px 16px rgba(179, 137, 56, 0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
               }}
             >
-              {hasSoldOutItems ? '⚠️ Remove Sold Out Pieces' : '👑 Proceed to Checkout'}
+              {hasSoldOutItems ? (
+                <>
+                  <AlertTriangle size={15} />
+                  <span>Remove Sold Out Pieces</span>
+                </>
+              ) : (
+                <>
+                  <Lock size={15} />
+                  <span>Proceed to Checkout</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -491,7 +529,7 @@ export default function BagPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid rgba(179, 137, 56, 0.2)', paddingBottom: '12px' }}>
               <div>
                 <span style={{ fontSize: '0.7rem', color: 'var(--gold-dark, #8c6818)', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700 }}>
-                  OFFERS &amp; DISCOUNTS
+                  OFFERS & DISCOUNTS
                 </span>
                 <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--text)', marginTop: '2px', fontWeight: 600 }}>
                   Available Coupons
@@ -503,12 +541,13 @@ export default function BagPage() {
                   background: 'transparent',
                   border: 'none',
                   color: 'var(--text-dim)',
-                  fontSize: '1.4rem',
                   cursor: 'pointer',
                   padding: '4px 8px',
+                  display: 'flex',
+                  alignItems: 'center',
                 }}
               >
-                ✕
+                <X size={18} strokeWidth={1.5} />
               </button>
             </div>
 
@@ -534,7 +573,7 @@ export default function BagPage() {
                             ? '2px solid #16a34a'
                             : '1px solid rgba(179, 137, 56, 0.35)'
                           : '1px solid rgba(0, 0, 0, 0.08)',
-                        borderRadius: '10px',
+                        borderRadius: '3px',
                         opacity: isEligible ? 1 : 0.55,
                         transition: 'all 0.2s ease',
                       }}
@@ -549,7 +588,7 @@ export default function BagPage() {
                               color: 'var(--gold-dark, #8c6818)',
                               background: '#ffffff',
                               padding: '4px 8px',
-                              borderRadius: '4px',
+                              borderRadius: '3px',
                               border: '1px dashed rgba(179, 137, 56, 0.5)',
                               display: 'inline-block',
                             }}
@@ -573,7 +612,7 @@ export default function BagPage() {
                               background: isCurrentlyApplied ? '#DCFCE7' : 'var(--gold)',
                               border: isCurrentlyApplied ? '1px solid #16a34a' : 'none',
                               color: isCurrentlyApplied ? '#166534' : '#ffffff',
-                              borderRadius: '6px',
+                              borderRadius: '3px',
                               fontSize: '0.78rem',
                               fontWeight: 700,
                               cursor: isCurrentlyApplied ? 'default' : 'pointer',
@@ -582,7 +621,7 @@ export default function BagPage() {
                             {isCurrentlyApplied ? '✓ Applied' : 'Apply Code'}
                           </button>
                         ) : (
-                          <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: '#ffffff', padding: '4px 8px', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.1)' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: '#ffffff', padding: '4px 8px', borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)' }}>
                             Locked
                           </span>
                         )}
@@ -602,8 +641,8 @@ export default function BagPage() {
                       </div>
 
                       {!isEligible && (
-                        <div style={{ marginTop: '8px', padding: '6px 10px', background: '#FEF3C7', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '4px', color: '#92400e', fontSize: '0.72rem' }}>
-                          ⚠️ Add ₹{deficit.toLocaleString('en-IN')} more to unlock this privilege
+                        <div style={{ marginTop: '8px', padding: '6px 10px', background: '#FEF3C7', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '3px', color: '#92400e', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <AlertCircle size={13} strokeWidth={1.5} /> Add ₹{deficit.toLocaleString('en-IN')} more to unlock this privilege
                         </div>
                       )}
                     </div>

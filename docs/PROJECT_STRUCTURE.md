@@ -1,6 +1,6 @@
 # Sutradara Monorepo Structure & File Mapping Guide
 
-This document defines the complete directory layout, file locations, responsibilities, and modular feature locations across the **Sutradara** e-commerce platform.
+This document defines the complete directory layout, file locations, responsibilities, and modular feature locations across the **Sutradara** luxury handloom e-commerce platform.
 
 ---
 
@@ -8,7 +8,7 @@ This document defines the complete directory layout, file locations, responsibil
 
 ```
 sutradara/
-├── frontend/             # Next.js 15 App Router + React Three Fiber (Storefront & Unified Portal)
+├── frontend/             # Next.js 15 App Router + React Three Fiber (Storefront & Admin Portals)
 ├── backend/              # Node.js + Express + Prisma ORM (API Engine & Business Logic)
 ├── shared/               # Shared TypeScript types & constants
 └── docs/                 # Master System Documentation & Architectural Specs
@@ -28,51 +28,55 @@ frontend/
 ├── src/
 │   ├── app/
 │   │   ├── layout.tsx              # Root HTML shell, Google Fonts (Playfair + Inter), metadata
-│   │   ├── page.tsx                # 3D scrolltelling landing page
 │   │   ├── globals.css             # Global design tokens, typography, luxury theme
 │   │   │
-│   │   ├── (store)/                # Customer Storefront Routes
-│   │   │   ├── catalog/            # /catalog (Filter by craft, fabric, zari, region)
-│   │   │   ├── product/[slug]/     # /product/[slug] (Silk Mark, video drape, 1-of-1 badge)
-│   │   │   ├── collections/[tag]/  # /collections/[tag] (Diwali, Wedding, Festive edits)
-│   │   │   ├── cart/               # /cart (Shopping cart with coupon engine)
-│   │   │   ├── checkout/           # /checkout (Address, pincode check, Razorpay modal)
-│   │   │   └── track/[orderId]/    # /track/[orderId] (Live courier tracker & video log)
+│   │   ├── (customer)/             # Public Customer Storefront Domain
+│   │   │   ├── page.tsx            # 3D scrolltelling landing page
+│   │   │   ├── catalog/            # /catalog (Filter by craft, fabric, zari, region, price)
+│   │   │   ├── product/[slug]/     # /product/[slug] (Silk Mark, video drape, 1-of-1 badge, quick-buy modal)
+│   │   │   ├── bag/                # /bag (Shopping bag with live stock verification & coupon engine)
+│   │   │   ├── checkout/           # /checkout (Master Checkout: Guest OTP / Google Auth, Saved Addresses, Canonical City Autocomplete, Razorpay)
+│   │   │   ├── account/            # /account (Customer profile, multi-recipient address book, order history)
+│   │   │   ├── track/[orderId]/    # /track/[orderId] (Live customer delivery timeline, courier status & QC video proof)
+│   │   │   ├── login/              # /login (Customer passwordless OTP & Google login)
+│   │   │   └── portal-access/      # /portal-access (Direct route to staff & admin portal)
 │   │   │
-│   │   └── portal/                 # Unified Portal Shell (Admin & Staff)
-│   │       ├── login/              # /portal/login (Unified login screen)
-│   │       ├── dashboard/          # /portal/dashboard (Role-filtered metrics & work pulse)
-│   │       ├── catalog/            # /portal/catalog (Full saree editor & media uploader)
-│   │       ├── quick-stock/        # /portal/quick-stock (Mobile floor fast stock toggle)
-│   │       ├── marketing/          # /portal/marketing (Coupons, banners, deal countdowns)
-│   │       ├── orders/             # /portal/orders (Fulfillment, inspection video, labels)
-│   │       ├── tracking/           # /portal/tracking (Live delivery sync & NDR desk)
-│   │       ├── staff-hr/           # /portal/staff-hr (Attendance clock in/out, salary calc)
-│   │       ├── work-logs/          # /portal/work-logs (Daily task submissions)
-│   │       ├── noticeboard/        # /portal/noticeboard (Team announcements & chat)
-│   │       └── audit-logs/         # /portal/audit-logs (Security & change audit trail)
+│   │   └── (admin)/portal/         # Unified Admin & Staff Management Domain
+│   │       ├── login/              # /portal/login (Staff & Admin credential verification)
+│   │       ├── dashboard/          # /portal/dashboard (Executive KPI pulse & live alerts)
+│   │       ├── catalog/            # /portal/catalog (Full heirloom catalog CRUD, procurement details & media)
+│   │       ├── inventory/          # /portal/inventory (Rapid floor stock adjustment & 1-of-1 toggles)
+│   │       ├── orders/             # /portal/orders (Orders queue & quick status/dispatch modal)
+│   │       │   └── [orderId]/track/# /portal/orders/[orderId]/track (Admin Dispatch Desk, milestones & timeline logger)
+│   │       ├── marketing/          # /portal/marketing (Coupons, festive campaigns, banners, flash deal timers)
+│   │       ├── staff/              # /portal/staff (Staff attendance clock-in/out, leave approvals, payroll engine)
+│   │       ├── finance/            # /portal/finance (Revenue breakdown, cost margins, profit analytics)
+│   │       └── audit/              # /portal/audit (Cryptographic immutable audit trail of all staff actions)
 │   │
 │   ├── components/
 │   │   ├── landing/
+│   │   │   ├── LandingNavbar.tsx   # Customer storefront luxury navigation
 │   │   │   ├── ScrollCanvas.tsx    # Three.js R3F GPU texture renderer with weighted lerp
 │   │   │   ├── Overlays.tsx        # Floating brand storytelling text layers
-│   │   │   ├── Preloader.tsx       # Loading screen with frame progress bar
-│   │   │   └── ScrollCue.tsx       # Animated scroll indicator
-│   │   ├── portal/
-│   │   │   ├── PortalLayout.tsx    # Dynamic sidebar layout filtering items by capability
-│   │   │   ├── CapabilityGuard.tsx # Component wrapper showing/hiding by permission
-│   │   │   └── Header.tsx          # Staff profile, clock-in status & notifications
-│   │   └── ui/
-│   │       ├── Button.tsx
-│   │       ├── Modal.tsx
-│   │       └── Footer.tsx          # Minimal brand footer
+│   │   │   └── Preloader.tsx       # Loading screen with frame progress bar
+│   │   ├── shared/
+│   │   │   ├── AddressAutocomplete.tsx # Intelligent luxury autocomplete with keyword highlighting & auto state sync
+│   │   │   ├── ui/Footer.tsx       # Universal footer
+│   │   │   └── ui/Modal.tsx        # Reusable accessible modal dialog
+│   │   ├── auth/
+│   │   │   ├── TurnstileCaptcha.tsx# Cloudflare Turnstile bot verification
+│   │   │   └── GoogleAuthButton.tsx# Google One-Tap & OAuth button
+│   │   └── portal/
+│   │       ├── PortalLayout.tsx    # Dynamic sidebar layout filtering items by capability
+│   │       └── CapabilityGuard.tsx # Component wrapper showing/hiding by permission
 │   │
-│   ├── hooks/
-│   │   ├── useScrollProgress.ts    # Scroll range tracker (0.0 -> 1.0)
-│   │   └── usePermissions.ts       # Hook to check user capability flags
+│   ├── context/
+│   │   └── CartContext.tsx         # Universal cart state (Bag + Buy Now item management)
 │   │
 │   └── lib/
-│       └── api.ts                  # Axios/fetch API client with auth token interceptors
+│       ├── api.ts                  # Axios/fetch API client with auth token interceptors
+│       ├── india-locations.ts      # Comprehensive Indian States, 300+ Cities, Aliases & Canonical Standardizer
+│       └── razorpay.ts             # Razorpay checkout script loader and modal launcher
 │
 ├── next.config.ts                  # Next.js configuration
 ├── tsconfig.json                   # TypeScript configuration
@@ -96,19 +100,29 @@ backend/
 │   │   ├── validate.ts             # Zod input sanitization & mass-assignment filter
 │   │   └── audit.middleware.ts     # Automatic change logging to AuditLog table
 │   │
-│   ├── routes/
+│    ├── routes/
 │   │   ├── auth.routes.ts          # /api/v1/auth (Login, logout, refresh, staff create)
-│   │   ├── products.routes.ts      # /api/v1/products (Catalog CRUD & Floor stock toggle)
-│   │   ├── marketing.routes.ts     # /api/v1/marketing (Coupons, flash deals, banners)
-│   │   ├── orders.routes.ts        # /api/v1/orders (Checkout, labels, video inspection)
-│   │   ├── payments.routes.ts      # /api/v1/payments (Razorpay order creation & HMAC webhook)
-│   │   ├── tracking.routes.ts      # /api/v1/tracking (Shiprocket webhook, live status, OTP)
-│   │   ├── staff.routes.ts         # /api/v1/staff (Attendance, salary computation, work logs)
-│   │   ├── announcements.routes.ts # /api/v1/announcements (Noticeboard & order chat)
-│   │   └── audit.routes.ts         # /api/v1/audit (Security & change logs)
+│   │   ├── customer/               # Customer domain endpoints
+│   │   │   ├── auth.routes.ts      # /api/v1/customer/auth (OTP send/verify with duplicate collision check, Google OAuth, Profile, Address book)
+│   │   │   └── orders.routes.ts    # /api/v1/customer/orders (Order placement, Live stock check)
+│   │   ├── admin/                  # Admin domain endpoints
+│   │   │   ├── dashboard.routes.ts # /api/v1/admin/dashboard (Real-time live operational telemetry & KPIs)
+│   │   │   ├── products.routes.ts  # /api/v1/admin/products (Product CRUD & wholesale cost vault)
+│   │   │   ├── orders.routes.ts    # /api/v1/admin/orders (Dispatch queue, AWB & tracking milestones)
+│   │   │   ├── staff.routes.ts     # /api/v1/admin/staff (Staff HR, attendance, leaves & permissions)
+│   │   │   ├── categories.routes.ts# /api/v1/admin/categories (4-tier hierarchy taxonomy tree)
+│   │   │   ├── marketing.routes.ts # /api/v1/admin/marketing (Coupons, deals of day, banners)
+│   │   │   ├── upload.routes.ts    # /api/v1/admin/uploads (Single & bulk image storage)
+│   │   │   └── audit.routes.ts     # /api/v1/admin/audit (Immutable cryptographic audit trail)
+│   │   ├── products.routes.ts      # /api/v1/products (Storefront catalog & filters)
+│   │   ├── categories.routes.ts    # /api/v1/categories (Hierarchical category taxonomy tree)
+│   │   ├── orders.routes.ts        # /api/v1/orders (Fulfillment, dispatch, milestone updates, live tracking)
+│   │   └── payments.routes.ts      # /api/v1/payments (Razorpay order creation & HMAC webhook)
 │   │
-│   ├── controllers/                # Business logic handlers for each route
-│   ├── services/                   # Razorpay, Shiprocket, Cloudinary & Email integrations
+│   ├── controllers/                # Business logic handlers for customer & admin domains
+│   │   ├── admin/dashboard.controller.ts # Real-time aggregation of orders, inventory, revenue, and staff telemetry
+│   │   └── customer/customer-auth.controller.ts # OTP, Duplicate Email/Phone checks, Google Sign-in & Address book
+│   ├── services/                   # Razorpay, Cloudinary, Email & Logistics services
 │   │
 │   └── prisma/
 │       └── schema.prisma           # Master PostgreSQL database schema
@@ -126,7 +140,7 @@ Shared TypeScript interfaces between Frontend and Backend to guarantee type safe
 ```
 shared/
 └── types/
-    └── index.ts                    # Shared types (User, Capability, Product, Order, Coupon, Attendance)
+    └── index.ts                    # Shared types (User, Capability, Product, Order, OrderStatus, Coupon, Address, Attendance)
 ```
 
 ---
@@ -141,6 +155,7 @@ docs/
 ├── BUSINESS_MODULES_SPEC.md        # Functional specification of all 8 core business modules
 ├── ENVIRONMENT_AND_SECRETS.md      # Full catalog of environment variables and keys
 ├── IMPLEMENTATION_ROADMAP.md       # Step-by-step milestone execution sequence
+├── PAYMENT_AND_LOGISTICS_INTEGRATION_SPEC.md # Payment gateway & logistics fulfillment protocol
 └── PROJECT_STRUCTURE.md            # This file
 ```
 
@@ -148,18 +163,23 @@ docs/
 
 ## 🚀 Running the Development Environments
 
-### Frontend (Next.js 15)
+### 1. Frontend:
 ```bash
 cd frontend
-npm install
 npm run dev
 # Running on http://localhost:3000
 ```
 
-### Backend (Node.js Express)
+### 2. Backend:
 ```bash
 cd backend
-npm install
 npm run dev
 # Running on http://localhost:4000
+```
+
+### 3. Database Studio:
+```bash
+cd backend
+npx prisma studio --schema=src/prisma/schema.prisma
+# Running on http://localhost:5555
 ```

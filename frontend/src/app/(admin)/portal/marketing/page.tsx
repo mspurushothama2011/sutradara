@@ -29,8 +29,10 @@ export default function PortalMarketingPage() {
       ]);
       setCoupons(couponsRes.coupons || []);
       setDeal(dealRes.deal || null);
-    } catch (e) {
-      console.error('Failed to load marketing data:', e);
+    } catch (e: any) {
+      if (e?.status !== 401) {
+        console.warn('Marketing data load notice:', e?.message || e);
+      }
     } finally {
       setIsLoading(false);
     }

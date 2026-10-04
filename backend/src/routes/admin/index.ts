@@ -7,10 +7,12 @@ import staffRoutes from './staff.routes';
 import auditRoutes from './audit.routes';
 import categoriesRoutes from './categories.routes';
 import uploadRoutes from './upload.routes';
+import dashboardRoutes from './dashboard.routes';
 
 const router = Router();
 
 router.use('/auth', authRoutes);
+router.use('/dashboard', dashboardRoutes);
 router.use('/products', productsRoutes);
 router.use('/orders', ordersRoutes);
 router.use('/marketing', marketingRoutes);

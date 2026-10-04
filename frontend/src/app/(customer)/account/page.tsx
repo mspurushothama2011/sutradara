@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 import { apiRequest } from '@/lib/api';
 import { User, ShippingAddress } from '@/shared/types/index';
 import LandingNavbar from '@/components/customer/landing/LandingNavbar';
+import Footer from '@/components/shared/ui/Footer';
+import { Package, LogOut, Plus, Phone, CheckCircle2, AlertTriangle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { INDIAN_STATES, getCitiesForState, getStateForCity, searchStandardCities, standardizeCityName } from '@/lib/india-locations';
+import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
 
 export default function CustomerAccountPage() {
   const router = useRouter();
@@ -28,7 +32,6 @@ export default function CustomerAccountPage() {
   const [deleteStep, setDeleteStep] = useState<'TYPE_DELETE' | 'ENTER_OTP'>('TYPE_DELETE');
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [devDeletionOtp, setDevDeletionOtp] = useState<string | null>(null);
 
   const loadProfile = async () => {
     try {
@@ -37,7 +40,12 @@ export default function CustomerAccountPage() {
       setUser(res.user);
       setAddresses(res.addresses || []);
     } catch (e: any) {
-      // Fallback to local storage
+      if (e?.status === 401) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('customerUser');
+        router.push('/login');
+        return;
+      }
       const cached = localStorage.getItem('customerUser');
       if (cached) {
         setUser(JSON.parse(cached));
@@ -91,13 +99,10 @@ export default function CustomerAccountPage() {
     setIsDeleting(true);
 
     try {
-      const res = await apiRequest('/customer/account/delete-request-otp', {
+      await apiRequest('/customer/account/delete-request-otp', {
         method: 'POST',
       });
 
-      if (res.devOtp) {
-        setDevDeletionOtp(res.devOtp);
-      }
       setDeleteStep('ENTER_OTP');
     } catch (err: any) {
       setDeleteError(err.message || 'Failed to send account deletion OTP.');
@@ -158,21 +163,24 @@ export default function CustomerAccountPage() {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '16px' }}>
+          <div style={{ display: 'flex', gap: '12px' }}>
             <Link
               href="/account/orders"
               style={{
-                padding: '10px 20px',
+                padding: '10px 18px',
                 background: 'rgba(179, 137, 56, 0.12)',
                 border: '1px solid var(--gold)',
                 color: 'var(--gold)',
-                borderRadius: '6px',
+                borderRadius: '3px',
                 textDecoration: 'none',
                 fontSize: '0.85rem',
                 fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
               }}
             >
-              View Order History 📦
+              <Package size={15} strokeWidth={1.5} /> View Order History
             </Link>
             <button
               onClick={handleLogout}
@@ -181,13 +189,16 @@ export default function CustomerAccountPage() {
                 background: '#ffffff',
                 border: '1px solid rgba(179, 137, 56, 0.3)',
                 color: 'var(--text-dim)',
-                borderRadius: '6px',
+                borderRadius: '3px',
                 cursor: 'pointer',
                 fontSize: '0.85rem',
                 fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
               }}
             >
-              Sign Out
+              <LogOut size={15} strokeWidth={1.5} /> Sign Out
             </button>
           </div>
         </div>
@@ -195,7 +206,7 @@ export default function CustomerAccountPage() {
         {/* Addresses & Privileges Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
           {/* Saved Addresses */}
-          <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '32px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
+          <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '3px', padding: '32px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--gold)' }}>
                 Saved Delivery Addresses
@@ -209,9 +220,12 @@ export default function CustomerAccountPage() {
                   fontSize: '0.82rem',
                   cursor: 'pointer',
                   fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
                 }}
               >
-                {isAddingAddress ? 'Cancel' : '+ Add Address'}
+                {isAddingAddress ? 'Cancel' : <><Plus size={14} strokeWidth={1.5} /> Add Address</>}
               </button>
             </div>
 
@@ -219,29 +233,49 @@ export default function CustomerAccountPage() {
               <form onSubmit={handleSaveAddress} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <input
                   type="text"
-                  placeholder="Street / House / Building"
+                  placeholder="Door / Flat / Building No. & Complete Street Address"
                   required
                   value={street}
                   onChange={(e) => setStreet(e.target.value)}
-                  style={{ padding: '10px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)' }}
+                  style={{ padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                 />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <input
-                    type="text"
-                    placeholder="City"
-                    required
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    style={{ padding: '10px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)' }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="State"
-                    required
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    style={{ padding: '10px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)' }}
-                  />
+                  <div>
+                    <AddressAutocomplete
+                      id="account-city-input"
+                      label="City / District *"
+                      placeholder="e.g. Bangalore / Varanasi"
+                      required
+                      value={city}
+                      searchFn={(query) => searchStandardCities(query, state)}
+                      onChange={(val) => {
+                        setCity(val);
+                        const resolved = standardizeCityName(val);
+                        if (resolved && resolved.state) {
+                          setState(resolved.state);
+                        }
+                      }}
+                      onSelectOption={(selectedCity, rawOption) => {
+                        setCity(selectedCity);
+                        const targetState = rawOption?.state || getStateForCity(selectedCity);
+                        if (targetState) {
+                          setState(targetState);
+                        }
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <AddressAutocomplete
+                      id="account-state-input"
+                      label="State *"
+                      placeholder="e.g. Karnataka / Uttar Pradesh"
+                      required
+                      value={state}
+                      options={INDIAN_STATES}
+                      onChange={(val) => setState(val)}
+                      onSelectOption={(selectedState) => setState(selectedState)}
+                    />
+                  </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <input
@@ -250,15 +284,31 @@ export default function CustomerAccountPage() {
                     maxLength={6}
                     required
                     value={pincode}
-                    onChange={(e) => setPincode(e.target.value)}
-                    style={{ padding: '10px', background: '#FAF8F5', border: '1px solid var(--gold)', borderRadius: '6px', color: 'var(--text)', fontFamily: 'monospace' }}
+                    onChange={async (e) => {
+                      const cleaned = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setPincode(cleaned);
+                      if (cleaned.length === 6) {
+                        try {
+                          const res = await fetch(`https://api.postalpincode.in/pincode/${cleaned}`);
+                          const data = await res.json();
+                          if (Array.isArray(data) && data[0]?.Status === 'Success' && data[0].PostOffice?.[0]) {
+                            const po = data[0].PostOffice[0];
+                            if (po.District) setCity(po.District);
+                            if (po.State) setState(po.State);
+                          }
+                        } catch (err) {
+                          console.warn('PIN code lookup error:', err);
+                        }
+                      }
+                    }}
+                    style={{ padding: '10px 12px', background: '#FAF8F5', border: '1px solid var(--gold)', borderRadius: '6px', color: 'var(--text)', fontFamily: 'monospace', fontSize: '0.85rem' }}
                   />
                   <input
                     type="text"
                     placeholder="Phone"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    style={{ padding: '10px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)' }}
+                    style={{ padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
                   />
                 </div>
                 <button
@@ -272,37 +322,39 @@ export default function CustomerAccountPage() {
               <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>No delivery addresses saved yet.</p>
             ) : (
               addresses.map((addr, idx) => (
-                <div key={idx} style={{ padding: '16px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.2)', borderRadius: '8px', marginBottom: '12px' }}>
+                <div key={idx} style={{ padding: '16px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.2)', borderRadius: '3px', marginBottom: '12px' }}>
                   <p style={{ fontWeight: 600, color: 'var(--text)', fontSize: '0.9rem' }}>{addr.fullName || user?.name}</p>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '4px' }}>{addr.street}, {addr.city}, {addr.state} - <strong>{addr.pincode}</strong></p>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--gold)', marginTop: '4px', fontWeight: 600 }}>📱 {addr.phone || 'Phone linked to account'}</p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '4px' }}>{addr.street}, {addr.city}, {addr.state} (PIN: {addr.pincode})</p>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--gold)', marginTop: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Phone size={12} strokeWidth={1.5} /> {addr.phone || 'Phone linked to account'}
+                  </p>
                 </div>
               ))
             )}
           </div>
 
           {/* Member Benefits */}
-          <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '32px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
+          <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '3px', padding: '32px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--gold)', marginBottom: '16px' }}>
               Sutraಧಾರ Member Benefits
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <span style={{ color: 'var(--gold)', fontSize: '1.1rem', fontWeight: 700 }}>✓</span>
+                <CheckCircle2 size={18} strokeWidth={1.5} color="var(--gold)" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <strong style={{ color: 'var(--text)' }}>1-of-1 Heirloom Reservation:</strong>
                   <p>10-minute uninterrupted checkout hold on single-piece unrepeatable weaves.</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <span style={{ color: 'var(--gold)', fontSize: '1.1rem', fontWeight: 700 }}>✓</span>
+                <CheckCircle2 size={18} strokeWidth={1.5} color="var(--gold)" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <strong style={{ color: 'var(--text)' }}>Pre-Shipment 20s Inspection Log:</strong>
                   <p>Watch your saree's Silk Mark and gold zari purity test recorded before package sealing.</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <span style={{ color: 'var(--gold)', fontSize: '1.1rem', fontWeight: 700 }}>✓</span>
+                <CheckCircle2 size={18} strokeWidth={1.5} color="var(--gold)" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <strong style={{ color: 'var(--text)' }}>Complimentary Insured Air Express:</strong>
                   <p>Zero contactless loss. Your package is dispatched in a sealed tamper-proof luxury box.</p>
@@ -312,13 +364,13 @@ export default function CustomerAccountPage() {
           </div>
         </div>
 
-        {/* ⚠️ Privacy & Account Deactivation Sanctuary (DPDP / GDPR Compliance) */}
+        {/* Privacy & Account Deactivation Sanctuary (DPDP Act 2023 Compliance) */}
         <div
           style={{
             marginTop: '48px',
             background: '#ffffff',
             border: '1px solid rgba(239, 68, 68, 0.25)',
-            borderRadius: '12px',
+            borderRadius: '3px',
             padding: '28px 32px',
             display: 'flex',
             justifyContent: 'space-between',
@@ -329,11 +381,11 @@ export default function CustomerAccountPage() {
           }}
         >
           <div>
-            <h3 style={{ fontSize: '1.1rem', color: '#b91c1c', fontWeight: 600 }}>
-              Account Privacy &amp; Right to Erasure
+            <h3 style={{ fontSize: '1.1rem', color: '#b91c1c', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertTriangle size={18} strokeWidth={1.5} /> Account Privacy and Right to Erasure
             </h3>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '4px', maxWidth: '640px' }}>
-              In accordance with India DPDP Act 2023 &amp; GDPR, you may request permanent deactivation of your account and erasure of all personal delivery addresses. Past order records are anonymized and retained for GST accounting compliance.
+              In accordance with India DPDP Act 2023 and global standards, you may request permanent deactivation of your account and erasure of all personal delivery addresses. Past order records are anonymized and retained for GST accounting compliance.
             </p>
           </div>
 
@@ -350,7 +402,7 @@ export default function CustomerAccountPage() {
               padding: '10px 20px',
               background: 'rgba(239, 68, 68, 0.1)',
               border: '1px solid #ef4444',
-              borderRadius: '6px',
+              borderRadius: '3px',
               color: '#b91c1c',
               fontSize: '0.85rem',
               fontWeight: 600,
@@ -386,13 +438,15 @@ export default function CustomerAccountPage() {
               maxWidth: '480px',
               background: '#ffffff',
               border: '1.5px solid #ef4444',
-              borderRadius: '16px',
+              borderRadius: '3px',
               padding: '36px 32px',
               boxShadow: '0 25px 60px rgba(26, 19, 13, 0.2)',
             }}
           >
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <span style={{ fontSize: '2rem' }}>⚠️</span>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px', color: '#b91c1c' }}>
+                <AlertTriangle size={32} strokeWidth={1.5} />
+              </div>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: 'var(--text)', marginTop: '8px' }}>
                 Deactivate Sutraಧಾರ Account
               </h2>
@@ -403,25 +457,7 @@ export default function CustomerAccountPage() {
               </p>
             </div>
 
-            {devDeletionOtp && (
-              <div
-                style={{
-                  marginBottom: '16px',
-                  padding: '10px 14px',
-                  background: '#FAF8F5',
-                  border: '1px dashed var(--gold)',
-                  borderRadius: '6px',
-                  textAlign: 'center',
-                }}
-              >
-                <span style={{ fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 600 }}>
-                  🔑 Deletion Test Code:
-                </span>
-                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text)', letterSpacing: '4px' }}>
-                  {devDeletionOtp}
-                </div>
-              </div>
-            )}
+
 
             {deleteError && (
               <div
@@ -430,7 +466,7 @@ export default function CustomerAccountPage() {
                   padding: '10px 14px',
                   background: 'rgba(239, 68, 68, 0.12)',
                   border: '1px solid #ef4444',
-                  borderRadius: '6px',
+                  borderRadius: '3px',
                   color: '#b91c1c',
                   fontSize: '0.82rem',
                   textAlign: 'center',
@@ -459,7 +495,7 @@ export default function CustomerAccountPage() {
                       padding: '12px 16px',
                       background: '#FAF8F5',
                       border: '1.5px solid #ef4444',
-                      borderRadius: '8px',
+                      borderRadius: '3px',
                       color: 'var(--text)',
                       fontSize: '1.1rem',
                       textAlign: 'center',
@@ -478,7 +514,7 @@ export default function CustomerAccountPage() {
                       padding: '12px',
                       background: '#FAF8F5',
                       border: '1px solid rgba(179, 137, 56, 0.3)',
-                      borderRadius: '8px',
+                      borderRadius: '3px',
                       color: 'var(--text)',
                       fontSize: '0.85rem',
                       cursor: 'pointer',
@@ -495,14 +531,18 @@ export default function CustomerAccountPage() {
                       padding: '12px',
                       background: deleteConfirmationText.trim() !== 'DELETE' ? 'rgba(239, 68, 68, 0.3)' : '#dc2626',
                       border: 'none',
-                      borderRadius: '8px',
+                      borderRadius: '3px',
                       color: '#fff',
                       fontSize: '0.85rem',
                       fontWeight: 700,
                       cursor: deleteConfirmationText.trim() !== 'DELETE' || isDeleting ? 'not-allowed' : 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
                     }}
                   >
-                    {isDeleting ? 'Sending OTP...' : 'Send Deletion OTP →'}
+                    {isDeleting ? 'Sending OTP...' : <>Send Deletion OTP <ArrowRight size={14} strokeWidth={1.5} /></>}
                   </button>
                 </div>
               </form>
@@ -517,7 +557,7 @@ export default function CustomerAccountPage() {
                     required
                     autoFocus
                     maxLength={6}
-                    placeholder="• • • • • •"
+                    placeholder="••••••"
                     value={deleteOtp}
                     onChange={(e) => setDeleteOtp(e.target.value.replace(/[^0-9]/g, ''))}
                     style={{
@@ -525,7 +565,7 @@ export default function CustomerAccountPage() {
                       padding: '14px',
                       background: '#FAF8F5',
                       border: '1.5px solid var(--gold)',
-                      borderRadius: '8px',
+                      borderRadius: '3px',
                       color: 'var(--text)',
                       fontSize: '1.5rem',
                       textAlign: 'center',
@@ -545,14 +585,18 @@ export default function CustomerAccountPage() {
                       padding: '12px',
                       background: '#FAF8F5',
                       border: '1px solid rgba(179, 137, 56, 0.3)',
-                      borderRadius: '8px',
+                      borderRadius: '3px',
                       color: 'var(--text)',
                       fontSize: '0.85rem',
                       cursor: 'pointer',
                       fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
                     }}
                   >
-                    ← Back
+                    <ArrowLeft size={14} strokeWidth={1.5} /> Back
                   </button>
                   <button
                     type="submit"
@@ -562,7 +606,7 @@ export default function CustomerAccountPage() {
                       padding: '12px',
                       background: deleteOtp.length < 6 ? 'rgba(239, 68, 68, 0.3)' : '#dc2626',
                       border: 'none',
-                      borderRadius: '8px',
+                      borderRadius: '3px',
                       color: '#fff',
                       fontSize: '0.85rem',
                       fontWeight: 700,
@@ -577,6 +621,7 @@ export default function CustomerAccountPage() {
           </div>
         </div>
       )}
+      <Footer />
     </div>
   );
 }

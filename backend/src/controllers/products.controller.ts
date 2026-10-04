@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { Product } from '../../../shared/types/index';
+import { getDescendantCategoryIds, buildCategoryTree, flattenCategoryTree } from '../utils/category-tree';
 
 const prisma = new PrismaClient();
 
@@ -15,7 +16,7 @@ function sanitizeProductForUser(product: any, canViewFinance: boolean): any {
 }
 
 export async function listProducts(req: AuthRequest, res: Response) {
-  const { fabric, craftRegion, zariType, isHeirloom1of1, minPrice, maxPrice, search, inStockOnly, categoryId, subCategoryId } = req.query;
+  const { fabric, craftRegion, zariType, isHeirloom1of1, minPrice, maxPrice, search, inStockOnly, categoryId, subCategoryId, category } = req.query;
   const canViewFinance = req.user?.role === 'ADMIN' || (req.user?.capabilities || []).includes('finance:view');
 
   try {
@@ -25,8 +26,23 @@ export async function listProducts(req: AuthRequest, res: Response) {
     if (zariType) where.zariType = String(zariType);
     if (isHeirloom1of1 === 'true') where.isHeirloom1of1 = true;
     if (inStockOnly === 'true') where.stock = { gt: 0 };
-    if (categoryId) where.categoryId = String(categoryId);
-    if (subCategoryId) where.subCategoryId = String(subCategoryId);
+
+    // Hierarchical Category Filtering (Rolls up target category + all its descendant subcategories)
+    const targetCatIdentifier = categoryId || category || subCategoryId;
+    if (targetCatIdentifier) {
+      const allCategories = await prisma.category.findMany();
+      const targetCat = allCategories.find(
+        (c) => c.id === String(targetCatIdentifier) || c.slug === String(targetCatIdentifier)
+      );
+
+      if (targetCat) {
+        const descendantIds = getDescendantCategoryIds(targetCat.id, allCategories);
+        where.categoryId = { in: [targetCat.id, ...descendantIds] };
+      } else {
+        where.categoryId = String(targetCatIdentifier);
+      }
+    }
+
     if (search) {
       where.OR = [
         { name: { contains: String(search), mode: 'insensitive' } },
@@ -44,8 +60,18 @@ export async function listProducts(req: AuthRequest, res: Response) {
     const products = await prisma.product.findMany({
       where,
       include: {
-        category: { select: { id: true, name: true, slug: true, region: true } },
-        subCategory: { select: { id: true, name: true, slug: true } },
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            region: true,
+            parentId: true,
+            parent: {
+              select: { id: true, name: true, slug: true },
+            },
+          },
+        },
         procurement: canViewFinance,
       },
       orderBy: { createdAt: 'desc' },
@@ -69,8 +95,15 @@ export async function getProduct(req: AuthRequest, res: Response) {
         OR: [{ id: idOrSlug }, { slug: idOrSlug }, { sku: idOrSlug }],
       },
       include: {
-        category: true,
-        subCategory: true,
+        category: {
+          include: {
+            parent: {
+              include: {
+                parent: true,
+              },
+            },
+          },
+        },
         procurement: canViewFinance,
       },
     });

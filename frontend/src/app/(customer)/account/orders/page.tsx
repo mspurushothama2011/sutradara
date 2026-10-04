@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { apiRequest } from '@/lib/api';
 import { Order } from '@/shared/types/index';
 import LandingNavbar from '@/components/customer/landing/LandingNavbar';
+import Footer from '@/components/shared/ui/Footer';
+import { Truck, ArrowLeft, ArrowRight, Package } from 'lucide-react';
 
 export default function CustomerOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -15,8 +17,11 @@ export default function CustomerOrdersPage() {
       setIsLoading(true);
       const res = await apiRequest('/customer/orders/my-orders');
       setOrders(res.orders || []);
-    } catch (e) {
-      console.error('Failed to load customer orders:', e);
+    } catch (e: any) {
+      if (e?.status !== 401) {
+        console.warn('Customer orders notice:', e?.message || e);
+      }
+      setOrders([]);
     } finally {
       setIsLoading(false);
     }
@@ -41,33 +46,38 @@ export default function CustomerOrdersPage() {
               Your Handloom Orders
             </h1>
           </div>
-          <Link href="/account" style={{ color: 'var(--gold)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
-            ← Back to Account Sanctuary
+          <Link href="/account" style={{ color: 'var(--gold)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <ArrowLeft size={14} strokeWidth={1.5} /> Back to Account Sanctuary
           </Link>
         </div>
 
         {isLoading ? (
           <p style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '40px' }}>Loading your acquisitions...</p>
         ) : orders.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '64px 20px', background: '#ffffff', borderRadius: '12px', border: '1px solid rgba(179, 137, 56, 0.25)', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)' }}>
+          <div style={{ textAlign: 'center', padding: '64px 20px', background: '#ffffff', borderRadius: '3px', border: '1px solid rgba(179, 137, 56, 0.25)', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px', color: 'var(--gold)' }}>
+              <Package size={36} strokeWidth={1.25} />
+            </div>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--text)' }}>No Acquisitions Found</h2>
             <p style={{ color: 'var(--text-dim)', marginTop: '8px', fontSize: '0.9rem' }}>You have not acquired any authentic handloom sarees yet.</p>
             <Link
               href="/catalog"
               style={{
-                display: 'inline-block',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
                 marginTop: '20px',
                 padding: '12px 28px',
                 background: 'var(--gold)',
                 color: '#ffffff',
-                borderRadius: '6px',
+                borderRadius: '3px',
                 textDecoration: 'none',
                 fontWeight: 600,
                 fontSize: '0.85rem',
                 boxShadow: '0 4px 14px rgba(179, 137, 56, 0.25)',
               }}
             >
-              Explore Master Weaves →
+              Explore Master Weaves <ArrowRight size={14} strokeWidth={1.5} />
             </Link>
           </div>
         ) : (
@@ -78,7 +88,7 @@ export default function CustomerOrdersPage() {
                 style={{
                   background: '#ffffff',
                   border: '1px solid rgba(179, 137, 56, 0.22)',
-                  borderRadius: '12px',
+                  borderRadius: '3px',
                   padding: '24px',
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -99,7 +109,7 @@ export default function CustomerOrdersPage() {
                         padding: '3px 8px',
                         background: 'rgba(20, 90, 82, 0.12)',
                         color: '#145a52',
-                        borderRadius: '4px',
+                        borderRadius: '3px',
                         fontWeight: 600,
                       }}
                     >
@@ -121,14 +131,17 @@ export default function CustomerOrdersPage() {
                       padding: '10px 18px',
                       background: 'var(--gold)',
                       color: '#ffffff',
-                      borderRadius: '6px',
+                      borderRadius: '3px',
                       textDecoration: 'none',
                       fontWeight: 600,
                       fontSize: '0.82rem',
                       boxShadow: '0 4px 12px rgba(179, 137, 56, 0.25)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
                     }}
                   >
-                    Track Live Delivery 🚚
+                    <Truck size={14} strokeWidth={1.5} /> Track Live Delivery
                   </Link>
                 </div>
               </div>
@@ -136,6 +149,7 @@ export default function CustomerOrdersPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

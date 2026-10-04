@@ -60,7 +60,7 @@ export default function AuthenticityPage() {
               PILLAR III
             </span>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: 'var(--text)', margin: '6px 0 14px', fontWeight: 600 }}>
-              Pre-Dispatch Inspection Video &amp; 4-Digit OTP
+              Pre-Dispatch Inspection Video & 4-Digit OTP
             </h2>
             <p style={{ color: 'var(--text)' }}>
               Prior to dispatch, our Master Curator performs a 12-point quality check (selvedge integrity, pallu tassel finishing, zari alignment) and records an HD 20-second inspection video uploaded directly to your tracking dashboard.

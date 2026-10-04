@@ -1,6 +1,12 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../../middleware/auth.middleware';
+import {
+  buildCategoryTree,
+  flattenCategoryTree,
+  validateCategoryHierarchy,
+  getDescendantCategoryIds,
+} from '../../utils/category-tree';
 
 const prisma = new PrismaClient();
 
@@ -15,18 +21,10 @@ function slugify(text: string): string {
 // GET /api/v1/admin/categories
 export const listCategories = async (req: Request, res: Response) => {
   try {
-    const categories = await prisma.category.findMany({
+    const rawCategories = await prisma.category.findMany({
       include: {
-        subCategories: {
-          include: {
-            _count: {
-              select: { products: true },
-            },
-          },
-          orderBy: { name: 'asc' },
-        },
         _count: {
-          select: { products: true, subCategories: true },
+          select: { products: true, children: true },
         },
       },
       orderBy: [
@@ -36,17 +34,14 @@ export const listCategories = async (req: Request, res: Response) => {
       ],
     });
 
-    const formatted = categories.map((cat) => ({
-      ...cat,
-      productCount: cat._count.products,
-      subCategoriesCount: cat._count.subCategories,
-      subCategories: cat.subCategories.map((sub) => ({
-        ...sub,
-        productCount: sub._count.products,
-      })),
-    }));
+    const tree = buildCategoryTree(rawCategories);
+    const flatCategories = flattenCategoryTree(tree);
 
-    res.json({ categories: formatted, count: formatted.length });
+    res.json({
+      categories: flatCategories,
+      tree,
+      count: flatCategories.length,
+    });
   } catch (error) {
     console.error('Failed to list categories from database:', error);
     res.status(500).json({ error: 'Database query failed' });
@@ -74,8 +69,7 @@ export const toggleFeaturedCategory = async (req: AuthRequest, res: Response) =>
         displayOrder: nextOrder,
       },
       include: {
-        subCategories: true,
-        _count: { select: { products: true } },
+        _count: { select: { products: true, children: true } },
       },
     });
 
@@ -98,6 +92,7 @@ export const toggleFeaturedCategory = async (req: AuthRequest, res: Response) =>
       category: {
         ...updated,
         productCount: updated._count.products,
+        childrenCount: updated._count.children,
       },
     });
   } catch (error: any) {
@@ -115,15 +110,15 @@ export const getCategoryBySlug = async (req: Request, res: Response) => {
         OR: [{ slug }, { id: slug }],
       },
       include: {
-        subCategories: {
+        parent: true,
+        children: {
           include: {
-            _count: {
-              select: { products: true },
-            },
+            _count: { select: { products: true, children: true } },
           },
+          orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
         },
         _count: {
-          select: { products: true },
+          select: { products: true, children: true },
         },
       },
     });
@@ -132,13 +127,22 @@ export const getCategoryBySlug = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
+    const allCategories = await prisma.category.findMany();
+    const tree = buildCategoryTree(allCategories);
+    const flat = flattenCategoryTree(tree);
+    const enriched = flat.find((c) => c.id === category.id) || category;
+
     res.json({
       category: {
         ...category,
+        level: (enriched as any).level ?? 0,
+        breadcrumbs: (enriched as any).breadcrumbs ?? [],
         productCount: category._count.products,
-        subCategories: category.subCategories.map((sub) => ({
-          ...sub,
-          productCount: sub._count.products,
+        childrenCount: category._count.children,
+        children: category.children.map((child) => ({
+          ...child,
+          productCount: child._count.products,
+          childrenCount: child._count.children,
         })),
       },
     });
@@ -149,55 +153,61 @@ export const getCategoryBySlug = async (req: Request, res: Response) => {
 
 // POST /api/v1/admin/categories
 export const createCategory = async (req: AuthRequest, res: Response) => {
-  const { name, slug, description, region, image, subCategories, isFeatured, displayOrder } = req.body;
+  const { name, slug, description, region, image, parentId, isFeatured, displayOrder } = req.body;
 
-  if (!name || !region) {
-    return res.status(400).json({ error: 'Category name and craft region are required.' });
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Category name is required.' });
   }
 
-  const generatedSlug = (slug && slug.trim()) ? slugify(slug) : slugify(name);
+  const cleanParentId = (parentId && typeof parentId === 'string' && parentId.trim()) ? parentId.trim() : null;
 
   try {
-    const existing = await prisma.category.findFirst({
-      where: {
-        OR: [{ name }, { slug: generatedSlug }],
-      },
-    });
+    const allCategories = await prisma.category.findMany();
 
-    if (existing) {
-      return res.status(400).json({ error: 'A category with this name or slug already exists.' });
+    // 1. Hierarchy depth & cycle validation
+    const validation = validateCategoryHierarchy(cleanParentId, null, allCategories);
+    if (!validation.isValid) {
+      return res.status(400).json({ error: validation.error });
     }
 
-    const subCategoryCreates = Array.isArray(subCategories)
-      ? subCategories
-          .filter((sub: any) => typeof sub === 'string' ? sub.trim() : sub?.name?.trim())
-          .map((sub: any) => {
-            const subName = typeof sub === 'string' ? sub.trim() : sub.name.trim();
-            const subSlug = (typeof sub === 'object' && sub.slug) ? slugify(sub.slug) : `${generatedSlug}-${slugify(subName)}`;
-            const subDesc = typeof sub === 'object' ? sub.description : undefined;
-            return {
-              name: subName,
-              slug: subSlug,
-              description: subDesc,
-            };
-          })
-      : [];
+    // 2. Slug generation & uniqueness
+    let generatedSlug = (slug && slug.trim()) ? slugify(slug) : slugify(name);
+    
+    // If child category, optionally prefix parent slug if name collision exists
+    const existingSlug = await prisma.category.findUnique({
+      where: { slug: generatedSlug },
+    });
+
+    if (existingSlug) {
+      if (cleanParentId) {
+        const parent = allCategories.find((c) => c.id === cleanParentId);
+        if (parent) {
+          generatedSlug = `${parent.slug}-${generatedSlug}`;
+        }
+      }
+      // Recheck
+      const collision = await prisma.category.findUnique({
+        where: { slug: generatedSlug },
+      });
+      if (collision) {
+        return res.status(400).json({ error: `A category with slug "${generatedSlug}" already exists.` });
+      }
+    }
 
     const category = await prisma.category.create({
       data: {
         name: name.trim(),
         slug: generatedSlug,
         description: description?.trim() || null,
-        region: region.trim(),
+        region: region?.trim() || null,
         image: image?.trim() || null,
+        parentId: cleanParentId,
         isFeatured: typeof isFeatured === 'boolean' ? isFeatured : false,
         displayOrder: typeof displayOrder === 'number' ? displayOrder : 0,
-        subCategories: {
-          create: subCategoryCreates,
-        },
       },
       include: {
-        subCategories: true,
+        parent: true,
+        _count: { select: { products: true, children: true } },
       },
     });
 
@@ -209,15 +219,25 @@ export const createCategory = async (req: AuthRequest, res: Response) => {
           action: 'CATEGORY_CREATE',
           entityType: 'Category',
           entityId: category.id,
-          newValues: { name: category.name, slug: category.slug, region: category.region, isFeatured: category.isFeatured },
+          newValues: {
+            name: category.name,
+            slug: category.slug,
+            parentId: category.parentId,
+            level: validation.computedLevel,
+          },
         },
       }).catch((e) => console.warn('Audit log write error:', e));
     }
 
     return res.status(201).json({
       success: true,
-      message: `Category "${category.name}" created successfully.`,
-      category,
+      message: `Category "${category.name}" created at Level ${validation.computedLevel}.`,
+      category: {
+        ...category,
+        level: validation.computedLevel,
+        productCount: 0,
+        childrenCount: 0,
+      },
     });
   } catch (error: any) {
     console.error('Create category error:', error);
@@ -228,7 +248,7 @@ export const createCategory = async (req: AuthRequest, res: Response) => {
 // PUT /api/v1/admin/categories/:id
 export const updateCategory = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
-  const { name, slug, description, region, image, isFeatured, displayOrder } = req.body;
+  const { name, slug, description, region, image, parentId, isFeatured, displayOrder } = req.body;
 
   try {
     const existing = await prisma.category.findUnique({ where: { id } });
@@ -236,7 +256,28 @@ export const updateCategory = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Category not found.' });
     }
 
+    const allCategories = await prisma.category.findMany();
+
+    const targetParentId = parentId !== undefined
+      ? (parentId && typeof parentId === 'string' && parentId.trim() ? parentId.trim() : null)
+      : existing.parentId;
+
+    // Validate hierarchy if parent is changing
+    if (targetParentId !== existing.parentId) {
+      const validation = validateCategoryHierarchy(targetParentId, id, allCategories);
+      if (!validation.isValid) {
+        return res.status(400).json({ error: validation.error });
+      }
+    }
+
     const updatedSlug = slug ? slugify(slug) : (name ? slugify(name) : existing.slug);
+
+    if (updatedSlug !== existing.slug) {
+      const collision = await prisma.category.findUnique({ where: { slug: updatedSlug } });
+      if (collision && collision.id !== id) {
+        return res.status(400).json({ error: `Category slug "${updatedSlug}" is already taken.` });
+      }
+    }
 
     const updated = await prisma.category.update({
       where: { id },
@@ -244,14 +285,15 @@ export const updateCategory = async (req: AuthRequest, res: Response) => {
         ...(name && { name: name.trim() }),
         ...(updatedSlug && { slug: updatedSlug }),
         ...(description !== undefined && { description: description?.trim() || null }),
-        ...(region && { region: region.trim() }),
+        ...(region !== undefined && { region: region?.trim() || null }),
         ...(image !== undefined && { image: image?.trim() || null }),
+        ...(parentId !== undefined && { parentId: targetParentId }),
         ...(isFeatured !== undefined && { isFeatured: Boolean(isFeatured) }),
         ...(displayOrder !== undefined && { displayOrder: Number(displayOrder) }),
       },
       include: {
-        subCategories: true,
-        _count: { select: { products: true } },
+        parent: true,
+        _count: { select: { products: true, children: true } },
       },
     });
 
@@ -262,8 +304,8 @@ export const updateCategory = async (req: AuthRequest, res: Response) => {
           action: 'CATEGORY_UPDATE',
           entityType: 'Category',
           entityId: id,
-          oldValues: { name: existing.name, slug: existing.slug },
-          newValues: { name: updated.name, slug: updated.slug },
+          oldValues: { name: existing.name, slug: existing.slug, parentId: existing.parentId },
+          newValues: { name: updated.name, slug: updated.slug, parentId: updated.parentId },
         },
       }).catch((e) => console.warn('Audit log write error:', e));
     }
@@ -274,6 +316,7 @@ export const updateCategory = async (req: AuthRequest, res: Response) => {
       category: {
         ...updated,
         productCount: updated._count.products,
+        childrenCount: updated._count.children,
       },
     });
   } catch (error: any) {
@@ -290,12 +333,19 @@ export const deleteCategory = async (req: AuthRequest, res: Response) => {
     const existing = await prisma.category.findUnique({
       where: { id },
       include: {
-        _count: { select: { products: true } },
+        children: true,
+        _count: { select: { products: true, children: true } },
       },
     });
 
     if (!existing) {
       return res.status(404).json({ error: 'Category not found.' });
+    }
+
+    if (existing._count.children > 0) {
+      return res.status(400).json({
+        error: `Cannot delete category "${existing.name}" because it contains ${existing._count.children} child subcategory(ies). Please reassign or delete child categories first.`,
+      });
     }
 
     if (existing._count.products > 0) {
@@ -328,171 +378,20 @@ export const deleteCategory = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// POST /api/v1/admin/categories/:id/subcategories
+// POST /api/v1/admin/categories/:id/subcategories (Backward-compatible adapter for adding child category)
 export const createSubCategory = async (req: AuthRequest, res: Response) => {
-  const { id: categoryId } = req.params;
-  const { name, slug, description } = req.body;
-
-  if (!name) {
-    return res.status(400).json({ error: 'Subcategory name is required.' });
-  }
-
-  try {
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId },
-      include: { subCategories: true },
-    });
-
-    if (!category) {
-      return res.status(404).json({ error: 'Parent Category not found.' });
-    }
-
-    const generatedSlug = slug ? slugify(slug) : `${category.slug}-${slugify(name)}`;
-
-    const existingSub = await prisma.subCategory.findFirst({
-      where: {
-        categoryId,
-        OR: [{ name: name.trim() }, { slug: generatedSlug }],
-      },
-    });
-
-    if (existingSub) {
-      return res.status(400).json({ error: 'A subcategory with this name or slug already exists under this category.' });
-    }
-
-    const subCategory = await prisma.subCategory.create({
-      data: {
-        categoryId,
-        name: name.trim(),
-        slug: generatedSlug,
-        description: description?.trim() || null,
-      },
-    });
-
-    if (req.user?.userId) {
-      await prisma.auditLog.create({
-        data: {
-          userId: req.user.userId,
-          action: 'SUBCATEGORY_CREATE',
-          entityType: 'SubCategory',
-          entityId: subCategory.id,
-          newValues: { name: subCategory.name, slug: subCategory.slug, categoryId },
-        },
-      }).catch((e) => console.warn('Audit log write error:', e));
-    }
-
-    return res.status(201).json({
-      success: true,
-      message: `Subcategory "${subCategory.name}" added to ${category.name}.`,
-      subCategory: {
-        ...subCategory,
-        productCount: 0,
-      },
-    });
-  } catch (error: any) {
-    console.error('Create subcategory error:', error);
-    return res.status(500).json({ error: error.message || 'Failed to create subcategory.' });
-  }
+  req.body.parentId = req.params.id;
+  return createCategory(req, res);
 };
 
-// PUT /api/v1/admin/categories/subcategories/:subId
+// PUT /api/v1/admin/categories/subcategories/:subId (Backward-compatible adapter)
 export const updateSubCategory = async (req: AuthRequest, res: Response) => {
-  const { subId } = req.params;
-  const { name, slug, description } = req.body;
-
-  try {
-    const existing = await prisma.subCategory.findUnique({
-      where: { id: subId },
-      include: { category: true },
-    });
-
-    if (!existing) {
-      return res.status(404).json({ error: 'Subcategory not found.' });
-    }
-
-    const updatedSlug = slug ? slugify(slug) : (name ? `${existing.category.slug}-${slugify(name)}` : existing.slug);
-
-    const updated = await prisma.subCategory.update({
-      where: { id: subId },
-      data: {
-        ...(name && { name: name.trim() }),
-        ...(updatedSlug && { slug: updatedSlug }),
-        ...(description !== undefined && { description: description?.trim() || null }),
-      },
-      include: {
-        _count: { select: { products: true } },
-      },
-    });
-
-    if (req.user?.userId) {
-      await prisma.auditLog.create({
-        data: {
-          userId: req.user.userId,
-          action: 'SUBCATEGORY_UPDATE',
-          entityType: 'SubCategory',
-          entityId: subId,
-          oldValues: { name: existing.name, slug: existing.slug },
-          newValues: { name: updated.name, slug: updated.slug },
-        },
-      }).catch((e) => console.warn('Audit log write error:', e));
-    }
-
-    return res.json({
-      success: true,
-      message: `Subcategory "${updated.name}" updated successfully.`,
-      subCategory: {
-        ...updated,
-        productCount: updated._count.products,
-      },
-    });
-  } catch (error: any) {
-    console.error('Update subcategory error:', error);
-    return res.status(500).json({ error: error.message || 'Failed to update subcategory.' });
-  }
+  req.params.id = req.params.subId;
+  return updateCategory(req, res);
 };
 
-// DELETE /api/v1/admin/categories/subcategories/:subId
+// DELETE /api/v1/admin/categories/subcategories/:subId (Backward-compatible adapter)
 export const deleteSubCategory = async (req: AuthRequest, res: Response) => {
-  const { subId } = req.params;
-
-  try {
-    const existing = await prisma.subCategory.findUnique({
-      where: { id: subId },
-      include: {
-        _count: { select: { products: true } },
-      },
-    });
-
-    if (!existing) {
-      return res.status(404).json({ error: 'Subcategory not found.' });
-    }
-
-    if (existing._count.products > 0) {
-      return res.status(400).json({
-        error: `Cannot delete subcategory "${existing.name}" because it has ${existing._count.products} associated product(s). Please reassign or delete the products first.`,
-      });
-    }
-
-    await prisma.subCategory.delete({ where: { id: subId } });
-
-    if (req.user?.userId) {
-      await prisma.auditLog.create({
-        data: {
-          userId: req.user.userId,
-          action: 'SUBCATEGORY_DELETE',
-          entityType: 'SubCategory',
-          entityId: subId,
-          oldValues: { name: existing.name, slug: existing.slug },
-        },
-      }).catch((e) => console.warn('Audit log write error:', e));
-    }
-
-    return res.json({
-      success: true,
-      message: `Subcategory "${existing.name}" deleted successfully.`,
-    });
-  } catch (error: any) {
-    console.error('Delete subcategory error:', error);
-    return res.status(500).json({ error: error.message || 'Failed to delete subcategory.' });
-  }
+  req.params.id = req.params.subId;
+  return deleteCategory(req, res);
 };

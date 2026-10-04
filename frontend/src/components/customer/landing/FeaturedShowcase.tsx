@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Award, CheckCircle2, ArrowRight } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 
 const FALLBACK_SAREES = [
@@ -74,7 +75,7 @@ export default function FeaturedShowcase() {
         {/* Section Header */}
         <span
           style={{
-            fontSize: '0.8rem',
+            fontSize: '0.78rem',
             letterSpacing: '0.3em',
             color: 'var(--gold)',
             textTransform: 'uppercase',
@@ -83,12 +84,12 @@ export default function FeaturedShowcase() {
             fontWeight: 700,
           }}
         >
-          STEP INSIDE THE SANCTUARY
+          THE HERITAGE VAULT
         </span>
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2.4rem, 5vw, 4rem)',
+            fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
             color: 'var(--text)',
             fontWeight: 400,
             lineHeight: 1.2,
@@ -100,7 +101,7 @@ export default function FeaturedShowcase() {
           style={{
             maxWidth: '680px',
             margin: '16px auto 56px',
-            fontSize: '1.05rem',
+            fontSize: '1rem',
             color: 'var(--text-dim)',
             lineHeight: 1.7,
           }}
@@ -126,7 +127,7 @@ export default function FeaturedShowcase() {
               className="glass-card-luxury"
               style={{
                 textDecoration: 'none',
-                borderRadius: '12px',
+                borderRadius: '3px',
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
@@ -144,19 +145,23 @@ export default function FeaturedShowcase() {
                       position: 'absolute',
                       top: '14px',
                       left: '14px',
-                      padding: '5px 12px',
-                      background: 'var(--plum, #5C1D6E)',
+                      padding: '5px 10px',
+                      background: '#1A130D',
                       backdropFilter: 'blur(8px)',
                       border: '1px solid #D4AF37',
                       color: '#ffffff',
-                      fontSize: '0.72rem',
+                      fontSize: '0.7rem',
                       fontWeight: 700,
-                      borderRadius: '4px',
-                      letterSpacing: '0.05em',
-                      boxShadow: '0 2px 8px rgba(92, 29, 110, 0.4)',
+                      borderRadius: '2px',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
                     }}
                   >
-                    👑 1-OF-1 HEIRLOOM
+                    <Award size={12} color="#D4AF37" />
+                    <span>1-of-1 Heirloom</span>
                   </span>
                 )}
                 <span
@@ -165,15 +170,20 @@ export default function FeaturedShowcase() {
                     top: '14px',
                     right: '14px',
                     padding: '5px 10px',
-                    background: 'var(--emerald, #145A52)',
+                    background: '#145A52',
                     color: '#ffffff',
                     fontSize: '0.7rem',
                     fontWeight: 700,
-                    borderRadius: '4px',
-                    boxShadow: '0 2px 8px rgba(20, 90, 82, 0.35)',
+                    borderRadius: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
                   }}
                 >
-                  ✓ Silk Mark
+                  <CheckCircle2 size={12} />
+                  <span>Silk Mark</span>
                 </span>
               </div>
 
@@ -192,8 +202,9 @@ export default function FeaturedShowcase() {
                   <span style={{ fontSize: '1.3rem', color: 'var(--text)', fontWeight: 700 }}>
                     ₹{Number(saree.sellingPrice || saree.price).toLocaleString('en-IN')}
                   </span>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--gold)', fontWeight: 600 }}>
-                    View Heirloom →
+                  <span style={{ fontSize: '0.78rem', color: 'var(--gold)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <span>View Piece</span>
+                    <ArrowRight size={13} />
                   </span>
                 </div>
               </div>
@@ -208,21 +219,25 @@ export default function FeaturedShowcase() {
             className="gold-btn"
             style={{
               padding: '16px 40px',
-              fontSize: '0.92rem',
-              letterSpacing: '0.08em',
+              fontSize: '0.82rem',
+              letterSpacing: '0.14em',
               textTransform: 'uppercase',
               textDecoration: 'none',
-              borderRadius: '8px',
-              display: 'inline-block',
+              borderRadius: '3px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
               fontWeight: 700,
-              boxShadow: '0 4px 16px rgba(179, 137, 56, 0.3)',
+              background: 'var(--gold)',
+              color: '#1a130d',
+              boxShadow: '0 4px 16px rgba(179, 137, 56, 0.25)',
             }}
           >
-            Explore Complete Treasury ({sarees.length > 3 ? '5+' : 'All'} Sarees) →
+            <span>Explore Complete Treasury</span>
+            <ArrowRight size={15} />
           </Link>
         </div>
       </div>
     </section>
   );
 }
-

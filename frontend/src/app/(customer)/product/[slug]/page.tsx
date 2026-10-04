@@ -3,10 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Award, CheckCircle2, Video, Truck, ShoppingBag, ArrowRight, X, Key } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { Product } from '@/shared/types/index';
 import LandingNavbar from '@/components/customer/landing/LandingNavbar';
 import { useCart } from '@/context/CartContext';
+import { INDIAN_STATES, getCitiesForState, getStateForCity, searchStandardCities, standardizeCityName } from '@/lib/india-locations';
+import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -27,7 +30,6 @@ export default function ProductDetailPage() {
   // Auth Inputs (if not logged in)
   const [authEmail, setAuthEmail] = useState('');
   const [authOtp, setAuthOtp] = useState('');
-  const [devOtpCode, setDevOtpCode] = useState<string | null>(null);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
@@ -60,9 +62,16 @@ export default function ProductDetailPage() {
           if (res.product.images?.length) {
             setActiveImage(res.product.images[0]);
           }
+        } else {
+          setProduct(null);
         }
-      } catch (e) {
-        console.error('Failed to load product:', e);
+      } catch (e: any) {
+        if (e?.status === 404) {
+          setProduct(null);
+        } else {
+          console.warn('Product lookup notice:', e?.message || e);
+          setProduct(null);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -125,13 +134,10 @@ export default function ProductDetailPage() {
     setIsAuthLoading(true);
 
     try {
-      const res = await apiRequest('/customer/auth/send-otp', {
+      await apiRequest('/customer/auth/send-otp', {
         method: 'POST',
         data: { email: authEmail },
       });
-      if (res.devOtp) {
-        setDevOtpCode(res.devOtp);
-      }
       setIsOtpSent(true);
     } catch (err: any) {
       setAuthError(err.message || 'Failed to send OTP.');
@@ -305,18 +311,23 @@ export default function ProductDetailPage() {
                     top: '16px',
                     left: '16px',
                     padding: '6px 14px',
-                    background: 'var(--plum, #5C1D6E)',
+                    background: '#1A130D',
                     backdropFilter: 'blur(8px)',
                     border: '1px solid #D4AF37',
-                    borderRadius: '6px',
+                    borderRadius: '2px',
                     color: '#ffffff',
-                    fontSize: '0.75rem',
+                    fontSize: '0.72rem',
                     fontWeight: 700,
-                    letterSpacing: '0.08em',
-                    boxShadow: '0 4px 12px rgba(92, 29, 110, 0.4)',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 12px rgba(26, 19, 13, 0.4)',
                   }}
                 >
-                  👑 1-OF-1 UNREPEATABLE HEIRLOOM
+                  <Award size={13} color="#D4AF37" />
+                  <span>1-OF-1 UNREPEATABLE HEIRLOOM</span>
                 </div>
               )}
             </div>
@@ -331,7 +342,7 @@ export default function ProductDetailPage() {
                     style={{
                       width: '72px',
                       height: '72px',
-                      borderRadius: '6px',
+                      borderRadius: '3px',
                       overflow: 'hidden',
                       border: activeImage === img ? '2px solid var(--gold)' : '1px solid rgba(179, 137, 56, 0.25)',
                       padding: 0,
@@ -348,7 +359,7 @@ export default function ProductDetailPage() {
 
           {/* Right Column: Provenance & Purchase Box */}
           <div>
-            <span style={{ fontSize: '0.8rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase', display: 'block', marginBottom: '8px', fontWeight: 700 }}>
+            <span style={{ fontSize: '0.78rem', letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase', display: 'block', marginBottom: '8px', fontWeight: 700 }}>
               {product.craftRegion} LOOM CLUSTER • SKU: {product.sku}
             </span>
 
@@ -367,7 +378,7 @@ export default function ProductDetailPage() {
                 </span>
               )}
               <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginLeft: 'auto' }}>
-                Inclusive of all taxes &amp; nationwide insured shipping
+                Inclusive of all taxes and nationwide insured shipping
               </span>
             </div>
 
@@ -377,14 +388,15 @@ export default function ProductDetailPage() {
                 style={{
                   background: '#ffffff',
                   border: '1px solid rgba(179, 137, 56, 0.35)',
-                  borderRadius: '8px',
+                  borderRadius: '3px',
                   padding: '16px',
                   marginBottom: '24px',
                   boxShadow: '0 4px 14px rgba(45, 25, 8, 0.04)',
                 }}
               >
-                <h4 style={{ color: 'var(--plum, #5C1D6E)', fontSize: '0.88rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  👑 Single-Piece Heritage Edition
+                <h4 style={{ color: 'var(--text)', fontSize: '0.88rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <Award size={15} color="var(--gold)" />
+                  <span>Single-Piece Heritage Edition</span>
                 </h4>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px', lineHeight: 1.5 }}>
                   This saree is an unrepeatable single piece woven on a master pit-loom. Once acquired, no identical duplicate will ever be produced.
@@ -400,7 +412,7 @@ export default function ProductDetailPage() {
                     padding: '12px 16px',
                     background: 'rgba(179, 137, 56, 0.1)',
                     border: '1px solid var(--gold)',
-                    borderRadius: '8px',
+                    borderRadius: '3px',
                     color: 'var(--gold-dark, #8c6818)',
                     fontSize: '0.86rem',
                     fontWeight: 600,
@@ -416,10 +428,12 @@ export default function ProductDetailPage() {
                       color: '#ffffff',
                       background: 'var(--gold)',
                       padding: '5px 14px',
-                      borderRadius: '4px',
+                      borderRadius: '2px',
                       textDecoration: 'none',
                       fontWeight: 700,
                       fontSize: '0.78rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
                     }}
                   >
                     View Bag →
@@ -435,9 +449,9 @@ export default function ProductDetailPage() {
                     padding: '18px',
                     background: '#FEE2E2',
                     border: '1px solid #ef4444',
-                    borderRadius: '8px',
+                    borderRadius: '3px',
                     color: '#b91c1c',
-                    fontSize: '0.95rem',
+                    fontSize: '0.9rem',
                     fontWeight: 700,
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
@@ -451,18 +465,19 @@ export default function ProductDetailPage() {
                   <button
                     onClick={() => {
                       addToBag(product, 1);
-                      setBagToast(`👜 Added "${product.name}" to your luxury bag!`);
+                      setBagToast(`Added "${product.name}" to your luxury bag`);
                       setTimeout(() => setBagToast(null), 5000);
                     }}
                     style={{
                       padding: '16px',
                       background: '#ffffff',
-                      border: '1.5px solid var(--gold)',
-                      borderRadius: '8px',
+                      border: '1px solid var(--gold)',
+                      borderRadius: '3px',
                       color: 'var(--gold-dark, #8c6818)',
-                      fontSize: '0.92rem',
+                      fontSize: '0.85rem',
                       fontWeight: 700,
-                      letterSpacing: '0.06em',
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -472,7 +487,7 @@ export default function ProductDetailPage() {
                       boxShadow: '0 4px 12px rgba(45, 25, 8, 0.04)',
                     }}
                   >
-                    <span>👜</span>
+                    <ShoppingBag size={16} />
                     <span>Add to Bag</span>
                   </button>
 
@@ -485,18 +500,23 @@ export default function ProductDetailPage() {
                       padding: '16px',
                       background: 'var(--gold)',
                       border: 'none',
-                      borderRadius: '8px',
+                      borderRadius: '3px',
                       color: '#ffffff',
-                      fontSize: '0.92rem',
+                      fontSize: '0.85rem',
                       fontWeight: 700,
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
                       cursor: 'pointer',
                       boxShadow: '0 6px 20px rgba(179, 137, 56, 0.35)',
                       transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
                     }}
                   >
-                    👑 Buy Now →
+                    <span>Buy Now</span>
+                    <ArrowRight size={15} />
                   </button>
                 </div>
               )}
@@ -511,33 +531,45 @@ export default function ProductDetailPage() {
                 padding: '20px',
                 background: '#ffffff',
                 border: '1px solid rgba(179, 137, 56, 0.2)',
-                borderRadius: '8px',
+                borderRadius: '3px',
                 marginBottom: '32px',
                 boxShadow: '0 4px 16px rgba(45, 25, 8, 0.04)',
               }}
             >
               <div>
-                <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text)' }}>🏛️ Silk Mark Verified</strong>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Tag: {product.silkMarkNumber || 'SM-CSB-2026'}</span>
+                <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <CheckCircle2 size={14} color="#145A52" />
+                  <span>Silk Mark Verified</span>
+                </strong>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'block', marginTop: '2px' }}>Tag: {product.silkMarkNumber || 'SM-CSB-2026'}</span>
               </div>
               <div>
-                <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text)' }}>👑 1-of-1 Vault Record</strong>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{product.isHeirloom1of1 ? 'Individual Piece' : 'Limited Loom Edition'}</span>
+                <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <Award size={14} color="var(--gold)" />
+                  <span>1-of-1 Vault Record</span>
+                </strong>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'block', marginTop: '2px' }}>{product.isHeirloom1of1 ? 'Individual Piece' : 'Limited Loom Edition'}</span>
               </div>
               <div>
-                <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text)' }}>📹 20s Inspection Clip</strong>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Pre-dispatch verification</span>
+                <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <Video size={14} color="var(--gold)" />
+                  <span>Inspection Video</span>
+                </strong>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'block', marginTop: '2px' }}>Pre-dispatch verification</span>
               </div>
               <div>
-                <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text)' }}>📦 Express Delivery</strong>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Complimentary insured air shipping</span>
+                <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <Truck size={14} color="var(--gold)" />
+                  <span>Express Delivery</span>
+                </strong>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'block', marginTop: '2px' }}>Complimentary insured air shipping</span>
               </div>
             </div>
 
             {/* Saree Specifications Table */}
-            <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.2)', borderRadius: '8px', padding: '20px', boxShadow: '0 4px 16px rgba(45, 25, 8, 0.04)' }}>
+            <div style={{ background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.2)', borderRadius: '3px', padding: '20px', boxShadow: '0 4px 16px rgba(45, 25, 8, 0.04)' }}>
               <h3 style={{ fontSize: '0.9rem', color: 'var(--gold-dark, #8c6818)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px', fontWeight: 700 }}>
-                Weave &amp; Fabric Provenance
+                Weave & Fabric Provenance
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', fontSize: '0.85rem' }}>
                 <div style={{ borderBottom: '1px solid rgba(179, 137, 56, 0.15)', paddingBottom: '8px' }}>
@@ -602,11 +634,12 @@ export default function ProductDetailPage() {
                 background: 'none',
                 border: 'none',
                 color: 'var(--text-dim)',
-                fontSize: '1.4rem',
                 cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
               }}
             >
-              ✕
+              <X size={18} strokeWidth={1.5} />
             </button>
 
             {/* Header */}
@@ -677,11 +710,6 @@ export default function ProductDetailPage() {
                   </form>
                 ) : (
                   <form onSubmit={handleVerifyOtp}>
-                    {devOtpCode && (
-                      <div style={{ padding: '12px', background: 'rgba(179, 137, 56, 0.15)', border: '1px solid var(--gold)', borderRadius: '6px', color: 'var(--gold-dark, #8c6818)', fontSize: '0.85rem', marginBottom: '16px', fontWeight: 600 }}>
-                        🔑 <strong>Development Verification Code:</strong> {devOtpCode}
-                      </div>
-                    )}
                     {authError && (
                       <div style={{ padding: '10px', background: '#FEE2E2', border: '1px solid #ef4444', borderRadius: '6px', color: '#b91c1c', fontSize: '0.82rem', marginBottom: '16px' }}>
                         {authError}
@@ -738,7 +766,7 @@ export default function ProductDetailPage() {
               <form onSubmit={handlePlaceOrder}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <span style={{ fontSize: '0.82rem', color: 'var(--gold-dark, #8c6818)', fontWeight: 700 }}>
-                    1. Shipping &amp; Recipient Details
+                    1. Shipping & Recipient Details
                   </span>
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
                     Signed in as: {customerUser?.email}
@@ -785,36 +813,69 @@ export default function ProductDetailPage() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '20px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '4px' }}>City</label>
-                    <input
-                      type="text"
+                    <AddressAutocomplete
+                      id="product-city-input"
+                      label="City / District *"
+                      placeholder="e.g. Bangalore"
                       required
-                      placeholder="e.g. Bengaluru"
                       value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
+                      searchFn={(query) => searchStandardCities(query, state)}
+                      onChange={(val) => {
+                        setCity(val);
+                        const resolved = standardizeCityName(val);
+                        if (resolved && resolved.state) {
+                          setState(resolved.state);
+                        }
+                      }}
+                      onSelectOption={(selectedCity, rawOption) => {
+                        setCity(selectedCity);
+                        const targetState = rawOption?.state || getStateForCity(selectedCity);
+                        if (targetState) {
+                          setState(targetState);
+                        }
+                      }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '4px' }}>State</label>
-                    <input
-                      type="text"
-                      required
+                    <AddressAutocomplete
+                      id="product-state-input"
+                      label="State *"
                       placeholder="e.g. Karnataka"
+                      required
                       value={state}
-                      onChange={(e) => setState(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
+                      options={INDIAN_STATES}
+                      onChange={(val) => setState(val)}
+                      onSelectOption={(selectedState) => setState(selectedState)}
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '4px' }}>PIN Code</label>
+                    <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 600, letterSpacing: '0.04em' }}>
+                      6-Digit PIN Code *
+                    </label>
                     <input
                       type="text"
                       required
-                      placeholder="6-digit PIN"
+                      maxLength={6}
+                      placeholder="e.g. 560075"
                       value={pincode}
-                      onChange={(e) => setPincode(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem' }}
+                      onChange={async (e) => {
+                        const cleaned = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setPincode(cleaned);
+                        if (cleaned.length === 6) {
+                          try {
+                            const res = await fetch(`https://api.postalpincode.in/pincode/${cleaned}`);
+                            const data = await res.json();
+                            if (Array.isArray(data) && data[0]?.Status === 'Success' && data[0].PostOffice?.[0]) {
+                              const po = data[0].PostOffice[0];
+                              if (po.District) setCity(po.District);
+                              if (po.State) setState(po.State);
+                            }
+                          } catch (err) {
+                            console.warn('PIN code lookup error:', err);
+                          }
+                        }
+                      }}
+                      style={{ width: '100%', padding: '10px 12px', background: '#FAF8F5', border: '1px solid rgba(179, 137, 56, 0.3)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem', fontFamily: 'monospace' }}
                     />
                   </div>
                 </div>

@@ -4,17 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePermissions } from '@/hooks/usePermissions';
 import { apiRequest } from '@/lib/api';
-import { Product } from '@/shared/types/index';
+import { Product, Category } from '@/shared/types/index';
 import MultiImageUpload from '@/components/admin/MultiImageUpload';
 import BarcodeControl from '@/components/admin/BarcodeControl';
-
-interface CategoryItem {
-  id: string;
-  name: string;
-  slug: string;
-  region: string;
-  subCategories: { id: string; name: string; slug: string; description?: string }[];
-}
 
 const FABRICS = [
   'Pure Katan Silk',
@@ -54,7 +46,7 @@ const WEAVE_STYLES = [
 export default function PortalCatalogPage() {
   const { hasCapability, isAdmin } = usePermissions();
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [search, setSearch] = useState('');
@@ -99,7 +91,7 @@ export default function PortalCatalogPage() {
         apiRequest(`/products?search=${encodeURIComponent(search)}`),
       ]);
 
-      const catList: CategoryItem[] = catsRes.categories || [];
+      const catList: Category[] = catsRes.categories || [];
       setCategories(catList);
       setProducts(prodsRes.products || []);
 
@@ -108,12 +100,13 @@ export default function PortalCatalogPage() {
         setFormData((prev) => ({
           ...prev,
           categoryId: catList[0].id,
-          subCategoryId: catList[0].subCategories?.[0]?.id || '',
-          craftRegion: catList[0].region,
+          craftRegion: catList[0].region || prev.craftRegion,
         }));
       }
-    } catch (e) {
-      console.error('Failed to fetch catalog data:', e);
+    } catch (e: any) {
+      if (e?.status !== 401) {
+        console.warn('Catalog load notice:', e?.message || e);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -123,13 +116,12 @@ export default function PortalCatalogPage() {
     loadData();
   }, [search]);
 
-  // Handle Category Change (Cascading SubCategories)
+  // Handle Category Change (Hierarchical Selection)
   const handleCategoryChange = (catId: string) => {
     const selected = categories.find((c) => c.id === catId);
     setFormData((prev) => ({
       ...prev,
       categoryId: catId,
-      subCategoryId: selected?.subCategories?.[0]?.id || '',
       craftRegion: selected?.region || prev.craftRegion,
     }));
   };
@@ -213,7 +205,7 @@ export default function PortalCatalogPage() {
             CATALOG MANAGEMENT
           </span>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text)', marginTop: '4px' }}>
-            Saree Catalog &amp; Products
+            Saree Catalog & Products
           </h1>
         </div>
 
@@ -316,13 +308,20 @@ export default function PortalCatalogPage() {
           </div>
 
           <form onSubmit={handleCreateProduct} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-            {/* Row 1: Category & Sub-Category */}
+            {/* Row 1: Hierarchical Category & Title */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px' }}>
-              {/* Category */}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
-                  Category *
-                </label>
+              {/* Hierarchical Category Selector */}
+              <div style={{ gridColumn: 'span 2' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Hierarchical Category / Weave Placement *
+                  </label>
+                  {activeCategory && (
+                    <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 700 }}>
+                      📍 {activeCategory.breadcrumbs && activeCategory.breadcrumbs.length > 0 ? activeCategory.breadcrumbs.map((b) => b.name).join(' > ') : activeCategory.name} [Tier {activeCategory.level ?? 0}]
+                    </span>
+                  )}
+                </div>
                 <select
                   required
                   value={formData.categoryId}
@@ -338,39 +337,18 @@ export default function PortalCatalogPage() {
                     outline: 'none',
                   }}
                 >
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.region})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* SubCategory */}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
-                  Sub-Category *
-                </label>
-                <select
-                  required
-                  value={formData.subCategoryId}
-                  onChange={(e) => setFormData({ ...formData, subCategoryId: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    background: '#FAF8F5',
-                    border: '1px solid rgba(179, 137, 56, 0.3)',
-                    borderRadius: '6px',
-                    color: 'var(--text)',
-                    fontSize: '0.88rem',
-                    outline: 'none',
-                  }}
-                >
-                  {activeCategory?.subCategories?.map((sub) => (
-                    <option key={sub.id} value={sub.id}>
-                      {sub.name}
-                    </option>
-                  ))}
+                  {categories.map((c) => {
+                    const level = c.level ?? 0;
+                    const prefix = level === 0 ? '👑 ' : level === 1 ? '  🌿 ' : level === 2 ? '    🍃 ' : '      ✨ ';
+                    const breadcrumbText = c.breadcrumbs && c.breadcrumbs.length > 0
+                      ? c.breadcrumbs.map((b) => b.name).join(' > ')
+                      : c.name;
+                    return (
+                      <option key={c.id} value={c.id}>
+                        {prefix}{breadcrumbText} {c.region ? `(${c.region})` : ''} [Tier {level}]
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -445,7 +423,7 @@ export default function PortalCatalogPage() {
               {/* Fabric */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
-                  Fabric &amp; Purity *
+                  Fabric & Purity *
                 </label>
                 <select
                   required
@@ -685,7 +663,7 @@ export default function PortalCatalogPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
-                  Artisan Provenance &amp; Description
+                  Artisan Provenance & Description
                 </label>
                 <textarea
                   rows={3}
@@ -721,7 +699,7 @@ export default function PortalCatalogPage() {
             {hasCapability('finance:view') && (
               <div style={{ padding: '18px', background: '#FFFBEB', border: '1px dashed rgba(217, 119, 6, 0.35)', borderRadius: '8px' }}>
                 <span style={{ fontSize: '0.72rem', color: '#92400e', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>
-                  🔒 Supplier &amp; Cost Records (Admin Only)
+                  🔒 Supplier & Cost Records (Admin Only)
                 </span>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
                   <input
@@ -828,9 +806,9 @@ export default function PortalCatalogPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '960px' }}>
           <thead>
             <tr style={{ background: 'var(--bg-deep)', borderBottom: '1px solid rgba(179, 137, 56, 0.18)' }}>
-              <th style={{ padding: '14px 18px', fontSize: '0.75rem', color: 'var(--text)', fontWeight: 700, textTransform: 'uppercase' }}>Piece &amp; Image</th>
+              <th style={{ padding: '14px 18px', fontSize: '0.75rem', color: 'var(--text)', fontWeight: 700, textTransform: 'uppercase' }}>Piece & Image</th>
               <th style={{ padding: '14px 18px', fontSize: '0.75rem', color: 'var(--text)', fontWeight: 700, textTransform: 'uppercase' }}>SKU</th>
-              <th style={{ padding: '14px 18px', fontSize: '0.75rem', color: 'var(--text)', fontWeight: 700, textTransform: 'uppercase' }}>Category &amp; Sub-Category</th>
+              <th style={{ padding: '14px 18px', fontSize: '0.75rem', color: 'var(--text)', fontWeight: 700, textTransform: 'uppercase' }}>Category & Sub-Category</th>
               <th style={{ padding: '14px 18px', fontSize: '0.75rem', color: 'var(--text)', fontWeight: 700, textTransform: 'uppercase' }}>Selling Price</th>
               {hasCapability('finance:view') && (
                 <th style={{ padding: '14px 18px', fontSize: '0.75rem', color: '#b45309', fontWeight: 700, textTransform: 'uppercase' }}>Wholesale 🔒</th>
@@ -896,7 +874,7 @@ export default function PortalCatalogPage() {
                   {/* Cost Price */}
                   {hasCapability('finance:view') && (
                     <td style={{ padding: '14px 18px', fontSize: '0.88rem', color: '#92400e', fontWeight: 700, fontFamily: 'monospace' }}>
-                      {p.costPrice ? `₹${p.costPrice?.toLocaleString('en-IN')}` : '—'}
+                      {p.costPrice ? `₹${p.costPrice?.toLocaleString('en-IN')}` : '-'}
                     </td>
                   )}
 

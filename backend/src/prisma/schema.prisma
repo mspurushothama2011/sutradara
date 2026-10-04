@@ -23,8 +23,11 @@ enum StaffRole {
 enum OrderStatus {
   PENDING
   PAID
+  QC_INSPECTED
   PROCESSING
   SHIPPED
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
   DELIVERED
   CANCELLED
   RETURNED
@@ -82,20 +85,29 @@ model Address {
   createdAt      DateTime  @default(now())
 }
 
-// 🏷️ CATEGORY & WEAVE SPECIALIZATION HIERARCHY
+// 🏷️ CATEGORY & WEAVE SPECIALIZATION HIERARCHY (4 Tiers, Self-Referencing Tree)
 model Category {
   id            String        @id @default(uuid())
-  name          String        @unique
+  name          String
   slug          String        @unique
   description   String?
-  region        String
+  region        String?
   image         String?
   isFeatured    Boolean       @default(false)
   displayOrder  Int           @default(0)
-  createdAt     DateTime      @default(now())
 
-  subCategories SubCategory[] // Max 3 enforced via API
+  parentId      String?
+  parent        Category?     @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children      Category[]    @relation("CategoryHierarchy")
+
+  subCategories SubCategory[] // Kept during transition for zero data loss migration
   products      Product[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @default(now()) @updatedAt
+
+  @@index([parentId])
+  @@index([slug])
 }
 
 model SubCategory {

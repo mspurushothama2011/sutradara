@@ -128,7 +128,7 @@ export default function SingleImageUpload({
               {value.split('/').pop()}
             </span>
             <span style={{ display: 'block', fontSize: '0.72rem', color: '#15803d', fontWeight: 600, marginTop: '2px' }}>
-              ✓ Image Uploaded &amp; Saved
+              ✓ Image Uploaded & Saved
             </span>
 
             <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
@@ -210,7 +210,7 @@ export default function SingleImageUpload({
           ) : (
             <>
               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>
-                Click to upload or drag &amp; drop
+                Click to upload or drag & drop
               </span>
               <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)', marginTop: '2px' }}>
                 {helperText}

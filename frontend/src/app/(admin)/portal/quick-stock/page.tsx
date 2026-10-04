@@ -138,13 +138,13 @@ export default function FloorQuickStockPage() {
       >
         <div>
           <span style={{ fontSize: '0.75rem', color: 'var(--gold)', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600 }}>
-            ⚡ FLOOR &amp; WAREHOUSE STOCK ADJUSTER
+            ⚡ FLOOR & WAREHOUSE STOCK ADJUSTER
           </span>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: 'var(--text)', marginTop: '4px' }}>
-            Floor Stock &amp; Inventory Manager
+            Floor Stock & Inventory Manager
           </h1>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '2px' }}>
-            Direct number typing + instant barcode &amp; scanner integration with PostgreSQL
+            Direct number typing + instant barcode & scanner integration with PostgreSQL
           </p>
         </div>
       </div>

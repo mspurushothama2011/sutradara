@@ -14,7 +14,6 @@ export default function AdminOrderTrackingPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isDispatching, setIsDispatching] = useState(false);
 
   // Form states
   const [statusInput, setStatusInput] = useState('SHIPPED');
@@ -22,7 +21,19 @@ export default function AdminOrderTrackingPage() {
   const [messageInput, setMessageInput] = useState('');
   const [awbInput, setAwbInput] = useState('');
   const [courierInput, setCourierInput] = useState('Bluedart Apex Air');
+  const [trackingUrlInput, setTrackingUrlInput] = useState('');
   const [videoUrlInput, setVideoUrlInput] = useState('');
+
+  const COURIER_OPTIONS = [
+    'Bluedart Apex Air',
+    'Delhivery Express',
+    'DTDC Express',
+    'Speed Post (India Post)',
+    'The Professional Couriers',
+    'Shadowfax Air',
+    'Xpressbees Logistics',
+    'In-House White-Glove Handover',
+  ];
 
   const loadOrder = async () => {
     try {
@@ -33,10 +44,15 @@ export default function AdminOrderTrackingPage() {
         setStatusInput(res.order.status || 'SHIPPED');
         setAwbInput(res.order.awbNumber || '');
         setCourierInput(res.order.courierPartner || 'Bluedart Apex Air');
+        setTrackingUrlInput(res.order.trackingUrl || '');
         setVideoUrlInput(res.order.inspectionVideoUrl || '');
       }
-    } catch (e) {
-      console.error('Failed to load order tracking details:', e);
+    } catch (e: any) {
+      if (e?.status === 404) {
+        setOrder(null);
+      } else if (e?.status !== 401) {
+        console.warn('Failed to load order tracking details:', e?.message || e);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -47,23 +63,6 @@ export default function AdminOrderTrackingPage() {
       loadOrder();
     }
   }, [orderId]);
-
-  // 1-Click Shiprocket Automated Booking
-  const handleShiprocketDispatch = async () => {
-    if (!order) return;
-    setIsDispatching(true);
-    try {
-      const res = await apiRequest(`/orders/${order.id}/shiprocket-dispatch`, {
-        method: 'POST',
-      });
-      alert(`✓ ${res.message || 'Shipment dispatched successfully!'}\nCourier: ${res.dispatch?.courierPartner}\nAWB: ${res.dispatch?.awbNumber}`);
-      await loadOrder();
-    } catch (e: any) {
-      alert('Shiprocket Dispatch Notice: ' + (e.message || 'Failed to dispatch'));
-    } finally {
-      setIsDispatching(false);
-    }
-  };
 
   // Milestone Progress Update
   const handleUpdateMilestone = async (e: React.FormEvent) => {
@@ -80,6 +79,7 @@ export default function AdminOrderTrackingPage() {
           message: messageInput || undefined,
           awbNumber: awbInput || undefined,
           courierPartner: courierInput || undefined,
+          trackingUrl: trackingUrlInput || undefined,
           inspectionVideoUrl: videoUrlInput || undefined,
         },
       });
@@ -117,7 +117,7 @@ export default function AdminOrderTrackingPage() {
   if (isLoading) {
     return (
       <div style={{ padding: '60px', textAlign: 'center', color: 'var(--gold)' }}>
-        <p style={{ letterSpacing: '0.2em' }}>FETCHING WAREHOUSE &amp; DISPATCH TELEMETRY...</p>
+        <p style={{ letterSpacing: '0.2em' }}>FETCHING WAREHOUSE & DISPATCH TELEMETRY...</p>
       </div>
     );
   }
@@ -205,26 +205,6 @@ export default function AdminOrderTrackingPage() {
             <span>Customer View ↗</span>
           </a>
 
-          {!isDispatched && (
-            <button
-              onClick={handleShiprocketDispatch}
-              disabled={isDispatching}
-              style={{
-                padding: '10px 20px',
-                background: 'var(--gold)',
-                border: 'none',
-                borderRadius: '6px',
-                color: '#FFFFFF',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: isDispatching ? 'wait' : 'pointer',
-                boxShadow: '0 2px 8px rgba(179, 137, 56, 0.3)',
-              }}
-            >
-              {isDispatching ? 'Booking...' : '🚀 1-Click Shiprocket Dispatch'}
-            </button>
-          )}
-
           <button
             onClick={handleToggleNdr}
             style={{
@@ -259,13 +239,13 @@ export default function AdminOrderTrackingPage() {
                 {order.customerName || shipping.recipientName || 'Valued Patron'}
               </p>
               <p style={{ color: 'var(--text-dim)' }}>
-                ✉️ <strong style={{ color: 'var(--text)' }}>Email:</strong> {order.customerEmail || '—'}
+                <strong style={{ color: 'var(--text)' }}>Email:</strong> {order.customerEmail || 'N/A'}
               </p>
               <p style={{ color: 'var(--text-dim)' }}>
-                📞 <strong style={{ color: 'var(--text)' }}>Phone:</strong> {order.customerPhone || shipping.recipientPhone || '—'}
+                <strong style={{ color: 'var(--text)' }}>Phone:</strong> {order.customerPhone || shipping.recipientPhone || 'N/A'}
               </p>
               <div style={{ marginTop: '8px', paddingTop: '10px', borderTop: '1px solid rgba(179, 137, 56, 0.15)' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--gold-dark, #8A6418)', fontWeight: 600 }}>📍 Shipping Destination:</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--gold-dark, #8A6418)', fontWeight: 600 }}>Shipping Destination:</span>
                 <p style={{ color: 'var(--text)', fontSize: '0.86rem', marginTop: '2px', lineHeight: 1.4 }}>
                   {shipping.recipientName && <strong>{shipping.recipientName} • </strong>}
                   {shipping.street}, {shipping.city}, {shipping.state} - <strong>{shipping.pincode}</strong>
@@ -277,7 +257,7 @@ export default function AdminOrderTrackingPage() {
           {/* Verification & Handover Credentials */}
           <div style={{ background: '#FFFFFF', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.03)' }}>
             <span style={{ fontSize: '0.72rem', letterSpacing: '0.15em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 600 }}>
-              VERIFICATION &amp; EVIDENCE
+              VERIFICATION & EVIDENCE
             </span>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
@@ -349,7 +329,7 @@ export default function AdminOrderTrackingPage() {
           {/* Dispatch & Milestone Management Form */}
           <div style={{ background: '#FFFFFF', border: '1px solid rgba(179, 137, 56, 0.22)', borderRadius: '12px', padding: '28px', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.03)' }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: 'var(--text)', marginBottom: '18px' }}>
-              Update Logistics &amp; Milestone Telemetry
+              Update Logistics & Milestone Telemetry
             </h2>
 
             <form onSubmit={handleUpdateMilestone} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -373,12 +353,12 @@ export default function AdminOrderTrackingPage() {
                     }}
                   >
                     <option value="PAID">PAID (Order Placed)</option>
-                    <option value="PROCESSING">PROCESSING (Under Inspection)</option>
+                    <option value="PROCESSING">PROCESSING (Inspected & Packed)</option>
                     <option value="SHIPPED">SHIPPED (Handed to Courier)</option>
-                    <option value="IN_TRANSIT">IN_TRANSIT (In Flight/Hub)</option>
-                    <option value="OUT_FOR_DELIVERY">OUT_FOR_DELIVERY</option>
-                    <option value="DELIVERED">DELIVERED (Handover Complete)</option>
-                    <option value="RETURNED">RETURNED</option>
+                    <option value="IN_TRANSIT">IN_TRANSIT (In Transit)</option>
+                    <option value="OUT_FOR_DELIVERY">OUT_FOR_DELIVERY (Out for Delivery)</option>
+                    <option value="DELIVERED">DELIVERED (Delivered to Patron)</option>
+                    <option value="CANCELLED">CANCELLED</option>
                   </select>
                 </div>
 
@@ -386,32 +366,58 @@ export default function AdminOrderTrackingPage() {
                   <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text)', fontWeight: 600, marginBottom: '4px' }}>
                     Courier Partner
                   </label>
-                  <input
-                    type="text"
-                    value={courierInput}
-                    onChange={(e) => setCourierInput(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      background: '#FAF8F5',
-                      border: '1px solid rgba(179, 137, 56, 0.3)',
-                      borderRadius: '6px',
-                      color: 'var(--text)',
-                      fontSize: '0.85rem',
-                      outline: 'none',
-                    }}
-                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <select
+                      value={COURIER_OPTIONS.includes(courierInput) ? courierInput : 'Other'}
+                      onChange={(e) => {
+                        if (e.target.value !== 'Other') {
+                          setCourierInput(e.target.value);
+                        }
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        background: '#FAF8F5',
+                        border: '1px solid rgba(179, 137, 56, 0.3)',
+                        borderRadius: '6px',
+                        color: 'var(--text)',
+                        fontSize: '0.85rem',
+                        outline: 'none',
+                      }}
+                    >
+                      {COURIER_OPTIONS.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                      <option value="Other">Other / Custom</option>
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="Courier Name"
+                      value={courierInput}
+                      onChange={(e) => setCourierInput(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        background: '#FAF8F5',
+                        border: '1px solid rgba(179, 137, 56, 0.25)',
+                        borderRadius: '6px',
+                        color: 'var(--text)',
+                        fontSize: '0.82rem',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text)', fontWeight: 600, marginBottom: '4px' }}>
-                    AWB Airway Bill Number
+                    AWB Tracking #
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. BD-89102481IN"
+                    placeholder="e.g. BD-89102481IN or DTDC12345"
                     value={awbInput}
                     onChange={(e) => setAwbInput(e.target.value)}
                     style={{
@@ -431,11 +437,11 @@ export default function AdminOrderTrackingPage() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text)', fontWeight: 600, marginBottom: '4px' }}>
-                    Location (Hub / Vault)
+                    Location (City / Hub)
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Varanasi Loom Vault or Delhi Air Hub"
+                    placeholder="e.g. Varanasi Loom Vault or Delhi Hub"
                     value={locationInput}
                     onChange={(e) => setLocationInput(e.target.value)}
                     style={{
@@ -454,11 +460,33 @@ export default function AdminOrderTrackingPage() {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text)', fontWeight: 600, marginBottom: '4px' }}>
-                  Milestone Progress Note
+                  External Courier Tracking Web Link (Optional)
+                </label>
+                <input
+                  type="url"
+                  placeholder="e.g. https://www.delhivery.com/track/package/..."
+                  value={trackingUrlInput}
+                  onChange={(e) => setTrackingUrlInput(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    background: '#FAF8F5',
+                    border: '1px solid rgba(179, 137, 56, 0.3)',
+                    borderRadius: '6px',
+                    color: 'var(--text)',
+                    fontSize: '0.85rem',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text)', fontWeight: 600, marginBottom: '4px' }}>
+                  Milestone Progress Note (Optional)
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Package cleared X-Ray inspection and boarded Air Express Cargo."
+                  placeholder="e.g. Saree packed in velvet trunk and handed over for express air transit."
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
                   style={{
@@ -480,7 +508,7 @@ export default function AdminOrderTrackingPage() {
                 </label>
                 <input
                   type="url"
-                  placeholder="https://storage.sutradara.in/videos/inspection_102.mp4"
+                  placeholder="https://..."
                   value={videoUrlInput}
                   onChange={(e) => setVideoUrlInput(e.target.value)}
                   style={{
@@ -512,7 +540,7 @@ export default function AdminOrderTrackingPage() {
                   boxShadow: '0 2px 8px rgba(179, 137, 56, 0.35)',
                 }}
               >
-                {isUpdating ? 'Saving Update...' : 'Commit Milestone &amp; Notify Patron'}
+                {isUpdating ? 'Saving Update...' : '✓ Commit Milestone & Update Customer Tracker'}
               </button>
             </form>
           </div>

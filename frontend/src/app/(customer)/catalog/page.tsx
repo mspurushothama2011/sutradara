@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Award, CheckCircle2, X } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
-import { Product } from '@/shared/types/index';
+import { Product, Category } from '@/shared/types/index';
 import LandingNavbar from '@/components/customer/landing/LandingNavbar';
 
 const CRAFT_REGIONS = [
@@ -17,23 +18,43 @@ const CRAFT_REGIONS = [
   'Bishnupur',
   'Mysore',
   'Bhagalpur',
+  'Assam',
 ];
+
 const ZARI_TYPES = ['All Zari', 'Pure Gold Zari', 'Tested Gold Zari', 'Antique Copper Zari', 'Silver Zari'];
 
 function CatalogContent() {
   const searchParams = useSearchParams();
   const initialRegion = searchParams?.get('craftRegion') || searchParams?.get('region') || 'All Clusters';
+  const initialCategory = searchParams?.get('category') || '';
   const initialZari = searchParams?.get('zariType') || 'All Zari';
   const initialHeirloom = searchParams?.get('isHeirloom1of1') === 'true';
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Filters
   const [selectedCluster, setSelectedCluster] = useState(initialRegion);
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedZari, setSelectedZari] = useState(initialZari);
   const [onlyHeirloom, setOnlyHeirloom] = useState(initialHeirloom);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Load Categories for hierarchical selector
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await apiRequest('/categories');
+        if (res && res.categories) {
+          setCategories(res.categories);
+        }
+      } catch (e) {
+        console.warn('Failed to load categories for catalog filter:', e);
+      }
+    }
+    loadCategories();
+  }, []);
 
   // Sync if URL search params change
   useEffect(() => {
@@ -41,12 +62,22 @@ function CatalogContent() {
     if (r && CRAFT_REGIONS.includes(r)) {
       setSelectedCluster(r);
     }
+    const cat = searchParams?.get('category');
+    if (cat) {
+      setSelectedCategory(cat);
+    }
   }, [searchParams]);
+
+  const activeCategoryObj = useMemo(() => {
+    if (!selectedCategory) return null;
+    return categories.find((c) => c.slug === selectedCategory || c.id === selectedCategory);
+  }, [selectedCategory, categories]);
 
   const fetchCatalog = async () => {
     try {
       setIsLoading(true);
       let query = '/products?';
+      if (selectedCategory) query += `category=${encodeURIComponent(selectedCategory)}&`;
       if (selectedCluster !== 'All Clusters') query += `craftRegion=${encodeURIComponent(selectedCluster)}&`;
       if (selectedZari !== 'All Zari') query += `zariType=${encodeURIComponent(selectedZari)}&`;
       if (onlyHeirloom) query += `isHeirloom1of1=true&`;
@@ -63,7 +94,7 @@ function CatalogContent() {
 
   useEffect(() => {
     fetchCatalog();
-  }, [selectedCluster, selectedZari, onlyHeirloom, searchQuery]);
+  }, [selectedCluster, selectedCategory, selectedZari, onlyHeirloom, searchQuery]);
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
@@ -73,7 +104,7 @@ function CatalogContent() {
       {/* Catalog Hero Banner */}
       <section
         style={{
-          padding: '120px 32px 32px',
+          padding: '120px 32px 24px',
           maxWidth: '1300px',
           margin: '0 auto',
           textAlign: 'center',
@@ -122,7 +153,7 @@ function CatalogContent() {
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
               padding: '10px 16px',
-              minWidth: '260px',
+              minWidth: '240px',
               background: '#FAF8F5',
               border: '1px solid rgba(179, 137, 56, 0.3)',
               borderRadius: '6px',
@@ -134,17 +165,46 @@ function CatalogContent() {
 
           {/* Select Dropdowns */}
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-            {/* Cluster Filter */}
+            {/* Hierarchical Category Selector */}
             <select
-              value={selectedCluster}
-              onChange={(e) => setSelectedCluster(e.target.value)}
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
               style={{
-                padding: '10px 16px',
+                padding: '10px 14px',
                 background: '#FAF8F5',
                 border: '1px solid rgba(179, 137, 56, 0.35)',
                 borderRadius: '6px',
                 color: 'var(--gold-dark, #8c6818)',
                 fontWeight: 600,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                outline: 'none',
+                maxWidth: '260px',
+              }}
+            >
+              <option value="">All Weave Categories ({categories.length})</option>
+              {categories.map((c) => {
+                const level = c.level ?? 0;
+                const prefix = level === 0 ? '👑 ' : level === 1 ? '  🌿 ' : level === 2 ? '    🍃 ' : '      ✨ ';
+                return (
+                  <option key={c.id} value={c.slug}>
+                    {prefix}{c.name} {c.region ? `(${c.region})` : ''}
+                  </option>
+                );
+              })}
+            </select>
+
+            {/* Cluster Filter */}
+            <select
+              value={selectedCluster}
+              onChange={(e) => setSelectedCluster(e.target.value)}
+              style={{
+                padding: '10px 14px',
+                background: '#FAF8F5',
+                border: '1px solid rgba(179, 137, 56, 0.35)',
+                borderRadius: '6px',
+                color: 'var(--text)',
+                fontWeight: 500,
                 fontSize: '0.85rem',
                 cursor: 'pointer',
                 outline: 'none',
@@ -162,7 +222,7 @@ function CatalogContent() {
               value={selectedZari}
               onChange={(e) => setSelectedZari(e.target.value)}
               style={{
-                padding: '10px 16px',
+                padding: '10px 14px',
                 background: '#FAF8F5',
                 border: '1px solid rgba(179, 137, 56, 0.35)',
                 borderRadius: '6px',
@@ -188,12 +248,14 @@ function CatalogContent() {
                 padding: '8px 14px',
                 background: onlyHeirloom ? 'rgba(179, 137, 56, 0.15)' : '#FAF8F5',
                 border: onlyHeirloom ? '1px solid var(--gold)' : '1px solid rgba(179, 137, 56, 0.25)',
-                borderRadius: '6px',
+                borderRadius: '3px',
                 color: onlyHeirloom ? 'var(--gold-dark, #8c6818)' : 'var(--text-dim)',
                 fontWeight: onlyHeirloom ? 700 : 500,
                 fontSize: '0.82rem',
                 cursor: 'pointer',
                 userSelect: 'none',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
               }}
             >
               <input
@@ -202,10 +264,68 @@ function CatalogContent() {
                 onChange={(e) => setOnlyHeirloom(e.target.checked)}
                 style={{ cursor: 'pointer' }}
               />
-              👑 1-of-1 Heirloom Only
+              <Award size={13} color="var(--gold)" />
+              <span>1-of-1 Heirloom Only</span>
             </label>
           </div>
         </div>
+
+        {/* Active Breadcrumb / Filter Tag Banner */}
+        {activeCategoryObj && (
+          <div
+            style={{
+              marginTop: '14px',
+              padding: '10px 16px',
+              background: 'rgba(179, 137, 56, 0.08)',
+              border: '1px solid var(--gold)',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                ACTIVE HIERARCHY FILTER:
+              </span>
+              {activeCategoryObj.breadcrumbs && activeCategoryObj.breadcrumbs.length > 0 ? (
+                activeCategoryObj.breadcrumbs.map((b, idx) => (
+                  <span key={b.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text)' }}>
+                    <span>{b.name}</span>
+                    {idx < (activeCategoryObj.breadcrumbs?.length ?? 1) - 1 && <span style={{ color: 'var(--text-dim)' }}>›</span>}
+                  </span>
+                ))
+              ) : (
+                <strong style={{ fontSize: '0.85rem', color: 'var(--text)' }}>{activeCategoryObj.name}</strong>
+              )}
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                (Includes all child subcategories)
+              </span>
+            </div>
+
+            <button
+              onClick={() => setSelectedCategory('')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '4px 10px',
+                background: '#FFFFFF',
+                border: '1px solid rgba(179, 137, 56, 0.3)',
+                borderRadius: '4px',
+                color: 'var(--text-dim)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <X size={12} />
+              <span>Clear Filter</span>
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Saree Grid */}
@@ -215,10 +335,10 @@ function CatalogContent() {
             <p style={{ letterSpacing: '0.2em', fontWeight: 600 }}>CURATING AVAILABLE WEAVES...</p>
           </div>
         ) : products.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px', background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.2)', borderRadius: '12px', boxShadow: '0 4px 20px rgba(45, 25, 8, 0.04)' }}>
+          <div style={{ textAlign: 'center', padding: '80px', background: '#ffffff', border: '1px solid rgba(179, 137, 56, 0.2)', borderRadius: '3px', boxShadow: '0 4px 20px rgba(45, 25, 8, 0.04)' }}>
             <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--text)' }}>No Sarees Matched Your Filter</h3>
             <p style={{ color: 'var(--text-dim)', marginTop: '6px', fontSize: '0.88rem' }}>
-              Try loosening your filters or resetting the cluster search.
+              Try loosening your category filter or resetting the cluster search.
             </p>
           </div>
         ) : (
@@ -239,7 +359,7 @@ function CatalogContent() {
                     textDecoration: 'none',
                     background: '#ffffff',
                     border: '1px solid rgba(179, 137, 56, 0.22)',
-                    borderRadius: '12px',
+                    borderRadius: '3px',
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
@@ -269,18 +389,22 @@ function CatalogContent() {
                           top: '12px',
                           left: '12px',
                           padding: '5px 10px',
-                          background: 'var(--plum, #5C1D6E)',
+                          background: '#1A130D',
                           backdropFilter: 'blur(8px)',
                           border: '1px solid #D4AF37',
                           color: '#ffffff',
                           fontSize: '0.7rem',
                           fontWeight: 700,
-                          borderRadius: '4px',
-                          letterSpacing: '0.05em',
-                          boxShadow: '0 2px 8px rgba(92, 29, 110, 0.4)',
+                          borderRadius: '2px',
+                          letterSpacing: '0.06em',
+                          textTransform: 'uppercase',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
                         }}
                       >
-                        👑 1-OF-1 HEIRLOOM
+                        <Award size={12} color="#D4AF37" />
+                        <span>1-OF-1 HEIRLOOM</span>
                       </span>
                     )}
 
@@ -292,15 +416,20 @@ function CatalogContent() {
                           top: '12px',
                           right: '12px',
                           padding: '5px 8px',
-                          background: 'var(--emerald, #145A52)',
+                          background: '#145A52',
                           color: '#ffffff',
                           fontSize: '0.68rem',
                           fontWeight: 700,
-                          borderRadius: '4px',
-                          boxShadow: '0 2px 8px rgba(20, 90, 82, 0.35)',
+                          borderRadius: '2px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
                         }}
                       >
-                        ✓ Silk Mark
+                        <CheckCircle2 size={12} />
+                        <span>Silk Mark</span>
                       </span>
                     )}
 
@@ -338,7 +467,7 @@ function CatalogContent() {
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <span style={{ fontSize: '0.72rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
-                          {p.craftRegion}
+                          {p.category?.name || p.craftRegion}
                         </span>
                         <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
                           {p.fabric}

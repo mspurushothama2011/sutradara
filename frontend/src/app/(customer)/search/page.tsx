@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { apiRequest } from '@/lib/api';
 import { Product } from '@/shared/types/index';
 import LandingNavbar from '@/components/customer/landing/LandingNavbar';
+import Footer from '@/components/shared/ui/Footer';
+import { Search, X, Award, ArrowRight } from 'lucide-react';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -84,11 +86,12 @@ function SearchContent() {
                 left: '20px',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                fontSize: '1.2rem',
                 color: 'var(--gold)',
+                display: 'flex',
+                alignItems: 'center',
               }}
             >
-              🔍
+              <Search size={18} strokeWidth={1.5} />
             </span>
             <input
               type="text"
@@ -98,14 +101,14 @@ function SearchContent() {
               autoFocus
               style={{
                 width: '100%',
-                padding: '16px 50px 16px 54px',
+                padding: '16px 50px 16px 52px',
                 background: '#ffffff',
-                border: '1.5px solid var(--gold)',
-                borderRadius: '12px',
+                border: '1px solid rgba(179, 137, 56, 0.4)',
+                borderRadius: '3px',
                 color: 'var(--text)',
-                fontSize: '1.05rem',
+                fontSize: '1rem',
                 outline: 'none',
-                boxShadow: '0 8px 32px rgba(179, 137, 56, 0.15)',
+                boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)',
               }}
             />
             {query && (
@@ -119,18 +122,19 @@ function SearchContent() {
                   background: 'transparent',
                   border: 'none',
                   color: 'var(--text-dim)',
-                  fontSize: '1.2rem',
                   cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
                 }}
               >
-                ✕
+                <X size={16} strokeWidth={1.5} />
               </button>
             )}
           </div>
 
           {/* Popular Tag Suggestions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '14px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', fontWeight: 600 }}>Trending Weaves:</span>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', fontWeight: 600 }}>Curated Weaves:</span>
             {popularKeywords.map((kw) => (
               <button
                 key={kw}
@@ -138,7 +142,7 @@ function SearchContent() {
                 style={{
                   background: query.toLowerCase() === kw.toLowerCase() ? 'var(--gold)' : '#ffffff',
                   border: query.toLowerCase() === kw.toLowerCase() ? '1px solid var(--gold)' : '1px solid rgba(179, 137, 56, 0.25)',
-                  borderRadius: '20px',
+                  borderRadius: '3px',
                   padding: '5px 14px',
                   color: query.toLowerCase() === kw.toLowerCase() ? '#ffffff' : 'var(--text-dim)',
                   fontSize: '0.78rem',
@@ -159,8 +163,8 @@ function SearchContent() {
           <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)' }}>
             Showing <strong>{filteredProducts.length}</strong> authenticated handloom sarees
           </p>
-          <Link href="/catalog" style={{ color: 'var(--gold)', textDecoration: 'none', fontSize: '0.82rem', fontWeight: 600 }}>
-            View Full Catalog →
+          <Link href="/catalog" style={{ color: 'var(--gold)', textDecoration: 'none', fontSize: '0.82rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            View Full Catalog <ArrowRight size={14} strokeWidth={1.5} />
           </Link>
         </div>
 
@@ -168,10 +172,10 @@ function SearchContent() {
         {isLoading ? (
           <p style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '40px' }}>Searching handloom vault...</p>
         ) : filteredProducts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '64px 20px', background: '#ffffff', borderRadius: '12px', border: '1px solid rgba(179, 137, 56, 0.25)', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)' }}>
+          <div style={{ textAlign: 'center', padding: '64px 20px', background: '#ffffff', borderRadius: '3px', border: '1px solid rgba(179, 137, 56, 0.25)', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.04)' }}>
             <p style={{ fontSize: '1.2rem', color: 'var(--text)', fontWeight: 600 }}>No sarees matched &quot;{query}&quot;</p>
             <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginTop: '6px' }}>
-              Try searching by cluster (e.g. Varanasi, Kanchipuram) or weave technique (e.g. Kadhwa, Korvai).
+              Try searching by cluster (such as Varanasi or Kanchipuram) or weave technique (such as Kadhwa or Korvai).
             </p>
             <button
               onClick={() => setQuery('')}
@@ -181,7 +185,7 @@ function SearchContent() {
                 background: 'var(--gold)',
                 color: '#ffffff',
                 border: 'none',
-                borderRadius: '6px',
+                borderRadius: '3px',
                 fontWeight: 700,
                 fontSize: '0.82rem',
                 cursor: 'pointer',
@@ -200,7 +204,7 @@ function SearchContent() {
                   textDecoration: 'none',
                   background: '#ffffff',
                   border: '1px solid rgba(179, 137, 56, 0.22)',
-                  borderRadius: '12px',
+                  borderRadius: '3px',
                   overflow: 'hidden',
                   display: 'flex',
                   flexDirection: 'column',
@@ -221,15 +225,18 @@ function SearchContent() {
                         top: '12px',
                         left: '12px',
                         padding: '3px 8px',
-                        background: 'rgba(26, 20, 14, 0.9)',
+                        background: 'rgba(26, 20, 14, 0.92)',
                         border: '1px solid var(--gold)',
                         color: 'var(--gold)',
                         fontSize: '0.7rem',
                         fontWeight: 600,
-                        borderRadius: '4px',
+                        borderRadius: '2px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
                       }}
                     >
-                      👑 1-of-1 Heirloom
+                      <Award size={12} strokeWidth={1.5} color="var(--gold)" /> 1-of-1 Heirloom
                     </span>
                   )}
                 </div>
@@ -249,7 +256,9 @@ function SearchContent() {
                     <span style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text)' }}>
                       ₹{product.sellingPrice.toLocaleString('en-IN')}
                     </span>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--gold)', fontWeight: 600 }}>View Specs →</span>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--gold)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      View Specs <ArrowRight size={12} strokeWidth={1.5} />
+                    </span>
                   </div>
                 </div>
               </Link>
@@ -257,6 +266,7 @@ function SearchContent() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

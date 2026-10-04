@@ -34,3 +34,8 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Archived & Development Scratch Artifacts
+archived/
+*/archived/
+

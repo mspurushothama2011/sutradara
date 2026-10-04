@@ -13,7 +13,7 @@ export default function RefundsPage() {
             PATRON ASSURANCE
           </span>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', color: 'var(--text)', marginTop: '6px' }}>
-            Refunds &amp; Returns Policy
+            Refunds & Returns Policy
           </h1>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '4px' }}>
             7-Day White-Glove Inspection Guarantee • Zero Deductions for Verified Flaws
@@ -43,7 +43,7 @@ export default function RefundsPage() {
 
           <section>
             <h2 style={{ color: 'var(--text)', fontSize: '1.15rem', fontFamily: 'var(--font-display)', marginBottom: '8px', fontWeight: 600 }}>
-              Refund Timelines &amp; Mode
+              Refund Timelines & Mode
             </h2>
             <p style={{ color: 'var(--text)' }}>
               Upon receipt and vault verification, refunds are credited back to your original payment method (Bank account / UPI / Credit card) within <strong>3 to 5 business days</strong>.

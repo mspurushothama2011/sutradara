@@ -2,11 +2,15 @@ import { Request, Response } from 'express';
 import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth.middleware';
+import {
+  createAndDispatchShipment,
+  getShiprocketTracking,
+} from '../services/shiprocket.service';
 
 const prisma = new PrismaClient();
 
 /**
- * Public: Create Order (Bypassed Instant Payment & Direct Vault Allocation)
+ * Public: Create Order (Direct Vault Allocation & Automated Shiprocket Dispatch)
  */
 export async function createOrder(req: AuthRequest, res: Response) {
   const { items, shippingAddress, couponCode } = req.body as {
@@ -93,7 +97,7 @@ export async function createOrder(req: AuthRequest, res: Response) {
     const finalTotal = Math.max(0, subtotal - discountAmount);
     const orderNumber = `SUT-${new Date().getFullYear()}-${crypto.randomInt(1000, 9999)}`;
 
-    // 4. Initial Logistics Milestone (Bypassed Shiprocket Simulation)
+    // 4. Initial Logistics Milestone
     const initialMilestones = [
       {
         id: `evt-${Date.now()}`,
@@ -104,7 +108,7 @@ export async function createOrder(req: AuthRequest, res: Response) {
       },
     ];
 
-    const createdOrder = await prisma.order.create({
+    let createdOrder = await prisma.order.create({
       data: {
         orderNumber,
         customerId: customer.id,
@@ -115,8 +119,6 @@ export async function createOrder(req: AuthRequest, res: Response) {
         totalAmount: finalTotal,
         shippingAddress: shippingAddress as any,
         trackingHistory: initialMilestones as any,
-        courierPartner: 'Bluedart Apex Air',
-        awbNumber: `BD-${crypto.randomInt(10000000, 99999999)}IN`,
         items: {
           create: orderLineItems,
         },
@@ -130,9 +132,69 @@ export async function createOrder(req: AuthRequest, res: Response) {
       },
     });
 
+    // 5. Trigger Automated Shiprocket Order Registration & AWB Generation
+    try {
+      const shipping = (createdOrder.shippingAddress || {}) as any;
+      const dispatchRes = await createAndDispatchShipment({
+        orderId: createdOrder.id,
+        orderNumber: createdOrder.orderNumber,
+        orderDate: createdOrder.createdAt.toISOString(),
+        billingCustomerName: createdOrder.customerName || shipping.recipientName || 'Valued Patron',
+        billingAddress: shipping.street || 'Master Heritage Road',
+        billingCity: shipping.city || 'Varanasi',
+        billingPincode: shipping.pincode || '221001',
+        billingState: shipping.state || 'Uttar Pradesh',
+        billingCountry: shipping.country || 'India',
+        billingEmail: createdOrder.customerEmail || 'patron@sutradara.in',
+        billingPhone: createdOrder.customerPhone || shipping.recipientPhone || '+91 98765 43210',
+        shippingIsBilling: true,
+        orderItems: createdOrder.items.map((item) => ({
+          name: item.product.name,
+          sku: item.product.sku,
+          units: item.quantity,
+          sellingPrice: item.price,
+        })),
+        paymentMethod: 'Prepaid',
+        subTotal: createdOrder.totalAmount,
+      });
+
+      if (dispatchRes.success && dispatchRes.awbNumber) {
+        const milestones = (Array.isArray(createdOrder.trackingHistory) ? [...createdOrder.trackingHistory] : []) as any[];
+        milestones.unshift({
+          id: `evt-${Date.now()}`,
+          status: 'SHIPPED',
+          location: 'National Logistics Gateway Hub',
+          message: `Package registered with ${dispatchRes.courierPartner || 'Shiprocket Air Courier'}. AWB: ${dispatchRes.awbNumber}.`,
+          timestamp: new Date().toISOString(),
+        });
+
+        createdOrder = await prisma.order.update({
+          where: { id: createdOrder.id },
+          data: {
+            status: 'SHIPPED',
+            courierPartner: dispatchRes.courierPartner,
+            awbNumber: dispatchRes.awbNumber,
+            trackingUrl: dispatchRes.trackingUrl,
+            trackingHistory: milestones as any,
+          },
+          include: {
+            items: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        });
+      } else if (!dispatchRes.success) {
+        console.warn(`Shiprocket automated dispatch notice for ${createdOrder.orderNumber}:`, dispatchRes.error);
+      }
+    } catch (srErr: any) {
+      console.error('Shiprocket automated dispatch notice:', srErr?.message);
+    }
+
     return res.status(201).json({
       success: true,
-      message: 'Order created successfully with simulated instant payment.',
+      message: 'Order created successfully.',
       order: createdOrder,
       trackingUrl: `/track/${createdOrder.orderNumber}`,
     });
@@ -198,6 +260,7 @@ export async function getOrderTracking(req: Request, res: Response) {
         ],
       },
       include: {
+        customer: true,
         items: {
           include: {
             product: {
@@ -220,10 +283,65 @@ export async function getOrderTracking(req: Request, res: Response) {
       return res.status(404).json({ error: 'Order not found in tracking records.' });
     }
 
+    let liveCourier = order.courierPartner;
+    let liveAwb = order.awbNumber;
+    let liveTrackingUrl = order.trackingUrl;
+    let trackingHistory = (Array.isArray(order.trackingHistory) ? [...order.trackingHistory] : []) as any[];
+
+    // Remove any internal QC events from customer view
+    trackingHistory = trackingHistory.filter((e) => e.status !== 'QC_INSPECTED');
+
+    // 🚀 Attempt to fetch real-time carrier scans from Shiprocket API if AWB or order number exists
+    if (order.awbNumber || order.orderNumber) {
+      try {
+        const shiprocketData = await getShiprocketTracking(order.awbNumber || order.orderNumber);
+        if (shiprocketData && shiprocketData.activities && shiprocketData.activities.length > 0) {
+          liveCourier = shiprocketData.courierPartner || liveCourier;
+          liveAwb = shiprocketData.awbNumber || liveAwb;
+          liveTrackingUrl = shiprocketData.trackingUrl || liveTrackingUrl;
+
+          const paidEvent = trackingHistory.find((e) => e.status === 'PAID') || {
+            id: `evt-paid-${order.id}`,
+            status: 'PAID',
+            location: 'Varanasi Master Loom Vault',
+            message: 'Payment authorized and order confirmed. Artisan handloom piece prepared for secure dispatch.',
+            timestamp: new Date(order.createdAt).toISOString(),
+          };
+
+          const combined = [...shiprocketData.activities, paidEvent];
+          combined.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          trackingHistory = combined;
+        }
+      } catch (srErr) {
+        console.warn('Shiprocket telemetry lookup notice:', srErr);
+      }
+    }
+
+    if (trackingHistory.length === 0) {
+      trackingHistory = [
+        {
+          id: `evt-paid-${order.id}`,
+          status: 'PAID',
+          location: 'Varanasi Master Loom Vault',
+          message: 'Payment authorized and order confirmed. Artisan piece queued for dispatch.',
+          timestamp: new Date(order.createdAt).toISOString(),
+        },
+      ];
+    }
+
     // Scrub confidential internal inspectionVideoUrl from customer view
     const { inspectionVideoUrl, ...publicOrder } = order as any;
 
-    return res.json({ order: publicOrder });
+    return res.json({
+      order: {
+        ...publicOrder,
+        courierPartner: liveCourier || order.courierPartner,
+        awbNumber: liveAwb || order.awbNumber,
+        trackingUrl: liveTrackingUrl || order.trackingUrl,
+        trackingHistory,
+        trackingEvents: trackingHistory,
+      },
+    });
   } catch (error) {
     console.error('Failed to get tracking:', error);
     return res.status(500).json({ error: 'Database tracking lookup failed.' });
@@ -231,11 +349,20 @@ export async function getOrderTracking(req: Request, res: Response) {
 }
 
 /**
- * Staff / Admin: Update Order Dispatch & Logistics Milestone (Simulated Shiprocket & Bluedart Air)
+ * Staff / Admin: Update Order Dispatch & Logistics Milestone
  */
 export async function updateDispatch(req: AuthRequest, res: Response) {
   const orderId = req.params.orderId || req.params.id;
-  const { courierPartner, awbNumber, inspectionVideoUrl, status, isNdrFlagged, ndrReason } = req.body;
+  const {
+    courierPartner,
+    awbNumber,
+    inspectionVideoUrl,
+    status,
+    isNdrFlagged,
+    ndrReason,
+    location: customLocation,
+    message: customMessage,
+  } = req.body;
 
   try {
     const existing = await prisma.order.findFirst({
@@ -251,40 +378,39 @@ export async function updateDispatch(req: AuthRequest, res: Response) {
       return res.status(404).json({ error: 'Order not found.' });
     }
 
-    // Prepare simulated courier details
-    const generatedAwb = awbNumber || existing.awbNumber || `BD-${crypto.randomInt(10000000, 99999999)}IN`;
-    const selectedCourier = courierPartner || existing.courierPartner || 'Bluedart Apex Air';
-    const trackingUrl = `https://www.bluedart.com/tracking?awb=${generatedAwb}`;
+    const nextStatus = status || existing.status;
+    const generatedAwb = awbNumber || existing.awbNumber;
+    const selectedCourier = courierPartner || existing.courierPartner;
+    const trackingUrl = generatedAwb ? `https://shiprocket.co//tracking/${generatedAwb}` : existing.trackingUrl;
 
-    // Append new tracking event to history
-    const currentEvents = (Array.isArray(existing.trackingHistory) ? existing.trackingHistory : []) as any[];
+    let currentEvents = (Array.isArray(existing.trackingHistory) ? [...existing.trackingHistory] : []) as any[];
 
-    if (status && status !== existing.status) {
-      let milestoneMessage = `Order status transitioned to ${status}`;
-      let location = 'Master Handloom Vault';
+    if (customMessage || (status && status !== existing.status)) {
+      let defaultMsg = `Order transitioned to ${nextStatus}`;
+      let defaultLoc = 'Master Handloom Vault';
 
-      if (status === 'QC_INSPECTED') {
-        milestoneMessage = 'Pre-shipment 20s ultra-high-definition video inspection recorded and verified by Master Curator.';
-        location = 'Varanasi Master Vault';
-      } else if (status === 'DISPATCHED' || status === 'SHIPPED') {
-        milestoneMessage = `Air package sealed in tamper-proof luxury heritage trunk and handed over to ${selectedCourier} (AWB: ${generatedAwb}).`;
-        location = 'National Logistics Hub';
-      } else if (status === 'IN_TRANSIT') {
-        milestoneMessage = 'Arrived at destination gateway hub. Sorted for secured white-glove van dispatch.';
-        location = 'Metro Air Gateway';
-      } else if (status === 'OUT_FOR_DELIVERY') {
-        milestoneMessage = `Package is out for delivery with the local courier specialist to your destination address.`;
-        location = 'Local Delivery Center';
-      } else if (status === 'DELIVERED') {
-        milestoneMessage = 'Handloom heirloom securely delivered to patron.';
-        location = 'Patron Residence';
+      if (nextStatus === 'QC_INSPECTED') {
+        defaultMsg = 'Pre-shipment 20s ultra-high-definition video inspection recorded and verified by Master Curator.';
+        defaultLoc = 'Varanasi Master Vault';
+      } else if (nextStatus === 'DISPATCHED' || nextStatus === 'SHIPPED') {
+        defaultMsg = `Air package sealed in luxury heritage trunk and handed over to ${selectedCourier || 'Courier'} (AWB: ${generatedAwb || 'Pending'}).`;
+        defaultLoc = 'National Logistics Hub';
+      } else if (nextStatus === 'IN_TRANSIT') {
+        defaultMsg = 'Arrived at destination gateway hub. Sorted for secured white-glove van dispatch.';
+        defaultLoc = 'Metro Air Gateway';
+      } else if (nextStatus === 'OUT_FOR_DELIVERY') {
+        defaultMsg = 'Package is out for white-glove doorstep delivery with the local courier specialist.';
+        defaultLoc = 'Local Delivery Center';
+      } else if (nextStatus === 'DELIVERED') {
+        defaultMsg = 'Handloom heirloom securely delivered and accepted by patron.';
+        defaultLoc = 'Patron Residence';
       }
 
       currentEvents.unshift({
         id: `evt-${Date.now()}`,
-        status,
-        location,
-        message: milestoneMessage,
+        status: nextStatus,
+        location: customLocation || defaultLoc,
+        message: customMessage || defaultMsg,
         timestamp: new Date().toISOString(),
       });
     }
@@ -292,10 +418,10 @@ export async function updateDispatch(req: AuthRequest, res: Response) {
     const updated = await prisma.order.update({
       where: { id: existing.id },
       data: {
-        status: status || existing.status,
-        courierPartner: selectedCourier,
-        awbNumber: generatedAwb,
-        trackingUrl,
+        status: nextStatus,
+        courierPartner: selectedCourier || null,
+        awbNumber: generatedAwb && generatedAwb.trim() ? generatedAwb.trim() : null,
+        trackingUrl: trackingUrl || null,
         inspectionVideoUrl: inspectionVideoUrl || existing.inspectionVideoUrl,
         isNdrFlagged: typeof isNdrFlagged === 'boolean' ? isNdrFlagged : existing.isNdrFlagged,
         ndrReason: ndrReason !== undefined ? ndrReason : existing.ndrReason,
@@ -313,11 +439,14 @@ export async function updateDispatch(req: AuthRequest, res: Response) {
 
     return res.json({
       success: true,
-      message: 'Order dispatch and simulated logistics updated successfully.',
-      order: updated,
+      message: 'Order dispatch and logistics updated successfully.',
+      order: {
+        ...updated,
+        trackingEvents: currentEvents,
+      },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to update dispatch in DB:', error);
-    return res.status(500).json({ error: 'Database failed to update dispatch.' });
+    return res.status(500).json({ error: error?.message || 'Database failed to update dispatch.' });
   }
 }

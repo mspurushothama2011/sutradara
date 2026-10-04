@@ -18,8 +18,11 @@ export default function NoticeboardPage() {
       setIsLoading(true);
       const res = await apiRequest('/staff/announcements');
       setAnnouncements(res.announcements || []);
-    } catch (e) {
-      console.error('Failed to load announcements:', e);
+    } catch (e: any) {
+      if (e?.status !== 401) {
+        console.warn('Announcements load notice:', e?.message || e);
+      }
+      setAnnouncements([]);
     } finally {
       setIsLoading(false);
     }

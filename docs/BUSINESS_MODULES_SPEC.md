@@ -1,6 +1,6 @@
 # Sutradara — Business Modules & Functional Specification
 
-This document details the functional behavior, screens, and business logic for all 8 modular capabilities in Sutradara.
+This document details the functional behavior, screens, and business logic for all core modules in Sutradara.
 
 ---
 
@@ -8,10 +8,10 @@ This document details the functional behavior, screens, and business logic for a
 
 ### Features:
 1. **Craft Specifications:**
-   * Fabric: *Pure Katan Silk, Georgette, Organza, Tussar, Chanderi, Paithani*.
+   * Fabric: *Pure Katan Silk, Georgette, Organza, Tussar, Chanderi, Paithani, Baluchari, Uppada Jamdani*.
    * Zari Type: *Pure Gold Zari, Tested Zari, Antique Copper, Silver Zari*.
-   * Craft Cluster: *Varanasi, Kanchipuram, Chanderi, Yeola*.
-   * Weave Style: *Kadhwa, Cutwork, Jamdani, Tanchoi*.
+   * Craft Cluster: *Varanasi, Kanchipuram, Chanderi, Yeola, Sualkuchi, Dharmavaram*.
+   * Weave Style: *Kadhwa, Cutwork, Jamdani, Tanchoi, Double Ikat*.
 2. **1-of-1 Heirloom vs Standard Stock:**
    * **1-of-1 Badge:** *"Unique Masterpiece — Woven on a single loom. Never repeated."* When purchased, item moves to sold archive.
    * **Multi-Piece Stock:** Shows quantity remaining with low-stock badge when $\le 2$ left.
@@ -23,7 +23,27 @@ This document details the functional behavior, screens, and business logic for a
 
 ---
 
-## ⚡ Module 2: Quick-Stock Warehouse/Floor Mode
+## 🛍️ Module 2: Master Checkout & Multi-Recipient Address Book
+
+### Features:
+1. **Unified Acquisition Workflow (`/checkout`):**
+   * Supports both direct "Buy Now" and multi-item Shopping Bag acquisitions.
+   * Live inventory verification with race condition alert banner.
+2. **Patron Authentication, Registration & Verification:**
+   * **Customer Registration Guard (`/register`):** Validates email address and 10-digit mobile number uniqueness before dispatching OTP. Returns clear collision errors (`EMAIL_ALREADY_REGISTERED` or `PHONE_ALREADY_REGISTERED`) with 1-click links to sign in.
+   * **Passwordless 6-Digit Email OTP:** 10-minute TTL code delivered via Gmail SMTP and secured by **Cloudflare Turnstile CAPTCHA**.
+   * **Seamless Google Identity Services (GIS):** One-tap OAuth sign-in and account linking.
+3. **Intelligent Nationwide Address Autocomplete:**
+   * 300+ Indian cities with alias and historical name normalization (e.g., typing `Bangalore` resolves to canonical `Bengaluru`).
+   * Automatic State field resolution when a city is selected.
+   * 6-Digit Indian PIN code automatic district and state lookup.
+4. **Multi-Recipient Address Book (`/account`):**
+   * Save multiple delivery destinations with custom labels (*"Home"*, *"Mother's Place"*, *"Wedding Venue"*).
+   * Separate Recipient Name and Delivery Phone Number for courier 4-digit drop OTP.
+
+---
+
+## ⚡ Module 3: Quick-Stock Warehouse & Inventory Mode
 
 ### Features:
 * Designed for high-speed mobile/tablet use by staff on the shop floor or packing station.
@@ -36,7 +56,7 @@ This document details the functional behavior, screens, and business logic for a
 
 ---
 
-## 🏷️ Module 3: Marketing, Coupons & Festive Sales
+## 🏷️ Module 4: Marketing, Coupons & Festive Campaigns
 
 ### Features:
 1. **Coupons & Discount Codes:**
@@ -50,29 +70,30 @@ This document details the functional behavior, screens, and business logic for a
    * Manage top notification bar text, hero slide images, and call-to-action links.
 4. **Festive Occasion Collections:**
    * Tag sarees with dynamic themes (*Diwali, Royal Wedding, Festive Splendor*).
-   * Automatically generates dedicated landing routes (`/collections/diwali`).
+   * Dedicated landing routes and catalog filters.
 
 ---
 
-## 🚚 Module 4: High-Assurance Delivery & Tracking
+## 🚚 Module 5: High-Assurance Fulfillment & Live Tracking
 
 ### Features:
-1. **Pre-Shipment Video Inspection:**
-   * Staff records a 20-second packing video showing Silk Mark, Pallu inspection, and tamper seal.
-   * Video link is attached to the order and viewable on customer tracking page.
-2. **Delivery Security OTP:**
-   * 4-digit OTP sent to customer upon "Out for Delivery". Courier must enter OTP to close delivery.
-3. **Live Customer Tracking (`/track/[orderNumber]`):**
-   * Real-time milestones: *Confirmed $\rightarrow$ Quality Inspected $\rightarrow$ Dispatched $\rightarrow$ In Transit $\rightarrow$ Out for Delivery $\rightarrow$ Delivered*.
-4. **NDR (Non-Delivery Report) Recovery Desk:**
-   * When courier logs failed delivery, staff gets instant alert to call customer and re-schedule attempt.
+1. **Admin Orders & Dispatch Queue (`/portal/orders`):**
+   * Instant status filtering (`All`, `Paid / Pending`, `QC Inspected`, `Shipped`, `In Transit`, `Out for Delivery`, `Delivered`, `NDR Exceptions`).
+   * Quick dispatch update modal to transition statuses, assign courier partners, input AWB tracking numbers, and add location notes.
+2. **Dedicated Admin Dispatch Desk (`/portal/orders/[orderId]/track`):**
+   * Granular checkpoint timeline logging with custom messages.
+   * Pre-shipment video verification evidence attachment.
+   * 1-Click NDR (Non-Delivery Report) exception flagging.
+3. **Live Customer Satellite Tracking (`/track/[orderNumber]`):**
+   * Real-time milestone tracker viewable by patrons without requiring login.
+   * Pre-shipment QC video proofs assuring authentic handloom quality.
 
 ---
 
-## ⏱️ Module 5: Staff Attendance & Salary Engine
+## ⏱️ Module 6: Staff Attendance & Salary Engine
 
 ### Features:
-1. **Clock-In / Clock-Out:**
+1. **Clock-In / Clock-Out (`/portal/staff`):**
    * Staff punches in/out with timestamp.
    * Status flags: *Present, Late, Half-Day, Approved Leave, Absent*.
 2. **Salary Calculation Formula:**
@@ -84,7 +105,7 @@ This document details the functional behavior, screens, and business logic for a
 
 ---
 
-## 📝 Module 6: Daily Work Logs & Productivity Tracker
+## 📝 Module 7: Daily Work Logs & Productivity Tracker
 
 ### Features:
 * End-of-day form for staff to submit daily accomplishments:
@@ -95,17 +116,6 @@ This document details the functional behavior, screens, and business logic for a
 
 ---
 
-## 💬 Module 7: Team Noticeboard & Order Chat
-
-### Features:
-1. **Company Noticeboard:**
-   * Admin broadcasts urgent notices (*"Diwali dispatch deadline: all orders before 2 PM must leave today"*).
-   * Read receipts show which staff members have viewed the notice.
-2. **Internal Order Remarks:**
-   * Private notes attached to orders (*"Customer requested gold box packaging and gift note"*).
-
----
-
 ## 📜 Module 8: Audit Trail & Security Log
 
 ### Features:
@@ -113,4 +123,20 @@ This document details the functional behavior, screens, and business logic for a
   * Price changes (Old vs New price).
   * Stock quantity adjustments.
   * Staff permission edits.
+  * Order milestone dispatches.
   * Coupon creations and deletions.
+
+---
+
+## 📊 Module 9: Real-Time Executive Dashboard & Operational Telemetry
+
+### Features:
+1. **Live Backend Aggregation (`GET /api/v1/admin/dashboard/stats`):**
+   * **Orders & Logistics Telemetry:** Real-time counts for Pending Dispatch, Awaiting QC Inspection, Processing / Packed, Courier Transit, Delivered, and Cancelled.
+   * **Inventory & Stock Telemetry:** Active Sarees in stock, 1-of-1 Heirlooms, Low-Stock alerts ($\le 1$), and total inventory physical units across all catalog SKUs.
+   * **Financial Analytics:** Today's calculated net revenue from authentic order checkouts, daily growth % comparison vs yesterday, and cumulative lifetime earnings.
+   * **Operations & Shift Monitoring:** Active team members, today's punch-in count, and personal active shift status.
+2. **Frontend Auto-Refresh & Live Queue (`/portal/dashboard`):**
+   * 15-second background polling cycle + manual on-demand "Live Refresh" trigger.
+   * **Live Fulfillment & Dispatch Queue:** Real-time table of incoming customer checkouts with 1-click links to the Dispatch Desk.
+   * **Recent Operational Audit Feed:** Live preview of system actions, category updates, and price adjustments.

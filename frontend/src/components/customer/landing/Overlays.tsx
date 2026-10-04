@@ -21,7 +21,7 @@ const overlays: OverlayData[] = [
     className: 'ov-intro',
     kicker: 'SUTRAಧಾರ',
     headline: 'From the Loom<br/>to Your Legacy',
-    body: 'Scroll to witness centuries of handloom craft unfold.',
+    body: 'Witness centuries of authentic Indian handloom craft unfold.',
     start: 0.00,
     end: 0.14,
   },
@@ -29,8 +29,8 @@ const overlays: OverlayData[] = [
     id: 'ov-sourcing',
     className: 'ov-sourcing',
     kicker: 'DIRECT SOURCING',
-    headline: 'No Middlemen.<br/>No Markup.',
-    body: 'We work directly with generational master weavers across Banaras, Kanchipuram, Chanderi, and Yeola — ensuring fair compensation and untouched authenticity.',
+    headline: 'No Middlemen.<br/>No Compromise.',
+    body: 'We work directly with generational master weavers across Banaras, Kanchipuram, Chanderi, and Yeola, ensuring fair compensation and untouched authenticity.',
     start: 0.18,
     end: 0.32,
   },
@@ -39,7 +39,7 @@ const overlays: OverlayData[] = [
     className: 'ov-purity',
     kicker: 'PURITY CERTIFIED',
     headline: 'Every Thread<br/>Verified',
-    body: 'Silk Mark authentication. 2G gold zari purity testing. Hand-inspected weave integrity — certified before it ever reaches you.',
+    body: 'Silk Mark authentication, 2G gold zari purity testing, and hand-inspected weave integrity certified before reaching your sanctuary.',
     start: 0.36,
     end: 0.50,
   },
@@ -48,7 +48,7 @@ const overlays: OverlayData[] = [
     className: 'ov-exclusive',
     kicker: 'ONE OF A KIND',
     headline: 'Handwoven.<br/>Never Repeated.',
-    body: 'Each saree takes hundreds of loom hours. No two are alike. What you receive is an unrepeatable heirloom — not a factory copy.',
+    body: 'Each saree takes hundreds of loom hours. No two are alike. What you receive is an unrepeatable heirloom, never a factory copy.',
     start: 0.54,
     end: 0.68,
   },
@@ -66,7 +66,7 @@ const overlays: OverlayData[] = [
     className: 'ov-finale',
     kicker: 'THE MASTERPIECE',
     headline: 'Curated Luxury<br/>in Every Yard',
-    body: 'Experience the finest handloom sarees — brought directly from the loom into your personal wardrobe.',
+    body: 'Experience the finest handloom sarees, brought directly from the loom into your personal wardrobe.',
     start: 0.88,
     end: 1.00,
     cta: {
@@ -97,6 +97,7 @@ export default function Overlays({ progress }: OverlaysProps) {
               <a
                 className="cta-btn"
                 href={ov.cta.href}
+                style={{ borderRadius: '3px' }}
                 {...(ov.cta.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               >
                 {ov.cta.text}

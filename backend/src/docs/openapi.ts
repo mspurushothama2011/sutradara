@@ -97,7 +97,7 @@ Sovereign e-commerce platform connecting patrons directly with the venerated wea
           },
         },
         responses: {
-          200: { description: 'OTP generated and sent (devOtp returned in development mode)' },
+          200: { description: 'OTP generated and dispatched to patron email' },
         },
       },
     },

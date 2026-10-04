@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Award, Truck, ShieldCheck, Landmark, Sparkles, Lock, ArrowRight } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -32,21 +33,25 @@ export default function Footer() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <span style={{ fontSize: '1.8rem' }}>👑</span>
+            <div style={{ padding: '10px', background: 'rgba(179, 137, 56, 0.1)', border: '1px solid rgba(179, 137, 56, 0.25)', borderRadius: '3px', color: 'var(--gold)' }}>
+              <Award size={22} strokeWidth={1.25} />
+            </div>
             <div>
-              <h4 style={{ color: 'var(--text)', fontSize: '0.88rem', fontWeight: 700, margin: 0 }}>
+              <h4 style={{ color: 'var(--text)', fontSize: '0.88rem', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 100% Certified Silk Mark
               </h4>
               <p style={{ fontSize: '0.76rem', color: 'var(--text-dim)', margin: '2px 0 0' }}>
-                Pure zari &amp; natural mulberry silk handlooms
+                Pure zari and natural mulberry silk handlooms
               </p>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <span style={{ fontSize: '1.8rem' }}>✈️</span>
+            <div style={{ padding: '10px', background: 'rgba(179, 137, 56, 0.1)', border: '1px solid rgba(179, 137, 56, 0.25)', borderRadius: '3px', color: 'var(--gold)' }}>
+              <Truck size={22} strokeWidth={1.25} />
+            </div>
             <div>
-              <h4 style={{ color: 'var(--text)', fontSize: '0.88rem', fontWeight: 700, margin: 0 }}>
+              <h4 style={{ color: 'var(--text)', fontSize: '0.88rem', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Insured Express Shipping
               </h4>
               <p style={{ fontSize: '0.76rem', color: 'var(--text-dim)', margin: '2px 0 0' }}>
@@ -56,21 +61,25 @@ export default function Footer() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <span style={{ fontSize: '1.8rem' }}>🛡️</span>
+            <div style={{ padding: '10px', background: 'rgba(179, 137, 56, 0.1)', border: '1px solid rgba(179, 137, 56, 0.25)', borderRadius: '3px', color: 'var(--gold)' }}>
+              <ShieldCheck size={22} strokeWidth={1.25} />
+            </div>
             <div>
-              <h4 style={{ color: 'var(--text)', fontSize: '0.88rem', fontWeight: 700, margin: 0 }}>
+              <h4 style={{ color: 'var(--text)', fontSize: '0.88rem', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 7-Day Doorstep Inspection
               </h4>
               <p style={{ fontSize: '0.76rem', color: 'var(--text-dim)', margin: '2px 0 0' }}>
-                Hassle-free heritage appraisal &amp; returns
+                Hassle-free heritage appraisal and returns
               </p>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <span style={{ fontSize: '1.8rem' }}>🏛️</span>
+            <div style={{ padding: '10px', background: 'rgba(179, 137, 56, 0.1)', border: '1px solid rgba(179, 137, 56, 0.25)', borderRadius: '3px', color: 'var(--gold)' }}>
+              <Landmark size={22} strokeWidth={1.25} />
+            </div>
             <div>
-              <h4 style={{ color: 'var(--text)', fontSize: '0.88rem', fontWeight: 700, margin: 0 }}>
+              <h4 style={{ color: 'var(--text)', fontSize: '0.88rem', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Weaver Guild Direct
               </h4>
               <p style={{ fontSize: '0.76rem', color: 'var(--text-dim)', margin: '2px 0 0' }}>
@@ -102,9 +111,9 @@ export default function Footer() {
             <p style={{ fontSize: '0.82rem', lineHeight: 1.6, color: 'var(--text-dim)', marginBottom: '16px' }}>
               Certified pure silk sarees handwoven by traditional master artisans across India.
             </p>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(179, 137, 56, 0.1)', border: '1px solid rgba(179, 137, 56, 0.3)', padding: '6px 12px', borderRadius: '20px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#16a34a' }} />
-              <span style={{ fontSize: '0.72rem', color: 'var(--gold-dark, #8c6818)', fontWeight: 700 }}>100% Verified Handlooms</span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(179, 137, 56, 0.08)', border: '1px solid rgba(179, 137, 56, 0.25)', padding: '5px 10px', borderRadius: '3px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a' }} />
+              <span style={{ fontSize: '0.72rem', color: 'var(--gold-dark, #8c6818)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>100% Verified Handlooms</span>
             </div>
           </div>
 
@@ -131,12 +140,13 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/catalog?region=Chanderi" style={{ color: '#382C20', textDecoration: 'none', transition: 'color 0.2s ease', fontWeight: 500 }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')} onMouseLeave={(e) => (e.currentTarget.style.color = '#382C20')}>
-                  Chanderi (Zari &amp; Cotton Silk)
+                  Chanderi (Zari & Cotton Silk)
                 </Link>
               </li>
               <li>
-                <Link href="/categories" style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 700, fontSize: '0.82rem', marginTop: '4px', display: 'inline-block' }}>
-                  View All Categories →
+                <Link href="/categories" style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 700, fontSize: '0.82rem', marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span>View All Categories</span>
+                  <ArrowRight size={13} />
                 </Link>
               </li>
             </ul>
@@ -150,22 +160,22 @@ export default function Footer() {
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <li>
                 <Link href="/collections/1-of-1-heirlooms" style={{ color: '#382C20', textDecoration: 'none', transition: 'color 0.2s ease', fontWeight: 500 }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')} onMouseLeave={(e) => (e.currentTarget.style.color = '#382C20')}>
-                  👑 Exclusive 1-of-1 Sarees
+                  Exclusive 1-of-1 Sarees
                 </Link>
               </li>
               <li>
                 <Link href="/collections/bridal-sanctuary" style={{ color: '#382C20', textDecoration: 'none', transition: 'color 0.2s ease', fontWeight: 500 }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')} onMouseLeave={(e) => (e.currentTarget.style.color = '#382C20')}>
-                  🪔 Bridal Collection
+                  Bridal Masterpieces
                 </Link>
               </li>
               <li>
                 <Link href="/catalog" style={{ color: '#382C20', textDecoration: 'none', transition: 'color 0.2s ease', fontWeight: 500 }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')} onMouseLeave={(e) => (e.currentTarget.style.color = '#382C20')}>
-                  ✨ All Sarees
+                  All Sarees
                 </Link>
               </li>
               <li>
                 <Link href="/about" style={{ color: '#382C20', textDecoration: 'none', transition: 'color 0.2s ease', fontWeight: 500 }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')} onMouseLeave={(e) => (e.currentTarget.style.color = '#382C20')}>
-                  Our Story &amp; Artisans
+                  Our Story & Artisans
                 </Link>
               </li>
             </ul>
@@ -174,17 +184,17 @@ export default function Footer() {
           {/* Column 4: Customer Care & Legal */}
           <div>
             <h3 style={{ color: 'var(--gold)', fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px', fontWeight: 700 }}>
-              Customer Care &amp; Help
+              Customer Care & Legal
             </h3>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <li>
                 <Link href="/bag" style={{ color: '#382C20', textDecoration: 'none', transition: 'color 0.2s ease', fontWeight: 500 }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')} onMouseLeave={(e) => (e.currentTarget.style.color = '#382C20')}>
-                  Shopping Bag &amp; Checkout
+                  Shopping Bag & Checkout
                 </Link>
               </li>
               <li>
                 <Link href="/privacy-policy" style={{ color: 'var(--text-dim)', textDecoration: 'none', transition: 'color 0.2s ease' }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')} onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-dim)')}>
-                  Privacy &amp; Data Protection
+                  Privacy & Data Protection
                 </Link>
               </li>
               <li>
@@ -194,7 +204,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/refunds" style={{ color: 'var(--text-dim)', textDecoration: 'none', transition: 'color 0.2s ease' }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')} onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-dim)')}>
-                  Inspection &amp; Returns
+                  Inspection & Returns
                 </Link>
               </li>
               <li>
@@ -223,8 +233,9 @@ export default function Footer() {
             &copy; {currentYear} Sutraಧಾರ Curators Pvt. Ltd. Handcrafted in India. All rights reserved.
           </p>
           <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ color: 'var(--text-dim)' }}>
-              🔒 256-Bit SSL Encrypted High-Assurance Gateway
+            <span style={{ color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Lock size={13} strokeWidth={1.5} />
+              <span>256-Bit SSL Encrypted High-Assurance Gateway</span>
             </span>
             <Link href="/portal/login" style={{ color: 'var(--text-dim)', textDecoration: 'none', fontSize: '0.72rem', opacity: 0.7 }}>
               Guild Staff Access

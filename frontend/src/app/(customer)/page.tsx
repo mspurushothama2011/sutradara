@@ -3,10 +3,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Search, Sparkles, Award, ShieldCheck, Lock, Video, Truck, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import LandingNavbar from '@/components/landing/LandingNavbar';
 import FeaturedShowcase from '@/components/landing/FeaturedShowcase';
 import SilkCascadeIntro from '@/components/intro/SilkCascadeIntro';
+import FloralMotionBackground from '@/components/landing/FloralMotionBackground';
 
 interface SubCategoryItem {
   id: string;
@@ -34,6 +36,8 @@ interface CategoryItem {
   image?: string | null;
   isFeatured?: boolean;
   displayOrder?: number;
+  parentId?: string | null;
+  children?: CategoryItem[];
   subCategories?: SubCategoryItem[];
   products?: ProductPreviewItem[];
   tag?: string;
@@ -114,6 +118,9 @@ const getCategoryImageUrl = (image?: string | null, index: number = 0) => {
 
 const getCategoryTag = (cat: CategoryItem) => {
   if (cat.tag) return cat.tag;
+  if (cat.children && cat.children.length > 0) {
+    return cat.children[0].name;
+  }
   if (cat.subCategories && cat.subCategories.length > 0) {
     return cat.subCategories[0].name;
   }
@@ -223,8 +230,8 @@ function FeaturedCategoryCard({
         flexDirection: 'column',
         justifyContent: 'space-between',
         padding: '24px',
-        borderRadius: '16px',
-        border: '1.5px solid rgba(179, 137, 56, 0.35)',
+        borderRadius: '3px',
+        border: '1px solid rgba(179, 137, 56, 0.35)',
         boxShadow: '0 8px 30px rgba(26, 19, 13, 0.16)',
         transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease',
       }}
@@ -471,6 +478,7 @@ export default function Home() {
   const [replayKey, setReplayKey] = useState(0);
   const [categories, setCategories] = useState<CategoryItem[]>(FALLBACK_CLUSTERS);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -515,313 +523,250 @@ export default function Home() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'transparent', color: 'var(--text)' }}>
+    <div style={{ minHeight: '100vh', background: 'transparent', color: 'var(--text)', position: 'relative' }}>
+      {/* 🌸 Royal Indian Heritage Small Flowers Motion Canvas Background */}
+      <FloralMotionBackground />
+
       {/* 👘 Silk Saree Cascade Full-Screen Startup Animation */}
       <SilkCascadeIntro key={replayKey} forcePlay={replayKey > 0} />
 
       {/* Unified Luxury Navbar with Deal Countdown */}
       <LandingNavbar />
 
-      {/* Grand Luxury Hero Section */}
+      {/* Grand Full-Screen Clean Minimalist Hero Section */}
       <section
         style={{
           position: 'relative',
-          paddingTop: '160px',
-          paddingBottom: '100px',
-          paddingLeft: '24px',
-          paddingRight: '24px',
-          background: 'transparent',
-          textAlign: 'center',
+          minHeight: '100vh',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          paddingTop: '100px',
+          paddingBottom: '40px',
+          paddingLeft: '32px',
+          paddingRight: '32px',
           overflow: 'hidden',
-          borderBottom: '1px solid rgba(179, 137, 56, 0.15)',
         }}
       >
-        {/* Subtle warm gold background glow */}
+        {/* Full-Screen Natural Sunlit Saree Hero Background Image */}
         <div
           style={{
             position: 'absolute',
-            top: '20%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '600px',
-            height: '300px',
-            background: 'radial-gradient(circle, rgba(179, 137, 56, 0.12) 0%, rgba(250, 248, 245, 0) 70%)',
-            filter: 'blur(60px)',
-            pointerEvents: 'none',
+            inset: 0,
+            zIndex: 1,
+            overflow: 'hidden',
+            backgroundColor: '#FAF8F5',
           }}
-        />
-
-        <div style={{ maxWidth: '1080px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
-            <span
-              style={{
-                fontSize: '0.72rem',
-                letterSpacing: '0.22em',
-                color: 'var(--olive-deep)',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                padding: '6px 18px',
-                background: 'var(--olive-glow)',
-                border: '1px solid var(--olive-border)',
-                borderRadius: '20px',
-                boxShadow: '0 2px 8px var(--olive-glow)',
-              }}
-            >
-              ✦ 100% AUTHENTIC HANDWOVEN SILK ✦
-            </span>
-            <button
-              type="button"
-              onClick={() => setReplayKey((k) => k + 1)}
-              style={{
-                fontSize: '0.75rem',
-                color: 'var(--gold-dark)',
-                background: '#ffffff',
-                border: '1px solid rgba(179, 137, 56, 0.35)',
-                borderRadius: '20px',
-                padding: '5px 14px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                letterSpacing: '0.04em',
-                boxShadow: '0 2px 8px rgba(26, 19, 13, 0.04)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
-              title="Replay the Silk Saree Cascade Startup Animation"
-            >
-              <span>✨ Replay Saree Unveiling</span>
-            </button>
-          </div>
-
-          <h1
+        >
+          <img
+            src="/hero/hero-saree-showpiece-16-9.jpg"
+            alt="Sutradara Handwoven Silk Saree"
             style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(2.6rem, 5.5vw, 4.6rem)',
-              color: 'var(--text)',
-              lineHeight: 1.15,
-              fontWeight: 400,
-              letterSpacing: '-0.01em',
-              margin: '0 auto 20px',
-              maxWidth: '900px',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'right 25%',
             }}
-          >
-            Authentic Handloom Silk Sarees Direct from Master Weavers
-          </h1>
+          />
 
-          <p
-            style={{
-              maxWidth: '680px',
-              margin: '0 auto 36px',
-              fontSize: 'clamp(1rem, 2vw, 1.18rem)',
-              color: 'var(--text-dim)',
-              lineHeight: 1.7,
-              fontWeight: 400,
-            }}
-          >
-            Handcrafted Banarasi, Kanjivaram, Paithani, and Chanderi pure silk sarees.
-            Every piece is certified with official Silk Mark India tags and delivered with secure tracking.
-          </p>
-
-          {/* 🔍 Prominent Storefront Search Bar at Top of Home Page */}
+          {/* Minimal Soft Vignette only at the top for Navbar clarity (No Dark Gradient) */}
           <div
-            className="glass-card-luxury"
             style={{
-              maxWidth: '760px',
-              margin: '0 auto 48px',
-              borderRadius: '16px',
-              padding: '16px 20px',
-              border: '1.5px solid var(--gold)',
-              boxShadow: '0 12px 36px rgba(179, 137, 56, 0.14), 0 0 24px var(--olive-glow)',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '140px',
+              background: 'linear-gradient(180deg, rgba(250, 248, 245, 0.65) 0%, transparent 100%)',
+              pointerEvents: 'none',
+            }}
+          />
+        </div>
+
+        {/* Clean Hero Content Container: Minimal Brand & Logo Showcase */}
+        <div
+          style={{
+            maxWidth: '1320px',
+            width: '100%',
+            margin: '0 auto',
+            position: 'relative',
+            zIndex: 3,
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          {/* Elegant Imperial Obsidian Frosted Glass Brand Card */}
+          <div
+            style={{
+              maxWidth: '480px',
+              textAlign: 'left',
+              padding: '36px 40px',
+              background: 'linear-gradient(145deg, rgba(28, 18, 12, 0.90) 0%, rgba(18, 11, 7, 0.86) 100%)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              borderRadius: '12px',
+              border: '1px solid rgba(212, 175, 55, 0.45)',
+              boxShadow: '0 24px 60px rgba(10, 6, 4, 0.45), 0 0 30px rgba(179, 137, 56, 0.15)',
             }}
           >
-            <form
-              onSubmit={handleSearchSubmit}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                flexWrap: 'wrap',
-              }}
-            >
-              <span style={{ fontSize: '1.3rem', color: 'var(--gold)', paddingLeft: '4px' }}>🔍</span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by cluster (Varanasi, Kanchipuram), weave (Kadhwa, Paithani), or zari..."
-                style={{
-                  flex: '1 1 280px',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text)',
-                  fontSize: '1rem',
-                  outline: 'none',
-                  padding: '8px 4px',
-                }}
-              />
-              <button
-                type="submit"
-                style={{
-                  padding: '12px 24px',
-                  background: 'var(--gold)',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontWeight: 700,
-                  fontSize: '0.88rem',
-                  letterSpacing: '0.05em',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  flexShrink: 0,
-                  boxShadow: '0 4px 12px rgba(179, 137, 56, 0.25)',
-                }}
-              >
-                Search Sarees →
-              </button>
-            </form>
-
-            {/* Trending Quick Search Chips */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                marginTop: '14px',
-                paddingTop: '12px',
-                borderTop: '1px solid rgba(179, 137, 56, 0.15)',
-                flexWrap: 'wrap',
-                justifyContent: 'center',
-              }}
-            >
-              <span style={{ fontSize: '0.75rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
-                Trending:
-              </span>
-              {TRENDING_SEARCHES.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => handleTrendingClick(tag)}
+            {/* Logo Image Support */}
+            <div style={{ marginBottom: '16px' }}>
+              {!logoError ? (
+                <img
+                  src="/logo.png"
+                  alt="House of Sutradara"
+                  onError={() => setLogoError(true)}
                   style={{
-                    padding: '4px 12px',
-                    background: 'rgba(244, 239, 234, 0.75)',
-                    border: '1px solid rgba(179, 137, 56, 0.25)',
-                    borderRadius: '16px',
-                    color: 'var(--text-dim)',
-                    fontSize: '0.78rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    maxHeight: '110px',
+                    maxWidth: '320px',
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain',
+                    display: 'block',
+                    marginBottom: '8px',
+                    filter: 'drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5))',
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--gold)';
-                    e.currentTarget.style.color = 'var(--gold)';
-                    e.currentTarget.style.background = '#ffffff';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(179, 137, 56, 0.25)';
-                    e.currentTarget.style.color = 'var(--text-dim)';
-                    e.currentTarget.style.background = 'rgba(244, 239, 234, 0.75)';
-                  }}
-                >
-                  {tag}
-                </button>
-              ))}
+                />
+              ) : (
+                <div id="sutradara-hero-wordmark" style={{ display: 'block' }}>
+                  <span
+                    style={{
+                      fontSize: '0.72rem',
+                      letterSpacing: '0.35em',
+                      color: 'var(--gold)',
+                      textTransform: 'uppercase',
+                      fontWeight: 700,
+                      display: 'block',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    HOUSE OF
+                  </span>
+                  <h1
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 'clamp(2.4rem, 4.2vw, 3.6rem)',
+                      color: '#FAF8F5',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      fontWeight: 500,
+                      margin: '0',
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    Sutradara
+                  </h1>
+                </div>
+              )}
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '18px',
-              flexWrap: 'wrap',
-              marginBottom: '56px',
-            }}
-          >
+            <p
+              style={{
+                fontSize: '0.84rem',
+                letterSpacing: '0.24em',
+                color: '#E6D5C3',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                margin: '0 0 24px',
+                lineHeight: 1.4,
+              }}
+            >
+              Handwoven Pure Silk Heirlooms
+            </p>
+
             <Link
               href="/catalog"
               style={{
-                padding: '16px 36px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '13px 32px',
                 background: 'var(--gold)',
-                border: '1px solid var(--gold)',
-                color: '#ffffff',
-                borderRadius: '8px',
+                color: '#FFFFFF',
+                border: '1px solid rgba(212, 175, 55, 0.6)',
+                borderRadius: '3px',
                 textDecoration: 'none',
-                fontSize: '0.9rem',
+                fontSize: '0.78rem',
                 fontWeight: 700,
-                letterSpacing: '0.08em',
+                letterSpacing: '0.12em',
                 textTransform: 'uppercase',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 4px 16px rgba(179, 137, 56, 0.3)',
+                boxShadow: '0 8px 24px rgba(179, 137, 56, 0.35)',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#C49746';
+                e.currentTarget.style.borderColor = '#C49746';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 12px 28px rgba(179, 137, 56, 0.45)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--gold)';
+                e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.6)';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(179, 137, 56, 0.35)';
               }}
             >
-              Explore Full Catalog →
-            </Link>
-
-            <Link
-              href="/collections/1-of-1-heirlooms"
-              style={{
-                padding: '16px 32px',
-                background: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(179, 137, 56, 0.4)',
-                color: 'var(--text)',
-                borderRadius: '8px',
-                textDecoration: 'none',
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                letterSpacing: '0.05em',
-                boxShadow: '0 4px 12px rgba(26, 19, 13, 0.05)',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              👑 1-of-1 Heirloom Vault
+              <span>Explore Collection</span>
+              <ArrowRight size={14} />
             </Link>
           </div>
+        </div>
+      </section>
 
-          {/* 4 Pillars of Assurance Strip */}
-          <div
-            className="glass-card-luxury"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '24px',
-              padding: '32px 24px',
-              borderRadius: '12px',
-            }}
-          >
-            <div>
-              <span style={{ fontSize: '1.8rem', display: 'block', marginBottom: '8px' }}>🛡️</span>
-              <strong style={{ display: 'block', color: 'var(--text)', fontSize: '0.9rem', letterSpacing: '0.05em' }}>
-                Silk Mark 100%
-              </strong>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>Govt. certified purity</span>
+      {/* 4 Pillars of Assurance Floating Strip */}
+      <section style={{ padding: '0 24px', maxWidth: '1320px', margin: '-36px auto 40px', position: 'relative', zIndex: 4 }}>
+        <div
+          className="glass-card-luxury"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '24px',
+            padding: '28px 24px',
+            borderRadius: '8px',
+            boxShadow: '0 16px 40px rgba(26, 19, 13, 0.12)',
+            border: '1px solid rgba(179, 137, 56, 0.3)',
+            background: 'rgba(255, 255, 255, 0.94)',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ color: 'var(--gold)', marginBottom: '8px' }}>
+              <ShieldCheck size={26} strokeWidth={1.25} />
             </div>
+            <strong style={{ display: 'block', color: 'var(--text)', fontSize: '0.85rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Silk Mark 100%
+            </strong>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>Govt. certified purity</span>
+          </div>
 
-            <div>
-              <span style={{ fontSize: '1.8rem', display: 'block', marginBottom: '8px' }}>🔒</span>
-              <strong style={{ display: 'block', color: 'var(--text)', fontSize: '0.9rem', letterSpacing: '0.05em' }}>
-                1-of-1 Heirlooms
-              </strong>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>10-min uninterrupted cart hold</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ color: 'var(--gold)', marginBottom: '8px' }}>
+              <Award size={26} strokeWidth={1.25} />
             </div>
+            <strong style={{ display: 'block', color: 'var(--text)', fontSize: '0.85rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              1-of-1 Heirlooms
+            </strong>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>10-min uninterrupted cart hold</span>
+          </div>
 
-            <div>
-              <span style={{ fontSize: '1.8rem', display: 'block', marginBottom: '8px' }}>📹</span>
-              <strong style={{ display: 'block', color: 'var(--text)', fontSize: '0.9rem', letterSpacing: '0.05em' }}>
-                Recorded Packing
-              </strong>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>20s pre-shipment sealing video</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ color: 'var(--gold)', marginBottom: '8px' }}>
+              <Video size={26} strokeWidth={1.25} />
             </div>
+            <strong style={{ display: 'block', color: 'var(--text)', fontSize: '0.85rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Recorded Packing
+            </strong>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>Pre-shipment verification video</span>
+          </div>
 
-            <div>
-              <span style={{ fontSize: '1.8rem', display: 'block', marginBottom: '8px' }}>✈️</span>
-              <strong style={{ display: 'block', color: 'var(--text)', fontSize: '0.9rem', letterSpacing: '0.05em' }}>
-                Insured Air Express
-              </strong>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>4-digit drop OTP security</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ color: 'var(--gold)', marginBottom: '8px' }}>
+              <Truck size={26} strokeWidth={1.25} />
             </div>
+            <strong style={{ display: 'block', color: 'var(--text)', fontSize: '0.85rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Insured Air Express
+            </strong>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>Direct courier delivery</span>
           </div>
         </div>
       </section>

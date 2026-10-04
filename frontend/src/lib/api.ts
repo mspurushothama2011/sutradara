@@ -5,13 +5,27 @@ interface RequestOptions extends RequestInit {
 }
 
 export async function apiRequest<T = any>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const isCustomerEndpoint = endpoint.includes('/customer/');
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   
+  const isPortalContext = typeof window !== 'undefined' && window.location.pathname.startsWith('/portal');
+  const isCustomerEndpoint = normalizedEndpoint.startsWith('/customer/') || (!isPortalContext && normalizedEndpoint.startsWith('/auth/me'));
+  const isAdminEndpoint =
+    isPortalContext ||
+    normalizedEndpoint.startsWith('/admin/') ||
+    normalizedEndpoint.startsWith('/portal/') ||
+    normalizedEndpoint.startsWith('/staff/') ||
+    normalizedEndpoint.startsWith('/audit/') ||
+    normalizedEndpoint.startsWith('/orders') ||
+    normalizedEndpoint.startsWith('/marketing/');
+
   let token: string | null = null;
   if (typeof window !== 'undefined') {
-    if (isCustomerEndpoint) {
-      token = localStorage.getItem('accessToken') || localStorage.getItem('sutradara_token');
+    if (isPortalContext || isAdminEndpoint) {
+      token = localStorage.getItem('sutradara_token');
+    } else if (isCustomerEndpoint) {
+      token = localStorage.getItem('accessToken');
     } else {
+      // General or public endpoints: check admin token if available, then customer
       token = localStorage.getItem('sutradara_token') || localStorage.getItem('accessToken');
     }
   }
@@ -23,7 +37,8 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestOpti
     ...(options.headers as Record<string, string>),
   };
 
-  if (token) {
+  // Only attach Authorization header if not already provided and token is available
+  if (token && !headers['Authorization']) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
@@ -39,34 +54,51 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestOpti
     config.body = JSON.stringify(options.body);
   }
 
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const url = `${API_BASE_URL}${normalizedEndpoint}`;
   const response = await fetch(url, config);
 
-  // Handle 401 Unauthorized (attempt token refresh)
-  if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh') && !endpoint.includes('/customer/auth/')) {
-    try {
-      const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      if (refreshRes.ok) {
-        const { accessToken } = await refreshRes.json();
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('sutradara_token', accessToken);
+  // Handle 401 Unauthorized
+  if (response.status === 401) {
+    // 1. If admin/portal endpoint, attempt token refresh via httpOnly refreshToken cookie
+    if (isAdminEndpoint && !normalizedEndpoint.includes('/auth/login') && !normalizedEndpoint.includes('/auth/refresh')) {
+      try {
+        const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (refreshRes.ok) {
+          const { accessToken } = await refreshRes.json();
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('sutradara_token', accessToken);
+            window.dispatchEvent(new Event('auth-change'));
+          }
+          headers['Authorization'] = `Bearer ${accessToken}`;
+          const retryRes = await fetch(url, { ...config, headers });
+          if (retryRes.ok) {
+            return retryRes.json();
+          }
         }
-        // Retry original request with new token
-        headers['Authorization'] = `Bearer ${accessToken}`;
-        const retryRes = await fetch(url, { ...config, headers });
-        if (!retryRes.ok) {
-          const errData = await retryRes.json().catch(() => ({}));
-          throw new Error(errData.error || `HTTP error ${retryRes.status}`);
-        }
-        return retryRes.json();
+      } catch (refreshErr) {
+        // Refresh failed -> clear admin session
       }
-    } catch (refreshErr) {
+
       if (typeof window !== 'undefined') {
         localStorage.removeItem('sutradara_token');
         localStorage.removeItem('sutradara_user');
+        window.dispatchEvent(new Event('auth-change'));
+        if (window.location.pathname.startsWith('/portal') && window.location.pathname !== '/portal/login') {
+          window.location.href = '/portal/login';
+        }
+      }
+    }
+
+    // 2. If customer endpoint with 401 -> clear invalid/expired customer token immediately
+    if (isCustomerEndpoint && typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('customerUser');
+      window.dispatchEvent(new Event('customer-auth-expired'));
+      if (window.location.pathname.startsWith('/account')) {
+        window.location.href = '/login';
       }
     }
   }
@@ -78,6 +110,7 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestOpti
     error.status = response.status;
     error.code = errorData.code;
     error.data = errorData;
+    error.isAuthError = response.status === 401;
     throw error;
   }
 
@@ -158,4 +191,3 @@ export async function uploadMultipleImages(files: File[]): Promise<{ urls: strin
     files: data.files || [],
   };
 }
-

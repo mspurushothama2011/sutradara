@@ -7,6 +7,10 @@ import {
   verifyRazorpaySignature,
   verifyWebhookSignature,
 } from '../../services/razorpay.service';
+import {
+  createAndDispatchShipment,
+  getShiprocketTracking,
+} from '../../services/shiprocket.service';
 
 const prisma = new PrismaClient();
 
@@ -244,12 +248,12 @@ export async function createOrder(req: AuthRequest, res: Response) {
         {
           status: 'PAID',
           location: 'Varanasi Master Loom Vault',
-          message: 'Order verified and securely captured. Artisan piece queued for pre-shipment quality inspection.',
+          message: 'Order verified and securely captured. Artisan piece queued for dispatch.',
           timestamp: new Date().toISOString(),
         },
       ];
 
-      // 6. Create Order in PostgreSQL with Immutable Customer Snapshot
+      // 6. Create Order in PostgreSQL
       const createdOrder = await tx.order.create({
         data: {
           orderNumber,
@@ -277,11 +281,73 @@ export async function createOrder(req: AuthRequest, res: Response) {
       return { createdOrder };
     });
 
+    let finalOrder = result.createdOrder;
+
+    // Trigger Automated Shiprocket Order Registration & AWB Generation
+    try {
+      const shipping = (finalOrder.shippingAddress || {}) as any;
+      const dispatchRes = await createAndDispatchShipment({
+        orderId: finalOrder.id,
+        orderNumber: finalOrder.orderNumber,
+        orderDate: finalOrder.createdAt.toISOString(),
+        billingCustomerName: finalOrder.customerName || shipping.recipientName || 'Valued Patron',
+        billingAddress: shipping.street || 'Master Heritage Road',
+        billingCity: shipping.city || 'Varanasi',
+        billingPincode: shipping.pincode || '221001',
+        billingState: shipping.state || 'Uttar Pradesh',
+        billingCountry: shipping.country || 'India',
+        billingEmail: finalOrder.customerEmail || 'patron@sutradara.in',
+        billingPhone: finalOrder.customerPhone || shipping.recipientPhone || '+91 98765 43210',
+        shippingIsBilling: true,
+        orderItems: finalOrder.items.map((item) => ({
+          name: item.product.name,
+          sku: item.product.sku,
+          units: item.quantity,
+          sellingPrice: item.price,
+        })),
+        paymentMethod: 'Prepaid',
+        subTotal: finalOrder.totalAmount,
+      });
+
+      if (dispatchRes.success && dispatchRes.awbNumber) {
+        const milestones = (Array.isArray(finalOrder.trackingHistory) ? [...finalOrder.trackingHistory] : []) as any[];
+        milestones.unshift({
+          id: `evt-${Date.now()}`,
+          status: 'SHIPPED',
+          location: 'National Logistics Gateway Hub',
+          message: `Package sealed and registered with ${dispatchRes.courierPartner || 'Shiprocket Courier'}. AWB: ${dispatchRes.awbNumber}.`,
+          timestamp: new Date().toISOString(),
+        });
+
+        finalOrder = await prisma.order.update({
+          where: { id: finalOrder.id },
+          data: {
+            status: 'SHIPPED',
+            courierPartner: dispatchRes.courierPartner,
+            awbNumber: dispatchRes.awbNumber,
+            trackingUrl: dispatchRes.trackingUrl,
+            trackingHistory: milestones as any,
+          },
+          include: {
+            items: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        });
+      } else if (!dispatchRes.success) {
+        console.warn(`Shiprocket order registration notice for ${finalOrder.orderNumber}:`, dispatchRes.error);
+      }
+    } catch (srErr: any) {
+      console.error('Shiprocket auto-dispatch notice:', srErr?.message);
+    }
+
     return res.json({
       success: true,
       message: 'Your royal order has been successfully placed.',
-      order: result.createdOrder,
-      trackingUrl: `/track/${result.createdOrder.orderNumber}`,
+      order: finalOrder,
+      trackingUrl: `/track/${finalOrder.orderNumber}`,
     });
   } catch (error: any) {
     console.error('Failed to create order in DB:', error);
@@ -346,9 +412,18 @@ export async function trackOrder(req: any, res: Response) {
         OR: [
           { orderNumber: orderId },
           { id: orderId },
+          { awbNumber: orderId },
         ],
       },
       include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
         items: {
           include: {
             product: {
@@ -371,10 +446,66 @@ export async function trackOrder(req: any, res: Response) {
       return res.status(404).json({ error: 'Order not found in vault records.' });
     }
 
+    let liveCourier = order.courierPartner;
+    let liveAwb = order.awbNumber;
+    let liveTrackingUrl = order.trackingUrl;
+    let trackingHistory = (Array.isArray(order.trackingHistory) ? [...order.trackingHistory] : []) as any[];
+
+    // Remove any internal QC events from customer view
+    trackingHistory = trackingHistory.filter((e) => e.status !== 'QC_INSPECTED');
+
+    // 🚀 Attempt to fetch real-time carrier scans from Shiprocket API if AWB or order number exists
+    if (order.awbNumber || order.orderNumber) {
+      try {
+        const shiprocketData = await getShiprocketTracking(order.awbNumber || order.orderNumber);
+        if (shiprocketData && shiprocketData.activities && shiprocketData.activities.length > 0) {
+          liveCourier = shiprocketData.courierPartner || liveCourier;
+          liveAwb = shiprocketData.awbNumber || liveAwb;
+          liveTrackingUrl = shiprocketData.trackingUrl || liveTrackingUrl;
+
+          const paidEvent = trackingHistory.find((e) => e.status === 'PAID') || {
+            id: `evt-paid-${order.id}`,
+            status: 'PAID',
+            location: 'Varanasi Master Loom Vault',
+            message: 'Payment authorized and order confirmed. Artisan handloom piece prepared for secure dispatch.',
+            timestamp: new Date(order.createdAt).toISOString(),
+          };
+
+          const combined = [...shiprocketData.activities, paidEvent];
+          combined.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          trackingHistory = combined;
+        }
+      } catch (srErr) {
+        console.warn('Shiprocket customer telemetry lookup notice:', srErr);
+      }
+    }
+
+    // Default sequential timeline if no external carrier events available yet
+    if (trackingHistory.length === 0) {
+      trackingHistory = [
+        {
+          id: `evt-paid-${order.id}`,
+          status: 'PAID',
+          location: 'Varanasi Master Loom Vault',
+          message: 'Payment authorized and order confirmed. Artisan piece queued for dispatch.',
+          timestamp: new Date(order.createdAt).toISOString(),
+        },
+      ];
+    }
+
     // Scrub confidential internal inspectionVideoUrl from customer view
     const { inspectionVideoUrl, ...publicOrder } = order as any;
 
-    return res.json({ order: publicOrder });
+    return res.json({
+      order: {
+        ...publicOrder,
+        courierPartner: liveCourier || order.courierPartner,
+        awbNumber: liveAwb || order.awbNumber,
+        trackingUrl: liveTrackingUrl || order.trackingUrl,
+        trackingHistory,
+        trackingEvents: trackingHistory,
+      },
+    });
   } catch (error) {
     console.error('Failed to track order:', error);
     return res.status(500).json({ error: 'Database failed to track order.' });
@@ -472,7 +603,7 @@ export async function initiateRazorpayOrder(req: AuthRequest, res: Response) {
 }
 
 /**
- * Verify Razorpay Cryptographic Signature & Commit Order in PostgreSQL
+ * Verify Razorpay Cryptographic Signature, Commit Order & Dispatch via Shiprocket
  */
 export async function verifyRazorpayPayment(req: AuthRequest, res: Response) {
   if (!req.user) {
@@ -615,7 +746,7 @@ export async function verifyRazorpayPayment(req: AuthRequest, res: Response) {
         {
           status: 'PAID',
           location: 'Varanasi Master Loom Vault',
-          message: `Payment authorized via Razorpay (${razorpayPaymentId}). Artisan piece queued for pre-shipment quality inspection.`,
+          message: `Payment authorized via Razorpay (${razorpayPaymentId}). Artisan piece queued for dispatch.`,
           timestamp: new Date().toISOString(),
         },
       ];
@@ -650,11 +781,73 @@ export async function verifyRazorpayPayment(req: AuthRequest, res: Response) {
       return { createdOrder };
     });
 
+    let finalOrder = result.createdOrder;
+
+    // 🚀 Automated Shiprocket Order Creation & AWB Assignment
+    try {
+      const shipping = (finalOrder.shippingAddress || {}) as any;
+      const dispatchRes = await createAndDispatchShipment({
+        orderId: finalOrder.id,
+        orderNumber: finalOrder.orderNumber,
+        orderDate: finalOrder.createdAt.toISOString(),
+        billingCustomerName: finalOrder.customerName || shipping.recipientName || 'Valued Patron',
+        billingAddress: shipping.street || 'Master Heritage Road',
+        billingCity: shipping.city || 'Varanasi',
+        billingPincode: shipping.pincode || '221001',
+        billingState: shipping.state || 'Uttar Pradesh',
+        billingCountry: shipping.country || 'India',
+        billingEmail: finalOrder.customerEmail || 'patron@sutradara.in',
+        billingPhone: finalOrder.customerPhone || shipping.recipientPhone || '+91 98765 43210',
+        shippingIsBilling: true,
+        orderItems: finalOrder.items.map((item) => ({
+          name: item.product.name,
+          sku: item.product.sku,
+          units: item.quantity,
+          sellingPrice: item.price,
+        })),
+        paymentMethod: 'Prepaid',
+        subTotal: finalOrder.totalAmount,
+      });
+
+      if (dispatchRes.success && dispatchRes.awbNumber) {
+        const milestones = (Array.isArray(finalOrder.trackingHistory) ? [...finalOrder.trackingHistory] : []) as any[];
+        milestones.unshift({
+          id: `evt-${Date.now()}`,
+          status: 'SHIPPED',
+          location: 'National Logistics Gateway Hub',
+          message: `Shipment registered with ${dispatchRes.courierPartner || 'Shiprocket Air Courier'}. AWB: ${dispatchRes.awbNumber}.`,
+          timestamp: new Date().toISOString(),
+        });
+
+        finalOrder = await prisma.order.update({
+          where: { id: finalOrder.id },
+          data: {
+            status: 'SHIPPED',
+            courierPartner: dispatchRes.courierPartner,
+            awbNumber: dispatchRes.awbNumber,
+            trackingUrl: dispatchRes.trackingUrl,
+            trackingHistory: milestones as any,
+          },
+          include: {
+            items: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        });
+      } else if (!dispatchRes.success) {
+        console.warn(`Shiprocket automated dispatch notice for ${finalOrder.orderNumber}:`, dispatchRes.error);
+      }
+    } catch (dispatchErr: any) {
+      console.error('Shiprocket automated dispatch error:', dispatchErr?.message);
+    }
+
     return res.json({
       success: true,
       message: 'Payment verified and royal order placed successfully.',
-      order: result.createdOrder,
-      trackingUrl: `/track/${result.createdOrder.orderNumber}`,
+      order: finalOrder,
+      trackingUrl: `/track/${finalOrder.orderNumber}`,
     });
   } catch (error: any) {
     console.error('Failed to verify and create order in DB:', error);
@@ -690,13 +883,79 @@ export async function handleRazorpayWebhook(req: any, res: Response) {
 
     if (rzpOrderId) {
       try {
-        await prisma.order.updateMany({
+        const order = await prisma.order.findFirst({
           where: { razorpayOrderId: rzpOrderId },
-          data: {
-            status: 'PAID',
-            razorpayPaymentId: rzpPaymentId || undefined,
+          include: {
+            items: {
+              include: {
+                product: true,
+              },
+            },
           },
         });
+
+        if (order) {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: {
+              status: 'PAID',
+              razorpayPaymentId: rzpPaymentId || order.razorpayPaymentId || undefined,
+            },
+          });
+
+          // If not yet dispatched to Shiprocket, trigger idempotent dispatch
+          if (!order.awbNumber) {
+            try {
+              const shipping = (order.shippingAddress || {}) as any;
+              const dispatchRes = await createAndDispatchShipment({
+                orderId: order.id,
+                orderNumber: order.orderNumber,
+                orderDate: order.createdAt.toISOString(),
+                billingCustomerName: order.customerName || shipping.recipientName || 'Valued Patron',
+                billingAddress: shipping.street || 'Master Heritage Road',
+                billingCity: shipping.city || 'Varanasi',
+                billingPincode: shipping.pincode || '221001',
+                billingState: shipping.state || 'Uttar Pradesh',
+                billingCountry: shipping.country || 'India',
+                billingEmail: order.customerEmail || 'patron@sutradara.in',
+                billingPhone: order.customerPhone || shipping.recipientPhone || '+91 98765 43210',
+                shippingIsBilling: true,
+                orderItems: order.items.map((item) => ({
+                  name: item.product.name,
+                  sku: item.product.sku,
+                  units: item.quantity,
+                  sellingPrice: item.price,
+                })),
+                paymentMethod: 'Prepaid',
+                subTotal: order.totalAmount,
+              });
+
+              if (dispatchRes.success && dispatchRes.awbNumber) {
+                const milestones = (Array.isArray(order.trackingHistory) ? [...order.trackingHistory] : []) as any[];
+                milestones.unshift({
+                  id: `evt-${Date.now()}`,
+                  status: 'SHIPPED',
+                  location: 'National Logistics Gateway Hub',
+                  message: `Shipment registered with ${dispatchRes.courierPartner || 'Shiprocket Air Courier'}. AWB: ${dispatchRes.awbNumber}.`,
+                  timestamp: new Date().toISOString(),
+                });
+
+                await prisma.order.update({
+                  where: { id: order.id },
+                  data: {
+                    status: 'SHIPPED',
+                    courierPartner: dispatchRes.courierPartner,
+                    awbNumber: dispatchRes.awbNumber,
+                    trackingUrl: dispatchRes.trackingUrl,
+                    trackingHistory: milestones as any,
+                  },
+                });
+              }
+            } catch (srErr: any) {
+              console.warn('Shiprocket webhook auto-dispatch notice:', srErr?.message);
+            }
+          }
+        }
       } catch (e) {
         console.error('Webhook order update notice:', e);
       }
@@ -705,4 +964,3 @@ export async function handleRazorpayWebhook(req: any, res: Response) {
 
   return res.json({ status: 'ok', received: true });
 }
-

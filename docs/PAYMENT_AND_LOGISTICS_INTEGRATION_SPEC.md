@@ -1,30 +1,30 @@
 # 💳 Payment & Logistics Integration Specification
 
-This document details the exact production architecture, verification state machines, and activation steps for **Payment Gateway (Razorpay)** and **Logistics Logistics (Shiprocket / Bluedart Air)** on the Sutraಧಾರ luxury handloom e-commerce platform.
+This document details the production architecture, verification state machines, and fulfillment operations for **Payment Gateways (Razorpay)** and **Logistics Dispatch Operations** on the Sutraಧಾರ luxury handloom e-commerce platform.
 
 ---
 
 ## 📌 1. Mode Overview
 
-| Feature | Development Mode (Current) | Production Mode (Planned Integration) |
+| Feature | Operational / Phase 1 Mode | Automated Phase 2 Mode |
 | :--- | :--- | :--- |
-| **Payment Status** | Instant `PAID` state upon placing order | Starts as `PENDING_PAYMENT`, transitions to `PAID` **strictly after server-side HMAC-SHA256 signature verification** |
-| **Stock Decrement** | Decrements immediately on simulated order placement | **Atomic decrement inside database transaction ONLY upon confirmed payment** |
+| **Payment Status** | Instant `PAID` state upon placing order / Verified | Starts as `PENDING`, transitions to `PAID` **strictly after server-side HMAC-SHA256 signature verification** |
+| **Stock Decrement** | Decrements immediately on confirmed order placement | **Atomic decrement inside database transaction ONLY upon confirmed payment** |
 | **1-of-1 Heirloom Lock** | In-memory 10-minute pessimistic lock | Distributed Redis/DB 10-min lock; auto-released on payment failure/timeout |
-| **Logistics / AWB** | Simulated `Bluedart Apex Air` with realistic `BD-XXXXXXXXIN` AWBs | Live Shiprocket API with automated Bluedart Air pickup & AWB generation |
-| **Pre-Shipment QC** | Internal video attachment in staff portal | Internal 20s pre-dispatch video recorded, encrypted, and attached |
+| **Logistics Dispatch** | **In-House Logistics Vault with multi-carrier dispatch & manual AWB logging** | Optional automated Courier API booking |
+| **Pre-Shipment QC** | Internal 20s pre-dispatch video recorded, attached to order | Encrypted inspection video stored in S3/Cloudinary vault |
 
 ---
 
 ## 🛡️ 2. Production Payment State Machine (2-Phase Lifecycle)
 
-In production, no order will ever be marked as `PAID` and no stock will be permanently deducted without cryptographic proof of payment from the gateway.
+No order is marked as `PAID` and no stock is permanently deducted without cryptographic proof of payment from the gateway.
 
 ```mermaid
 stateDiagram-v2
     [*] --> CartCheckout: Patron clicks "Acquire Piece"
     CartCheckout --> PessimisticLock: 10-min hold on 1-of-1 Saree
-    PessimisticLock --> PendingPayment: Order created in DB (Status: PENDING_PAYMENT)
+    PessimisticLock --> PendingPayment: Order created in DB (Status: PENDING)
     
     PendingPayment --> PaymentGateway: Launch Razorpay / Bank Modal
     
@@ -136,49 +136,50 @@ export async function handleRazorpayWebhook(req: Request, res: Response) {
 
 ---
 
-## 📦 4. Shiprocket & Logistics Production Protocol
+## 📦 4. High-Assurance Logistics & Fulfillment Protocol
 
-### A. Courier Partner Strategy
-* **Primary Air Express:** `Bluedart Apex Air` (for luxury handlooms $\ge$ ₹20,000)
-* **High-Value Insurance:** Mandatory 100% declared value insurance on transit
-* **Doorstep Verification:** 4-Digit Secure Drop OTP must be entered into courier handheld device before physical handover.
+### A. 8-Stage Milestone Lifecycle
+Sutradara orders follow an explicit milestone progression:
 
-### B. Fulfillment Workflow:
-1. **Quality Check & Video Attachment:**
-   * Warehouse staff inspects the saree on camera (Silk Mark hologram, gold zari test).
-   * Staff uploads video via staff portal $\rightarrow$ saved to internal S3 vault.
-   * Order status updated to `QC_INSPECTED`.
-2. **Automated Shiprocket AWB Generation:**
-   * Backend invokes Shiprocket API:
-     ```http
-     POST https://apiv2.shiprocket.in/v1/external/orders/create/adhoc
-     Authorization: Bearer <SHIPROCKET_JWT>
-     ```
-   * Assigns Bluedart Air courier and retrieves live `awbNumber` and `trackingUrl`.
-3. **Packaging in Sealed Heritage Trunk:**
-   * Package sealed with serial tamper-evident tape.
-   * Order status transitions to `DISPATCHED` / `SHIPPED`.
-4. **Live Satellite Milestone Sync:**
-   * Shiprocket tracking webhooks automatically push GPS/hub updates (`IN_TRANSIT` $\rightarrow$ `OUT_FOR_DELIVERY` $\rightarrow$ `DELIVERED`).
+1. **`PENDING`**: Order registered, awaiting payment authorization.
+2. **`PAID`**: Payment verified. Stock allocated and reserved in warehouse.
+3. **`QC_INSPECTED`**: Pre-shipment ultra-high-definition 20s inspection video recorded and verified by Master Curator.
+4. **`PROCESSING`**: Piece steamed, folded, and sealed in a luxury heritage trunk with tamper-evident serial tape.
+5. **`SHIPPED`**: Handed over to selected air express courier with assigned AWB tracking number.
+6. **`IN_TRANSIT`**: Air shipment moving through airport gateway hub / destination sorting center.
+7. **`OUT_FOR_DELIVERY`**: White-glove van out for delivery to patron residence.
+8. **`DELIVERED`**: Secure handover complete and accepted by recipient.
+9. **`CANCELLED` / `RETURNED` / `NDR EXCEPTION`**: Non-delivery exception flagged for immediate staff customer outreach.
+
+### B. Supported Courier Partners
+The Admin Dispatch Desk supports multi-courier selection:
+* **Bluedart Apex Air** (Primary express for luxury sarees $\ge$ ₹20,000)
+* **Delhivery Express**
+* **DTDC Express**
+* **Speed Post (India Post)**
+* **The Professional Couriers**
+* **Shadowfax Air**
+* **Xpressbees Logistics**
+* **In-House White-Glove Handover**
+
+### C. Live Customer Tracking (`/track/[orderNumber]`)
+* Accessible by the patron using their unique Order Number (e.g. `SUT-2026-3253`).
+* Displays chronological satellite timeline with GPS/hub checkpoints, status badges, courier name, and AWB link.
+* Pre-shipment QC verification evidence is displayed to assure handloom authenticity.
 
 ---
 
-## 🚀 5. Checklist to Switch from Development to Production
+## 🚀 5. Checklist to Switch to Live Accounts
 
-When ready to connect real payment and courier accounts:
+When ready to connect live payment and courier production accounts:
 
 - [ ] **1. Add Environment Secrets (`backend/.env`):**
   ```env
   RAZORPAY_KEY_ID="rzp_live_xxxxxxxxxxxxxx"
   RAZORPAY_KEY_SECRET="xxxxxxxxxxxxxxxxxxxxxxxx"
   RAZORPAY_WEBHOOK_SECRET="whsec_xxxxxxxxxxxxxx"
-  SHIPROCKET_EMAIL="logistics@sutradara.in"
-  SHIPROCKET_PASSWORD="xxxxxxxxxxxxxxxx"
   ```
 - [ ] **2. Activate 2-Phase Order Controller:**
-  * Update `backend/src/controllers/customer/orders.controller.ts` to set initial order status as `PENDING_PAYMENT`.
-  * Enable the HMAC-SHA256 webhook listener in `backend/src/controllers/payments.controller.ts`.
-- [ ] **3. Connect Shiprocket API Client:**
-  * Configure automatic Bluedart Air dispatch trigger upon staff marking order as `QC_INSPECTED`.
-- [ ] **4. Test Live Small-Amount Transaction:**
+  * Ensure `handleRazorpayWebhook` is connected to live Razorpay webhook dashboard pointing to `https://api.sutradara.in/api/v1/payments/webhook`.
+- [ ] **3. Test Live Small-Amount Transaction:**
   * Perform a live ₹1 test transaction on Razorpay to verify webhook delivery, stock decrement, and live tracking generation.

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 interface TurnstileCaptchaProps {
   onVerify: (token: string) => void;
@@ -138,7 +139,7 @@ export default function TurnstileCaptcha({
               fontSize: '0.75rem',
               background: hasDevBypassed ? 'rgba(74, 222, 128, 0.15)' : 'rgba(201, 168, 76, 0.12)',
               border: hasDevBypassed ? '1px solid #4ade80' : '1px dashed var(--gold)',
-              borderRadius: '6px',
+              borderRadius: '3px',
               color: hasDevBypassed ? '#4ade80' : 'var(--gold)',
               cursor: 'pointer',
               display: 'inline-flex',
@@ -146,7 +147,7 @@ export default function TurnstileCaptcha({
               gap: '6px',
             }}
           >
-            <span>{hasDevBypassed ? '✓' : '🛡️'}</span>
+            {hasDevBypassed ? <CheckCircle2 size={13} strokeWidth={1.5} /> : <ShieldCheck size={13} strokeWidth={1.5} />}
             <span>{hasDevBypassed ? 'Security Verified (Dev Mode)' : 'Click to Verify Turnstile (Dev Simulation)'}</span>
           </button>
         </div>

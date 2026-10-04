@@ -13,8 +13,11 @@ export default function AuditLogsPage() {
       setIsLoading(true);
       const res = await apiRequest('/audit');
       setLogs(res.auditLogs || []);
-    } catch (e) {
-      console.error('Failed to load audit logs:', e);
+    } catch (e: any) {
+      if (e?.status !== 401) {
+        console.warn('Audit logs notice:', e?.message || e);
+      }
+      setLogs([]);
     } finally {
       setIsLoading(false);
     }

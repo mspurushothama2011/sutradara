@@ -10,10 +10,10 @@ export default function ShippingPolicyPage() {
       <div style={{ maxWidth: '860px', margin: '0 auto', padding: '140px 24px 80px' }}>
         <div style={{ marginBottom: '40px', borderBottom: '1px solid rgba(179, 137, 56, 0.25)', paddingBottom: '20px' }}>
           <span style={{ fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--gold-dark)', textTransform: 'uppercase', fontWeight: 600 }}>
-            LOGISTICS &amp; TRANSIT
+            LOGISTICS & TRANSIT
           </span>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', color: 'var(--text)', marginTop: '6px' }}>
-            Shipping &amp; Delivery Policy
+            Shipping & Delivery Policy
           </h1>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '4px' }}>
             100% Insured Express Delivery • Sealed Heritage Box Packaging
@@ -36,7 +36,7 @@ export default function ShippingPolicyPage() {
             </h2>
             <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text)' }}>
               <li><strong>Metros (Mumbai, Delhi NCR, Bangalore, Chennai, Hyderabad, Kolkata):</strong> 2 to 3 business days.</li>
-              <li><strong>Tier 2 &amp; Tier 3 Cities:</strong> 3 to 5 business days.</li>
+              <li><strong>Tier 2 & Tier 3 Cities:</strong> 3 to 5 business days.</li>
               <li><strong>International Destinations (USA, UK, UAE, Singapore):</strong> 5 to 7 business days via DHL Express.</li>
             </ul>
           </section>

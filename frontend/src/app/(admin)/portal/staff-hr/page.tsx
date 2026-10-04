@@ -30,8 +30,11 @@ export default function StaffHRPage() {
       const today = new Date().toISOString().split('T')[0];
       const todayRecord = (res.attendance || []).find((a: AttendanceRecord) => a.date === today && !a.clockOut);
       setIsClockedIn(Boolean(todayRecord));
-    } catch (e) {
-      console.error('Failed to load attendance:', e);
+    } catch (e: any) {
+      if (e?.status !== 401) {
+        console.warn('Attendance load notice:', e?.message || e);
+      }
+      setAttendance([]);
     } finally {
       setIsLoading(false);
     }

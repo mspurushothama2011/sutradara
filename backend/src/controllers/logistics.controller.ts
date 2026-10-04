@@ -41,9 +41,9 @@ export async function dispatchOrderViaShiprocket(req: AuthRequest, res: Response
       orderDate: order.createdAt.toISOString(),
       billingCustomerName: shipping.recipientName || order.customer?.name || 'Valued Patron',
       billingAddress: shipping.street || 'Master Heritage Road',
-      billingCity: shipping.city || 'Mumbai',
-      billingPincode: shipping.pincode || '400001',
-      billingState: shipping.state || 'Maharashtra',
+      billingCity: shipping.city || 'Varanasi',
+      billingPincode: shipping.pincode || '221001',
+      billingState: shipping.state || 'Uttar Pradesh',
       billingCountry: shipping.country || 'India',
       billingEmail: order.customer?.email || 'patron@sutradara.in',
       billingPhone: shipping.recipientPhone || order.customer?.phone || '+91 98765 43210',
@@ -58,13 +58,20 @@ export async function dispatchOrderViaShiprocket(req: AuthRequest, res: Response
       subTotal: order.totalAmount,
     });
 
+    if (!dispatchRes.success) {
+      return res.status(400).json({
+        error: dispatchRes.error || 'Failed to dispatch order via Shiprocket API.',
+        dispatch: dispatchRes,
+      });
+    }
+
     // Update tracking history in PostgreSQL
     const currentEvents = (Array.isArray(order.trackingHistory) ? order.trackingHistory : []) as any[];
     currentEvents.unshift({
       id: `evt-${Date.now()}`,
       status: 'SHIPPED',
       location: 'National Logistics Gateway Hub',
-      message: `Shipment sealed and handed over to ${dispatchRes.courierPartner}. Airway Bill: ${dispatchRes.awbNumber}.`,
+      message: `Shipment sealed and registered with ${dispatchRes.courierPartner || 'Shiprocket Courier'}. Airway Bill: ${dispatchRes.awbNumber || 'Assigned'}.`,
       timestamp: new Date().toISOString(),
     });
 
@@ -89,9 +96,7 @@ export async function dispatchOrderViaShiprocket(req: AuthRequest, res: Response
 
     return res.json({
       success: true,
-      message: dispatchRes.isSimulated
-        ? 'Order dispatched successfully via high-assurance air simulation.'
-        : 'Order successfully registered and dispatched via live Shiprocket API.',
+      message: 'Order successfully registered and dispatched via live Shiprocket API.',
       dispatch: dispatchRes,
       order: updated,
     });
@@ -106,6 +111,14 @@ export async function dispatchOrderViaShiprocket(req: AuthRequest, res: Response
  */
 export async function handleShiprocketWebhook(req: Request, res: Response) {
   try {
+    const webhookSecret = process.env.SHIPROCKET_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const incomingKey = (req.headers['x-api-key'] || req.headers['x-shiprocket-token'] || req.headers['authorization']) as string;
+      if (incomingKey && incomingKey.replace(/^Bearer\s+/i, '') !== webhookSecret) {
+        return res.status(401).json({ error: 'Unauthorized webhook request.' });
+      }
+    }
+
     const { current_status, awb, location, scans, order_id } = req.body;
 
     if (!awb && !order_id) {
@@ -127,21 +140,24 @@ export async function handleShiprocketWebhook(req: Request, res: Response) {
 
     const statusMap: { [key: string]: string } = {
       'PICKED UP': 'SHIPPED',
+      'PICKED': 'SHIPPED',
       'IN TRANSIT': 'IN_TRANSIT',
       'OUT FOR DELIVERY': 'OUT_FOR_DELIVERY',
       'DELIVERED': 'DELIVERED',
       'RTO INITIATED': 'CANCELLED',
+      'RTO DELIVERED': 'CANCELLED',
     };
 
-    const mappedStatus = statusMap[String(current_status).toUpperCase()] || order.status;
+    const rawStatus = String(current_status || '').toUpperCase();
+    const mappedStatus = statusMap[rawStatus] || order.status;
     const currentEvents = (Array.isArray(order.trackingHistory) ? order.trackingHistory : []) as any[];
 
     const latestScan = scans && Array.isArray(scans) && scans.length > 0 ? scans[0] : null;
-    const scanLocation = location || latestScan?.location || 'Logistics Hub Gateway';
+    const scanLocation = location || latestScan?.location || 'Logistics Gateway Hub';
     const scanActivity = latestScan?.activity || `Shipment status updated to ${current_status}`;
 
     currentEvents.unshift({
-      id: `evt-${Date.now()}`,
+      id: `evt-sr-${Date.now()}`,
       status: mappedStatus,
       location: scanLocation,
       message: scanActivity,

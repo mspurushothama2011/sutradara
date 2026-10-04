@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Truck, ShieldCheck, CheckCircle2, User, ArrowRight } from 'lucide-react';
 import LandingNavbar from '@/components/landing/LandingNavbar';
 
 export default function TrackOrderSearchPage() {
@@ -29,7 +30,7 @@ export default function TrackOrderSearchPage() {
       <main style={{ maxWidth: '800px', margin: '0 auto', paddingTop: '140px', paddingBottom: '80px', paddingLeft: '24px', paddingRight: '24px' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <span style={{ fontSize: '0.75rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 700 }}>
+          <span style={{ fontSize: '0.78rem', letterSpacing: '0.3em', color: 'var(--gold)', textTransform: 'uppercase', fontWeight: 700 }}>
             LIVE SATELLITE DISPATCH
           </span>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4.5vw, 2.8rem)', color: 'var(--text)', marginTop: '8px' }}>
@@ -44,8 +45,8 @@ export default function TrackOrderSearchPage() {
         <div
           style={{
             background: '#ffffff',
-            border: '1.5px solid var(--gold)',
-            borderRadius: '16px',
+            border: '1px solid var(--gold)',
+            borderRadius: '3px',
             padding: '36px 32px',
             boxShadow: '0 16px 48px rgba(26, 19, 13, 0.08)',
           }}
@@ -57,7 +58,7 @@ export default function TrackOrderSearchPage() {
                 padding: '12px 16px',
                 background: 'rgba(239, 68, 68, 0.12)',
                 border: '1px solid #ef4444',
-                borderRadius: '8px',
+                borderRadius: '2px',
                 color: '#b91c1c',
                 fontSize: '0.85rem',
                 textAlign: 'center',
@@ -70,12 +71,12 @@ export default function TrackOrderSearchPage() {
 
           <form onSubmit={handleTrackSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--gold)', marginBottom: '8px', fontWeight: 700 }}>
+              <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--gold)', marginBottom: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Order Number or AWB Airway Bill
               </label>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '1.2rem', color: 'var(--gold)' }}>
-                  📦
+                <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--gold)' }}>
+                  <Truck size={20} />
                 </span>
                 <input
                   type="text"
@@ -89,9 +90,9 @@ export default function TrackOrderSearchPage() {
                     padding: '16px 16px 16px 52px',
                     background: '#FAF8F5',
                     border: '1px solid rgba(179, 137, 56, 0.3)',
-                    borderRadius: '8px',
+                    borderRadius: '2px',
                     color: 'var(--text)',
-                    fontSize: '1.05rem',
+                    fontSize: '1rem',
                     fontFamily: 'monospace',
                     letterSpacing: '1px',
                     outline: 'none',
@@ -111,24 +112,30 @@ export default function TrackOrderSearchPage() {
                 background: 'var(--gold)',
                 color: '#ffffff',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '2px',
                 fontWeight: 700,
-                fontSize: '0.95rem',
+                fontSize: '0.85rem',
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 boxShadow: '0 4px 14px rgba(179, 137, 56, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
               }}
             >
-              Track Live Dispatch 🚀
+              <span>Track Live Dispatch</span>
+              <ArrowRight size={15} />
             </button>
           </form>
 
           {/* Quick links */}
           <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid rgba(179, 137, 56, 0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '0.82rem' }}>
-            <Link href="/account/orders" style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 600 }}>
-              👤 View My Orders in Account Sanctuary
+            <Link href="/account/orders" style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <User size={14} />
+              <span>View My Orders in Account Sanctuary</span>
             </Link>
             <Link href="/contact" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>
               Need Help? Contact Concierge →
@@ -138,27 +145,33 @@ export default function TrackOrderSearchPage() {
 
         {/* 3 Pillars of Dispatch Security */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginTop: '48px' }}>
-          <div style={{ background: '#ffffff', padding: '24px', borderRadius: '12px', border: '1px solid rgba(179, 137, 56, 0.22)', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
-            <span style={{ fontSize: '1.6rem', display: 'block', marginBottom: '8px' }}>🛡️</span>
-            <h3 style={{ fontSize: '0.95rem', color: 'var(--text)', fontWeight: 600 }}>Silk Mark Certified</h3>
+          <div style={{ background: '#ffffff', padding: '24px', borderRadius: '3px', border: '1px solid rgba(179, 137, 56, 0.22)', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
+            <div style={{ color: 'var(--gold)', marginBottom: '8px' }}>
+              <ShieldCheck size={26} strokeWidth={1.25} />
+            </div>
+            <h3 style={{ fontSize: '0.92rem', color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Silk Mark Certified</h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
               Every saree is inspected for 100% natural mulberry silk and authentic zari before box sealing.
             </p>
           </div>
 
-          <div style={{ background: '#ffffff', padding: '24px', borderRadius: '12px', border: '1px solid rgba(179, 137, 56, 0.22)', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
-            <span style={{ fontSize: '1.6rem', display: 'block', marginBottom: '8px' }}>✍️</span>
-            <h3 style={{ fontSize: '0.95rem', color: 'var(--text)', fontWeight: 600 }}>White-Glove Handover</h3>
+          <div style={{ background: '#ffffff', padding: '24px', borderRadius: '3px', border: '1px solid rgba(179, 137, 56, 0.22)', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
+            <div style={{ color: 'var(--gold)', marginBottom: '8px' }}>
+              <CheckCircle2 size={26} strokeWidth={1.25} />
+            </div>
+            <h3 style={{ fontSize: '0.92rem', color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>White-Glove Handover</h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
               Direct verified handover with courier proof of delivery and live tracking confirmation.
             </p>
           </div>
 
-          <div style={{ background: '#ffffff', padding: '24px', borderRadius: '12px', border: '1px solid rgba(179, 137, 56, 0.22)', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
-            <span style={{ fontSize: '1.6rem', display: 'block', marginBottom: '8px' }}>✈️</span>
-            <h3 style={{ fontSize: '0.95rem', color: 'var(--text)', fontWeight: 600 }}>Insured Express Air</h3>
+          <div style={{ background: '#ffffff', padding: '24px', borderRadius: '3px', border: '1px solid rgba(179, 137, 56, 0.22)', boxShadow: '0 4px 16px rgba(26, 19, 13, 0.05)' }}>
+            <div style={{ color: 'var(--gold)', marginBottom: '8px' }}>
+              <Truck size={26} strokeWidth={1.25} />
+            </div>
+            <h3 style={{ fontSize: '0.92rem', color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Insured Express Air</h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-              Dispatched with Bluedart / Shiprocket Express in tamper-evident waterproof luxury presentation boxes.
+              Dispatched in tamper-evident waterproof luxury presentation boxes.
             </p>
           </div>
         </div>

@@ -21,7 +21,11 @@ export type OrderStatus =
   | 'PENDING'
   | 'PAID'
   | 'PROCESSING'
+  | 'QC_INSPECTED'
+  | 'DISPATCHED'
   | 'SHIPPED'
+  | 'IN_TRANSIT'
+  | 'OUT_FOR_DELIVERY'
   | 'DELIVERED'
   | 'CANCELLED'
   | 'RETURNED';
@@ -45,6 +49,40 @@ export interface User {
   createdAt: string;
 }
 
+export interface CategoryBreadcrumb {
+  id: string;
+  name: string;
+  slug: string;
+  level: number;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  region?: string;
+  image?: string;
+  isFeatured?: boolean;
+  displayOrder?: number;
+  parentId?: string | null;
+  parent?: Category | null;
+  children?: Category[];
+  level?: number; // 0: Main/Root, 1: Subcategory, 2: Sub-subcategory, 3: Sub-sub-subcategory
+  breadcrumbs?: CategoryBreadcrumb[];
+  subCategories?: SubCategory[]; // Maintained for legacy compatibility
+  products?: Product[];
+  productCount?: number;
+  totalDescendantProductCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CategoryTreeNode extends Category {
+  children: CategoryTreeNode[];
+  level: number;
+}
+
 export interface SubCategory {
   id: string;
   name: string;
@@ -54,21 +92,6 @@ export interface SubCategory {
   category?: Category;
   productCount?: number;
   products?: Product[];
-  createdAt?: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  region: string;
-  image?: string;
-  isFeatured?: boolean;
-  displayOrder?: number;
-  subCategories?: SubCategory[];
-  products?: Product[];
-  productCount?: number;
   createdAt?: string;
 }
 

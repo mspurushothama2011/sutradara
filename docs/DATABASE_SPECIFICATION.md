@@ -85,11 +85,14 @@ Defines actor privileges across internal operations:
 Strict state machine for handloom order fulfillment:
 | Value | Description |
 | :--- | :--- |
-| `PENDING` | Order created; awaiting online payment gateway capture |
-| `PAID` | Payment captured and verified via Razorpay HMAC signature |
-| `PROCESSING` | Artisan piece retrieved from vault; pre-shipment 20s video QC conducted |
-| `SHIPPED` | Dispatched via high-assurance courier (AWB generated, tracking active) |
-| `DELIVERED` | 4-digit drop OTP validated by delivery agent at patron doorstep |
+| `PENDING` | Order created; awaiting online payment capture / checkout authorization |
+| `PAID` | Payment captured and verified |
+| `QC_INSPECTED` | Pre-shipment 20s ultra-high-definition video inspection recorded and verified by Master Curator |
+| `PROCESSING` | Artisan piece steamed, folded, and sealed in luxury heritage trunk with tamper-evident tape |
+| `SHIPPED` | Dispatched via high-assurance air courier (AWB generated, tracking active) |
+| `IN_TRANSIT` | Air shipment in flight or sorted at metro airport gateway hub |
+| `OUT_FOR_DELIVERY` | White-glove van out for delivery to patron doorstep |
+| `DELIVERED` | Handover complete and accepted by recipient at patron residence |
 | `CANCELLED` | Order cancelled; 1-of-1 heirloom reservation released back to inventory |
 | `RETURNED` | Verified 7-day white-glove inspection return processed |
 
@@ -244,23 +247,24 @@ Stores public storefront patrons with passwordless email OTP and address associa
 ---
 
 ### Table 8: `Order`
-High-assurance order records with integrated JSONB milestone history.
+High-assurance order records with immutable customer snapshots, multi-carrier logistics, and integrated JSONB milestone history.
 
 | Column | Type | Constraints | Default | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `id` | `VARCHAR(36)` | **PK**, UUID | `uuid()` | Internal order UUID |
 | `orderNumber` | `VARCHAR(50)` | **UNIQUE**, NOT NULL | — | Human-readable ID (e.g. `SUT-2026-1001`) |
-| `userId` | `VARCHAR(36)` | **FK**, NULLABLE | — | Reference to `User.id` |
 | `customerId` | `VARCHAR(36)` | **FK**, NULLABLE | — | Reference to `Customer.id` |
-| `status` | `OrderStatus` | NOT NULL | `PENDING` | Order lifecycle status |
+| `customerName` | `VARCHAR(100)` | NULLABLE | — | **Immutable Customer Name snapshot** at checkout |
+| `customerEmail`| `VARCHAR(150)` | NULLABLE | — | **Immutable Customer Email snapshot** at checkout |
+| `customerPhone`| `VARCHAR(20)` | NULLABLE | — | **Immutable Customer Phone snapshot** at checkout |
+| `status` | `OrderStatus` | NOT NULL | `PENDING` | Order lifecycle status (`PENDING`, `PAID`, `QC_INSPECTED`, `PROCESSING`, `SHIPPED`, `IN_TRANSIT`, `OUT_FOR_DELIVERY`, `DELIVERED`, `CANCELLED`, `RETURNED`) |
 | `totalAmount` | `DOUBLE PRECISION`| NOT NULL | — | Server-recalculated total in INR |
 | `shippingAddress`| `JSONB` | NOT NULL | — | Immutable JSON snapshot of destination address |
 | `trackingHistory`| `JSONB` | NULLABLE | `'[]'` | **Chronological milestone array** |
-| `courierPartner`| `VARCHAR(100)` | NULLABLE | — | Logistics carrier (e.g. *"BlueDart Apex"*) |
+| `courierPartner`| `VARCHAR(100)` | NULLABLE | — | Logistics carrier (e.g. *"Bluedart Apex Air"*, *"Delhivery Express"*, *"DTDC Express"*, *"Speed Post"*) |
 | `awbNumber` | `VARCHAR(100)` | **UNIQUE**, NULLABLE| — | Air Waybill / Tracking number |
 | `trackingUrl` | `VARCHAR(500)` | NULLABLE | — | Courier tracking link |
-| `deliveryOtp` | `VARCHAR(6)` | NULLABLE | — | **4-digit secure delivery OTP** given to driver |
-| `inspectionVideoUrl`|`VARCHAR(500)`| NULLABLE | — | **INTERNAL WAREHOUSE EVIDENCE RECORD** (Strictly not exposed to customers) |
+| `inspectionVideoUrl`|`VARCHAR(500)`| NULLABLE | — | **INTERNAL WAREHOUSE EVIDENCE RECORD** (Scrubbed from public patron views) |
 | `isNdrFlagged` | `BOOLEAN` | NOT NULL | `false` | Flagged if Non-Delivery Report was filed |
 | `ndrReason` | `TEXT` | NULLABLE | — | Delivery failure / rescheduling note |
 | `razorpayOrderId`|`VARCHAR(100)` | **UNIQUE**, NULLABLE| — | Payment gateway order ID |
