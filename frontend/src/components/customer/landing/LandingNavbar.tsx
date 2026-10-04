@@ -71,31 +71,17 @@ export default function LandingNavbar() {
         {/* Brand Logo */}
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
           {!navLogoError ? (
-            <div
+            <img
+              src="/hero/logo_name.svg"
+              alt="House of Sutradara"
+              onError={() => setNavLogoError(true)}
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '6px 14px',
-                background: 'linear-gradient(145deg, #1C120C 0%, #120B07 100%)',
-                border: '1px solid rgba(179, 137, 56, 0.45)',
-                borderRadius: '6px',
-                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.15)',
-                transition: 'all 0.25s ease',
+                height: '42px',
+                width: 'auto',
+                objectFit: 'contain',
+                display: 'block',
               }}
-            >
-              <img
-                src="/hero/logo_name.svg"
-                alt="House of Sutradara"
-                onError={() => setNavLogoError(true)}
-                style={{
-                  height: '38px',
-                  width: 'auto',
-                  objectFit: 'contain',
-                  display: 'block',
-                }}
-              />
-            </div>
+            />
           ) : (
             <div>
               <span

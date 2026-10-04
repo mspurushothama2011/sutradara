@@ -596,18 +596,18 @@ export default function Home() {
             alignItems: 'center',
           }}
         >
-          {/* Elegant Imperial Obsidian Frosted Glass Brand Card */}
+          {/* Elegant Royal Silk Ivory Frosted Glass Brand Card */}
           <div
             style={{
               maxWidth: '480px',
               textAlign: 'left',
               padding: '36px 40px',
-              background: 'linear-gradient(145deg, rgba(28, 18, 12, 0.90) 0%, rgba(18, 11, 7, 0.86) 100%)',
+              background: 'linear-gradient(145deg, rgba(255, 253, 249, 0.94) 0%, rgba(250, 245, 237, 0.90) 100%)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
               borderRadius: '12px',
-              border: '1px solid rgba(212, 175, 55, 0.45)',
-              boxShadow: '0 24px 60px rgba(10, 6, 4, 0.45), 0 0 30px rgba(179, 137, 56, 0.15)',
+              border: '1px solid rgba(179, 137, 56, 0.40)',
+              boxShadow: '0 24px 60px rgba(45, 25, 8, 0.12), 0 0 30px rgba(179, 137, 56, 0.10)',
             }}
           >
             {/* Logo Image Support */}
@@ -646,7 +646,7 @@ export default function Home() {
                     style={{
                       fontFamily: 'var(--font-display)',
                       fontSize: 'clamp(2.4rem, 4.2vw, 3.6rem)',
-                      color: '#FAF8F5',
+                      color: '#1C120C',
                       letterSpacing: '0.06em',
                       textTransform: 'uppercase',
                       fontWeight: 500,
@@ -664,7 +664,7 @@ export default function Home() {
               style={{
                 fontSize: '0.84rem',
                 letterSpacing: '0.24em',
-                color: '#E6D5C3',
+                color: '#3B2314',
                 textTransform: 'uppercase',
                 fontWeight: 600,
                 margin: '0 0 24px',
