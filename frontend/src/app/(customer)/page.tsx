@@ -614,7 +614,7 @@ export default function Home() {
             <div style={{ marginBottom: '16px' }}>
               {!logoError ? (
                 <img
-                  src="/logo.png"
+                  src="/hero/logo-transparent.svg"
                   alt="House of Sutradara"
                   onError={() => setLogoError(true)}
                   style={{
@@ -625,7 +625,6 @@ export default function Home() {
                     objectFit: 'contain',
                     display: 'block',
                     marginBottom: '8px',
-                    filter: 'drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5))',
                   }}
                 />
               ) : (

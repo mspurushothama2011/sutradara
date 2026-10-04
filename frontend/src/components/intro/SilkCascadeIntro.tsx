@@ -96,20 +96,9 @@ export default function SilkCascadeIntro({ onComplete, forcePlay = false }: Prop
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hasPlayed = sessionStorage.getItem('sutra_intro_played');
-      if (hasPlayed && !forcePlay) {
-        setIsVisible(false);
-        return;
-      }
-    }
-
+    // Enable animation on page load
     setIsVisible(true);
     setIsFadingOut(false);
-
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('sutra_intro_played', 'true');
-    }
 
     // Snappy, luxurious 2.6s complete lifecycle
     const timer = setTimeout(() => {
